@@ -10,7 +10,7 @@ import org.junit.Test
 class MapperExtTest {
 
     @Test
-    fun `AccountEntity toDomain and back should preserve data`() {
+    fun toDomainAndBack_withAccountEntity_shouldPreserveData() {
         val entity = AccountEntity(
             id = "acc-1",
             name = "Cash Wallet",
@@ -28,7 +28,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `CategoryEntity toDomain and back should preserve data`() {
+    fun toDomainAndBack_withCategoryEntity_shouldPreserveData() {
         val entity = CategoryEntity(
             id = "cat-1",
             name = "Food",
@@ -54,7 +54,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `AccountType round trip should match`() {
+    fun toDomainAndBack_withAccountType_shouldMatch() {
         AccountType.entries.forEach {
             val roundTrip = it.toEntity().toDomain()
             assertEquals(it, roundTrip)
@@ -62,7 +62,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `TrxType round trip should match`() {
+    fun toDomainAndBack_withTrxType_shouldMatch() {
         TrxType.entries.forEach {
             val roundTrip = it.toEntity().toDomain()
             assertEquals(it, roundTrip)
@@ -70,7 +70,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `TrxEntity toDomain and back for Income`() {
+    fun toDomainAndBack_withIncomeTransaction_shouldPreserveData() {
         val category = Category("cat", "Salary", TrxType.Income, null, 1000L, null)
         val account = Account("acc", "Bank", 0L, 1000L, AccountType.Bank, 1000L, null)
 
@@ -95,7 +95,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `TrxEntity toDomain and back for Spending`() {
+    fun toDomainAndBack_withSpendingTransaction_shouldPreserveData() {
         val category = Category("cat", "Groceries", TrxType.Spending, null, 1000L, null)
         val account = Account("acc", "Cash Wallet", 50000L, 30000L, AccountType.Cash, 1000L, null)
 
@@ -120,7 +120,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `TrxEntity toDomain and back for Transfer`() {
+    fun toDomainAndBack_withTransferTransaction_shouldPreserveData() {
         val category = Category("cat", "Internal Transfer", TrxType.Transfer, null, 1000L, null)
         val source = Account("acc1", "Wallet", 5000L, 3000L, AccountType.Cash, 1000L, null)
         val target = Account("acc2", "Bank", 10000L, 12000L, AccountType.Bank, 1000L, null)
@@ -146,7 +146,7 @@ class MapperExtTest {
     }
 
     @Test
-    fun `TrxEntity toDomain throws on missing targetAccount for Transfer`() {
+    fun toDomain_withTransferTransactionMissingTargetAccount_shouldThrowException() {
         val category = Category("cat", "Internal Transfer", TrxType.Transfer, null, 1000L, null)
         val source = Account("acc1", "Wallet", 5000L, 3000L, AccountType.Cash, 1000L, null)
 
