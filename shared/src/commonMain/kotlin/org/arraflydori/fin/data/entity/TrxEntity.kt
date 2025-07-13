@@ -7,7 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "transaction",
+    tableName = "trx",
     foreignKeys = [
         ForeignKey(
             entity = CategoryEntity::class,
