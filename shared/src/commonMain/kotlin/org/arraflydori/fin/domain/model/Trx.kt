@@ -48,3 +48,21 @@ sealed class Trx(
         override val updatedAt: Long?
     ) : Trx(id, name, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
 }
+
+fun Trx.withId(id: String): Trx = when (this) {
+    is Trx.Income -> copy(id = id)
+    is Trx.Spending -> copy(id = id)
+    is Trx.Transfer -> copy(id = id)
+}
+
+fun Trx.withCreatedAt(createdAt: Long): Trx = when (this) {
+    is Trx.Income -> copy(createdAt = createdAt)
+    is Trx.Spending -> copy(createdAt = createdAt)
+    is Trx.Transfer -> copy(createdAt = createdAt)
+}
+
+fun Trx.withUpdatedAt(updatedAt: Long): Trx = when (this) {
+    is Trx.Income -> copy(updatedAt = updatedAt)
+    is Trx.Spending -> copy(updatedAt = updatedAt)
+    is Trx.Transfer -> copy(updatedAt = updatedAt)
+}

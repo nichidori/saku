@@ -3,6 +3,7 @@ package org.arraflydori.fin.data.entity
 import org.arraflydori.fin.domain.model.Account
 import org.arraflydori.fin.domain.model.AccountType
 import org.arraflydori.fin.domain.model.Category
+import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxType
 import kotlin.test.*
 import org.junit.Test
@@ -167,5 +168,168 @@ class MapperExtTest {
         assertFailsWith<IllegalArgumentException> {
             entity.toDomain(category, source, null)
         }
+    }
+
+    @Test
+    fun toDomain_withIncomeTrxWithDetailsEntity_shouldReturnCorrectDomainModel() {
+        val category = CategoryEntity(
+            id = "cat-1",
+            name = "Salary",
+            type = TrxTypeEntity.Income,
+            parentId = null,
+            createdAt = 1_000L,
+            updatedAt = 2_000L
+        )
+
+        val sourceAccount = AccountEntity(
+            id = "acc-1",
+            name = "Bank",
+            initialAmount = 0L,
+            currentAmount = 5_000_000L,
+            type = AccountTypeEntity.Bank,
+            createdAt = 500L,
+            updatedAt = 1000L
+        )
+
+        val trxEntity = TrxEntity(
+            id = "trx-1",
+            name = "Monthly Salary",
+            amount = 10_000_000L,
+            categoryId = category.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = 1_650_000_000L,
+            note = "July salary",
+            createdAt = 1_650_000_100L,
+            updatedAt = 1_650_000_200L,
+            type = TrxTypeEntity.Income
+        )
+
+        val trxWithDetails = TrxWithDetailsEntity(
+            trx = trxEntity,
+            category = category,
+            sourceAccount = sourceAccount,
+            targetAccount = null
+        )
+
+        val domain = trxWithDetails.toDomain()
+
+        assertTrue(domain is Trx.Income)
+        assertEquals(trxEntity.id, domain.id)
+        assertEquals(trxEntity.name, domain.name)
+        assertEquals(trxEntity.amount, domain.amount)
+        assertEquals(trxEntity.transactionAt, domain.transactionAt)
+        assertEquals(trxEntity.note, domain.note)
+        assertEquals(trxEntity.createdAt, domain.createdAt)
+        assertEquals(trxEntity.updatedAt, domain.updatedAt)
+        assertEquals(sourceAccount.toDomain(), domain.sourceAccount)
+        assertEquals(category.toDomain(), domain.category)
+    }
+
+    @Test
+    fun toDomain_withSpendingTrxWithDetailsEntity_shouldReturnCorrectDomainModel() {
+        val entity = TrxWithDetailsEntity(
+            trx = TrxEntity(
+                id = "trx-spend",
+                name = "Dinner",
+                amount = 50000L,
+                categoryId = "cat-spend",
+                sourceAccountId = "acc-wallet",
+                targetAccountId = null,
+                transactionAt = 1_000_000L,
+                note = "Friday night dinner",
+                createdAt = 1_000_001L,
+                updatedAt = 1_000_002L,
+                type = TrxTypeEntity.Spending
+            ),
+            category = CategoryEntity(
+                id = "cat-spend",
+                name = "Food & Dining",
+                type = TrxTypeEntity.Spending,
+                parentId = null,
+                createdAt = 900_000L,
+                updatedAt = 900_001L
+            ),
+            sourceAccount = AccountEntity(
+                id = "acc-wallet",
+                name = "Wallet",
+                initialAmount = 200_000L,
+                currentAmount = 150_000L,
+                type = AccountTypeEntity.Cash,
+                createdAt = 800_000L,
+                updatedAt = 800_001L
+            ),
+            targetAccount = null
+        )
+
+        val domain = entity.toDomain()
+
+        assertTrue(domain is Trx.Spending)
+        assertEquals("trx-spend", domain.id)
+        assertEquals("Dinner", domain.name)
+        assertEquals(50000L, domain.amount)
+        assertEquals("Food & Dining", domain.category.name)
+        assertEquals("Wallet", domain.sourceAccount.name)
+        assertEquals("Friday night dinner", domain.note)
+        assertEquals(1_000_001L, domain.createdAt)
+        assertEquals(1_000_002L, domain.updatedAt)
+    }
+
+    @Test
+    fun toDomain_withTransferTrxWithDetailsEntity_shouldReturnCorrectDomainModel() {
+        val entity = TrxWithDetailsEntity(
+            trx = TrxEntity(
+                id = "trx-transfer",
+                name = "Transfer to Bank",
+                amount = 100_000L,
+                categoryId = "cat-transfer",
+                sourceAccountId = "acc-wallet",
+                targetAccountId = "acc-bank",
+                transactionAt = 1_000_100L,
+                note = "Monthly transfer",
+                createdAt = 1_000_101L,
+                updatedAt = null,
+                type = TrxTypeEntity.Transfer
+            ),
+            category = CategoryEntity(
+                id = "cat-transfer",
+                name = "Transfer",
+                type = TrxTypeEntity.Transfer,
+                parentId = null,
+                createdAt = 900_000L,
+                updatedAt = null
+            ),
+            sourceAccount = AccountEntity(
+                id = "acc-wallet",
+                name = "Wallet",
+                initialAmount = 500_000L,
+                currentAmount = 400_000L,
+                type = AccountTypeEntity.Cash,
+                createdAt = 800_000L,
+                updatedAt = null
+            ),
+            targetAccount = AccountEntity(
+                id = "acc-bank",
+                name = "Bank",
+                initialAmount = 1_000_000L,
+                currentAmount = 1_100_000L,
+                type = AccountTypeEntity.Bank,
+                createdAt = 850_000L,
+                updatedAt = null
+            )
+        )
+
+        val domain = entity.toDomain()
+
+        assertTrue(domain is Trx.Transfer)
+        assertEquals("trx-transfer", domain.id)
+        assertEquals("Transfer to Bank", domain.name)
+        assertEquals(100_000L, domain.amount)
+        assertEquals("Wallet", domain.sourceAccount.name)
+        assertEquals("Bank", domain.targetAccount.name)
+        assertEquals("Transfer", domain.category.name)
+        assertEquals("Monthly transfer", domain.note)
+        assertEquals(1_000_101L, domain.createdAt)
+        assertNull(domain.updatedAt)
     }
 }

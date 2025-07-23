@@ -156,3 +156,44 @@ fun TrxType.toEntity(): TrxTypeEntity = when (this) {
     TrxType.Spending -> TrxTypeEntity.Spending
     TrxType.Transfer -> TrxTypeEntity.Transfer
 }
+
+fun TrxWithDetailsEntity.toDomain(): Trx {
+    return when (trx.type) {
+        TrxTypeEntity.Income -> Trx.Income(
+            id = trx.id,
+            name = trx.name,
+            amount = trx.amount,
+            sourceAccount = sourceAccount.toDomain(),
+            transactionAt = trx.transactionAt,
+            category = category.toDomain(),
+            note = trx.note,
+            createdAt = trx.createdAt,
+            updatedAt = trx.updatedAt,
+        )
+
+        TrxTypeEntity.Spending -> Trx.Spending(
+            id = trx.id,
+            name = trx.name,
+            amount = trx.amount,
+            sourceAccount = sourceAccount.toDomain(),
+            transactionAt = trx.transactionAt,
+            category = category.toDomain(),
+            note = trx.note,
+            createdAt = trx.createdAt,
+            updatedAt = trx.updatedAt,
+        )
+
+        TrxTypeEntity.Transfer -> Trx.Transfer(
+            id = trx.id,
+            name = trx.name,
+            amount = trx.amount,
+            sourceAccount = sourceAccount.toDomain(),
+            targetAccount = checkNotNull(targetAccount).toDomain(),
+            transactionAt = trx.transactionAt,
+            category = category.toDomain(),
+            note = trx.note,
+            createdAt = trx.createdAt,
+            updatedAt = trx.updatedAt,
+        )
+    }
+}
