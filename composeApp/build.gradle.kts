@@ -36,6 +36,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.lifecycle.viewmodel.compose)
             implementation(projects.shared)
         }
         commonTest.dependencies {

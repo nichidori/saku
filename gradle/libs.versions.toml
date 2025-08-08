@@ -16,6 +16,7 @@ junit = "4.13.2"
 kotlin = "2.2.0"
 kotlinx-coroutines = "1.10.2"
 kotlinxDatetime = "0.7.0"
+lifecycleViewmodelCompose = "2.9.1"
 room = "2.7.2"
 
 [libraries]
@@ -38,6 +39,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
