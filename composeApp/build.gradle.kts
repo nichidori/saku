@@ -38,8 +38,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.serialization.core)
-            implementation(libs.navigation.compose)
+            implementation(libs.icons.lucide)
             implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.navigation.compose)
             implementation(projects.shared)
         }
         commonTest.dependencies {
