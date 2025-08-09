@@ -23,6 +23,7 @@ import org.arraflydori.fin.domain.model.AccountType
 // TODO: Fix l10n
 @Composable
 fun AccountPage(
+    id: String?,
     viewModel: AccountViewModel = viewModel { AccountViewModel() },
     modifier: Modifier = Modifier
 ) {
