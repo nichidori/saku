@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -34,13 +35,15 @@ fun MyNavBar(
     modifier: Modifier = Modifier,
 ) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.surfaceContainer)
-            .border(1.dp, Color.LightGray)
-            .padding(horizontal = 48.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(horizontal = 48.dp, vertical = 12.dp)
+            .padding(
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            ),
     ) {
         Icon(
             imageVector = Lucide.House,
@@ -55,7 +58,10 @@ fun MyNavBar(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .background(color = Color.LightGray, shape = MyDefaultShape)
+                .background(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MyDefaultShape
+                )
                 .clip(MyDefaultShape)
                 .clickable { onAddClick() },
             contentAlignment = Alignment.Center

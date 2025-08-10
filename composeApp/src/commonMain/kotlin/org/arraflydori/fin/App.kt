@@ -5,7 +5,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -71,7 +70,6 @@ fun App() {
                         exit = slideOutVertically(
                             targetOffsetY = { fullHeight -> fullHeight }
                         ),
-                        modifier = Modifier.safeContentPadding()
                     ) {
                         MyNavBar(
                             onHomeClick = { navController.navigate(Home) },
