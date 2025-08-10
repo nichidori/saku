@@ -1,7 +1,6 @@
 package org.arraflydori.fin
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -55,7 +54,6 @@ fun App() {
     MaterialTheme {
         Surface(
             modifier = Modifier
-                .safeContentPadding()
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures {
@@ -72,7 +70,8 @@ fun App() {
                         ),
                         exit = slideOutVertically(
                             targetOffsetY = { fullHeight -> fullHeight }
-                        )
+                        ),
+                        modifier = Modifier.safeContentPadding()
                     ) {
                         MyNavBar(
                             onHomeClick = { navController.navigate(Home) },
