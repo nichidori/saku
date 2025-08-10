@@ -1,10 +1,10 @@
 package org.arraflydori.fin
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -62,24 +62,22 @@ fun App() {
         ) {
             Scaffold(
                 bottomBar = {
-                    AnimatedVisibility(
-                        visible = showNavBar,
-                        enter = slideInVertically(
-                            initialOffsetY = { fullHeight -> fullHeight }
-                        ),
-                        exit = slideOutVertically(
-                            targetOffsetY = { fullHeight -> fullHeight }
-                        ),
-                    ) {
-                        MyNavBar(
-                            onHomeClick = { navController.navigate(Home) },
-                            onAddClick = { navController.navigate(Account(id = null)) },
-                            onStatisticClick = { navController.navigate(Statistic) }
-                        )
+                    Box(modifier = Modifier.animateContentSize()) {
+                        if (showNavBar) {
+                            MyNavBar(
+                                onHomeClick = { navController.navigate(Home) },
+                                onAddClick = { navController.navigate(Account(id = null)) },
+                                onStatisticClick = { navController.navigate(Statistic) },
+                            )
+                        }
                     }
                 }
-            ) {
-                NavHost(navController, startDestination = Home) {
+            ) { contentPadding ->
+                NavHost(
+                    navController,
+                    startDestination = Home,
+                    modifier = Modifier.padding(contentPadding)
+                ) {
                     composable<Home> {
                         HomePage(
                             onAccountClick = { id -> navController.navigate(Account(id)) }
