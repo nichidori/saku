@@ -9,6 +9,7 @@ import org.arraflydori.fin.data.entity.toEntity
 import org.arraflydori.fin.domain.model.Account
 import org.arraflydori.fin.domain.repo.AccountRepository
 import java.util.UUID
+import kotlin.time.Clock
 
 class DefaultAccountRepository(
     private val db: AppDatabase,
@@ -16,7 +17,7 @@ class DefaultAccountRepository(
     override suspend fun addAccount(account: Account) {
         val accountWithId = account.copy(
             id = UUID.randomUUID().toString(),
-            createdAt = System.currentTimeMillis()
+            createdAt = Clock.System.now()
         )
         db.useWriterConnection {
             db.accountDao().insert(accountWithId.toEntity())
@@ -35,7 +36,7 @@ class DefaultAccountRepository(
 
     override suspend fun updateAccount(account: Account) {
         db.useWriterConnection {
-            val updatedAccount = account.copy(updatedAt = System.currentTimeMillis())
+            val updatedAccount = account.copy(updatedAt = Clock.System.now())
             db.accountDao().update(updatedAccount.toEntity())
         }
     }

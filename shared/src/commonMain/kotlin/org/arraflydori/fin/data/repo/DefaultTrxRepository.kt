@@ -18,7 +18,7 @@ import org.arraflydori.fin.domain.model.withId
 import org.arraflydori.fin.domain.model.withUpdatedAt
 import org.arraflydori.fin.domain.repo.TrxRepository
 import java.util.UUID
-import kotlin.time.ExperimentalTime
+import kotlin.time.Clock
 
 class DefaultTrxRepository(
     private val db: AppDatabase,
@@ -30,7 +30,7 @@ class DefaultTrxRepository(
     override suspend fun addTrx(trx: Trx) {
         val trxWithId = trx
             .withId(UUID.randomUUID().toString())
-            .withCreatedAt(System.currentTimeMillis())
+            .withCreatedAt(Clock.System.now())
 
         db.useWriterConnection {
             it.immediateTransaction {
@@ -52,7 +52,7 @@ class DefaultTrxRepository(
                 }
 
                 // Update balance.
-                val currentTime = System.currentTimeMillis()
+                val currentTime = Clock.System.now()
                 when (trx) {
                     is Trx.Income -> {
                         accountDao.update(
@@ -95,7 +95,6 @@ class DefaultTrxRepository(
         return trxDao.getByIdWithDetails(id)?.toDomain()
     }
 
-    @OptIn(ExperimentalTime::class)
     override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> {
         return db.useReaderConnection {
             trxDao.getFilteredWithDetails(
@@ -127,7 +126,7 @@ class DefaultTrxRepository(
                     else -> null
                 }
 
-                val currentTime = System.currentTimeMillis()
+                val currentTime = Clock.System.now()
 
                 // Revert balances.
                 when (existing) {
@@ -233,7 +232,7 @@ class DefaultTrxRepository(
                 }
 
                 // Revert balances.
-                val currentTime = System.currentTimeMillis()
+                val currentTime = Clock.System.now()
                 when (trx) {
                     is Trx.Income -> {
                         accountDao.update(

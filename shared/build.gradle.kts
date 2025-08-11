@@ -40,6 +40,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
     }
+    sourceSets.all {
+        languageSettings.optIn("kotlin.time.ExperimentalTime")
+    }
 }
 
 android {

@@ -7,6 +7,7 @@ import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxType
 import kotlin.test.*
 import org.junit.Test
+import kotlin.time.Clock
 
 class MapperExtTest {
 
@@ -44,7 +45,7 @@ class MapperExtTest {
             name = "Essentials",
             type = TrxType.Spending,
             parent = null,
-            createdAt = 999L,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
 
@@ -72,8 +73,23 @@ class MapperExtTest {
 
     @Test
     fun toDomainAndBack_withIncomeTransaction_shouldPreserveData() {
-        val category = Category("cat", "Salary", TrxType.Income, null, 1000L, null)
-        val account = Account("acc", "Bank", 0L, 1000L, AccountType.Bank, 1000L, null)
+        val category = Category(
+            id = "cat",
+            name = "Salary",
+            type = TrxType.Income,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val account = Account(
+            id = "acc",
+            name = "Bank",
+            initialAmount = 0L,
+            currentAmount = 1000L,
+            type = AccountType.Bank,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
 
         val entity = TrxEntity(
             id = "trx1",
@@ -97,8 +113,23 @@ class MapperExtTest {
 
     @Test
     fun toDomainAndBack_withSpendingTransaction_shouldPreserveData() {
-        val category = Category("cat", "Groceries", TrxType.Spending, null, 1000L, null)
-        val account = Account("acc", "Cash Wallet", 50000L, 30000L, AccountType.Cash, 1000L, null)
+        val category = Category(
+                id = "cat",
+                name = "Groceries",
+                type = TrxType.Spending,
+                parent = null,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+        val account = Account(
+            id = "acc",
+            name = "Cash Wallet",
+            initialAmount = 50000L,
+            currentAmount = 30000L,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
 
         val entity = TrxEntity(
             id = "trx3",
@@ -122,9 +153,32 @@ class MapperExtTest {
 
     @Test
     fun toDomainAndBack_withTransferTransaction_shouldPreserveData() {
-        val category = Category("cat", "Internal Transfer", TrxType.Transfer, null, 1000L, null)
-        val source = Account("acc1", "Wallet", 5000L, 3000L, AccountType.Cash, 1000L, null)
-        val target = Account("acc2", "Bank", 10000L, 12000L, AccountType.Bank, 1000L, null)
+        val category = Category(
+            id = "cat",
+            name = "Internal Transfer",
+            type = TrxType.Transfer,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val source = Account(
+            id = "acc1",
+            name = "Wallet",
+            initialAmount = 5000L,
+            currentAmount = 3000L,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val target = Account(
+            id = "acc2",
+            name = "Bank",
+            initialAmount = 10000L,
+            currentAmount = 12000L,
+            type = AccountType.Bank,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
 
         val entity = TrxEntity(
             id = "trx2",
@@ -148,8 +202,23 @@ class MapperExtTest {
 
     @Test
     fun toDomain_withTransferTransactionMissingTargetAccount_shouldThrowException() {
-        val category = Category("cat", "Internal Transfer", TrxType.Transfer, null, 1000L, null)
-        val source = Account("acc1", "Wallet", 5000L, 3000L, AccountType.Cash, 1000L, null)
+        val category = Category(
+            id = "cat",
+            name = "Internal Transfer",
+            type = TrxType.Transfer,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val source = Account(
+            id = "acc1",
+            name = "Wallet",
+            initialAmount = 5000L,
+            currentAmount = 3000L,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
 
         val entity = TrxEntity(
             id = "trx2",
@@ -218,10 +287,10 @@ class MapperExtTest {
         assertEquals(trxEntity.id, domain.id)
         assertEquals(trxEntity.name, domain.name)
         assertEquals(trxEntity.amount, domain.amount)
-        assertEquals(trxEntity.transactionAt, domain.transactionAt)
+        assertEquals(trxEntity.transactionAt, domain.transactionAt.toEpochMilliseconds())
         assertEquals(trxEntity.note, domain.note)
-        assertEquals(trxEntity.createdAt, domain.createdAt)
-        assertEquals(trxEntity.updatedAt, domain.updatedAt)
+        assertEquals(trxEntity.createdAt, domain.createdAt.toEpochMilliseconds())
+        assertEquals(trxEntity.updatedAt, domain.updatedAt?.toEpochMilliseconds())
         assertEquals(sourceAccount.toDomain(), domain.sourceAccount)
         assertEquals(category.toDomain(), domain.category)
     }
@@ -271,8 +340,8 @@ class MapperExtTest {
         assertEquals("Food & Dining", domain.category.name)
         assertEquals("Wallet", domain.sourceAccount.name)
         assertEquals("Friday night dinner", domain.note)
-        assertEquals(1_000_001L, domain.createdAt)
-        assertEquals(1_000_002L, domain.updatedAt)
+        assertEquals(1_000_001L, domain.createdAt.toEpochMilliseconds())
+        assertEquals(1_000_002L, domain.updatedAt?.toEpochMilliseconds())
     }
 
     @Test
@@ -329,7 +398,7 @@ class MapperExtTest {
         assertEquals("Bank", domain.targetAccount.name)
         assertEquals("Transfer", domain.category.name)
         assertEquals("Monthly transfer", domain.note)
-        assertEquals(1_000_101L, domain.createdAt)
+        assertEquals(1_000_101L, domain.createdAt.toEpochMilliseconds())
         assertNull(domain.updatedAt)
     }
 }

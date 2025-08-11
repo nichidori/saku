@@ -15,6 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Clock
 
 class DefaultCategoryRepositoryTest {
 
@@ -26,7 +27,7 @@ class DefaultCategoryRepositoryTest {
         name = "Salary",
         type = TrxType.Income,
         parent = null,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -35,7 +36,7 @@ class DefaultCategoryRepositoryTest {
         name = "Bonus",
         type = TrxType.Income,
         parent = incomeCategory,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -61,7 +62,7 @@ class DefaultCategoryRepositoryTest {
             name = "Food",
             type = TrxType.Spending,
             parent = incomeCategory,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         repository.addCategory(category)
@@ -76,7 +77,7 @@ class DefaultCategoryRepositoryTest {
             id = "parent",
             name = "Parent",
             type = TrxType.Spending,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
@@ -84,7 +85,7 @@ class DefaultCategoryRepositoryTest {
             name = "Child",
             type = TrxType.Spending,
             parent = parent,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
@@ -100,7 +101,7 @@ class DefaultCategoryRepositoryTest {
             id = "parent",
             name = "Parent",
             type = TrxType.Spending,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
@@ -108,7 +109,7 @@ class DefaultCategoryRepositoryTest {
             name = "Child",
             type = TrxType.Spending,
             parent = parent,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val grandChild = Category(
@@ -116,7 +117,7 @@ class DefaultCategoryRepositoryTest {
             name = "Grandchild",
             type = TrxType.Spending,
             parent = child,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         db.categoryDao().insert(parent.toEntity())
@@ -162,7 +163,7 @@ class DefaultCategoryRepositoryTest {
             name = "Empty Parent",
             type = TrxType.Income,
             parent = null,
-            createdAt = System.currentTimeMillis(),
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         db.categoryDao().insert(category.toEntity())
@@ -194,7 +195,7 @@ class DefaultCategoryRepositoryTest {
             id = "parent",
             name = "Parent",
             type = TrxType.Spending,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
@@ -202,7 +203,7 @@ class DefaultCategoryRepositoryTest {
             name = "Child",
             type = TrxType.Spending,
             parent = parent,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
@@ -218,7 +219,7 @@ class DefaultCategoryRepositoryTest {
             id = "parent",
             name = "Parent",
             type = TrxType.Spending,
-            createdAt = System.currentTimeMillis(),
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
@@ -226,7 +227,7 @@ class DefaultCategoryRepositoryTest {
             name = "Child",
             type = TrxType.Spending,
             parent = parent,
-            createdAt = System.currentTimeMillis(),
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         val grandchild = Category(
@@ -234,7 +235,7 @@ class DefaultCategoryRepositoryTest {
             name = "Grandchild",
             type = TrxType.Spending,
             parent = child,
-            createdAt = System.currentTimeMillis(),
+            createdAt = Clock.System.now(),
             updatedAt = null
         )
         db.categoryDao().insert(parent.toEntity())

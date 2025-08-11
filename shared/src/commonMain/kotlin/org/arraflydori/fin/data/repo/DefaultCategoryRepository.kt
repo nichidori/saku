@@ -9,6 +9,7 @@ import org.arraflydori.fin.data.entity.toEntity
 import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.repo.CategoryRepository
 import java.util.UUID
+import kotlin.time.Clock
 
 class DefaultCategoryRepository(
     private val db: AppDatabase,
@@ -27,7 +28,7 @@ class DefaultCategoryRepository(
 
                 val categoryWithId = category.copy(
                     id = UUID.randomUUID().toString(),
-                    createdAt = System.currentTimeMillis()
+                    createdAt = Clock.System.now()
                 )
                 db.categoryDao().insert(categoryWithId.toEntity())
             }
@@ -70,7 +71,7 @@ class DefaultCategoryRepository(
                     }
                 }
 
-                val updatedCategory = category.copy(updatedAt = System.currentTimeMillis())
+                val updatedCategory = category.copy(updatedAt = Clock.System.now())
                 db.categoryDao().update(updatedCategory.toEntity())
             }
         }

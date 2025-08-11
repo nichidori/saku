@@ -17,6 +17,8 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DefaultAccountRepositoryTest {
 
@@ -29,7 +31,7 @@ class DefaultAccountRepositoryTest {
         initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountType.Cash,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -50,7 +52,7 @@ class DefaultAccountRepositoryTest {
         val accounts = db.accountDao().getAll().map { it.toDomain() }
         assertEquals(1, accounts.size)
         assertNotEquals("acc-1", accounts.first().id)
-        assertTrue(accounts.first().createdAt > 0)
+        assertTrue(accounts.first().createdAt > Instant.fromEpochMilliseconds(0))
     }
 
     @Test

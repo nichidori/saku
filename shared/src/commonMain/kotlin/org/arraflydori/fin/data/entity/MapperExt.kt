@@ -5,6 +5,7 @@ import org.arraflydori.fin.domain.model.AccountType
 import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxType
+import kotlin.time.Instant
 
 fun AccountEntity.toDomain(): Account = Account(
     id = id,
@@ -12,8 +13,8 @@ fun AccountEntity.toDomain(): Account = Account(
     initialAmount = initialAmount,
     currentAmount = currentAmount,
     type = type.toDomain(),
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
 )
 
 fun Account.toEntity(): AccountEntity = AccountEntity(
@@ -22,8 +23,8 @@ fun Account.toEntity(): AccountEntity = AccountEntity(
     initialAmount = initialAmount,
     currentAmount = currentAmount,
     type = type.toEntity(),
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
 fun CategoryEntity.toDomain(parent: Category? = null): Category = Category(
@@ -31,8 +32,8 @@ fun CategoryEntity.toDomain(parent: Category? = null): Category = Category(
     name = name,
     type = type.toDomain(),
     parent = parent,
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
 )
 
 fun Category.toEntity(): CategoryEntity = CategoryEntity(
@@ -40,8 +41,8 @@ fun Category.toEntity(): CategoryEntity = CategoryEntity(
     name = name,
     type = type.toEntity(),
     parentId = parent?.id,
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
 fun AccountTypeEntity.toDomain(): AccountType = when (this) {
@@ -71,10 +72,10 @@ fun TrxEntity.toDomain(
         amount = amount,
         category = category,
         sourceAccount = sourceAccount,
-        transactionAt = transactionAt,
+        transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
     )
 
     TrxTypeEntity.Spending -> Trx.Spending(
@@ -83,10 +84,10 @@ fun TrxEntity.toDomain(
         amount = amount,
         category = category,
         sourceAccount = sourceAccount,
-        transactionAt = transactionAt,
+        transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
     )
 
     TrxTypeEntity.Transfer -> Trx.Transfer(
@@ -96,10 +97,10 @@ fun TrxEntity.toDomain(
         category = category,
         sourceAccount = sourceAccount,
         targetAccount = requireNotNull(targetAccount),
-        transactionAt = transactionAt,
+        transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
     )
 }
 
@@ -111,10 +112,10 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
         targetAccountId = null,
-        transactionAt = transactionAt,
+        transactionAt = transactionAt.toEpochMilliseconds(),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
+        createdAt = createdAt.toEpochMilliseconds(),
+        updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Income
     )
     is Trx.Spending -> TrxEntity(
@@ -124,10 +125,10 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
         targetAccountId = null,
-        transactionAt = transactionAt,
+        transactionAt = transactionAt.toEpochMilliseconds(),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
+        createdAt = createdAt.toEpochMilliseconds(),
+        updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Spending
     )
     is Trx.Transfer -> TrxEntity(
@@ -137,10 +138,10 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
         targetAccountId = targetAccount.id,
-        transactionAt = transactionAt,
+        transactionAt = transactionAt.toEpochMilliseconds(),
         note = note,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
+        createdAt = createdAt.toEpochMilliseconds(),
+        updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Transfer
     )
 }
@@ -164,11 +165,11 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             name = trx.name,
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
-            transactionAt = trx.transactionAt,
+            transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             category = category.toDomain(),
             note = trx.note,
-            createdAt = trx.createdAt,
-            updatedAt = trx.updatedAt,
+            createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
         )
 
         TrxTypeEntity.Spending -> Trx.Spending(
@@ -176,11 +177,11 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             name = trx.name,
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
-            transactionAt = trx.transactionAt,
+            transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             category = category.toDomain(),
             note = trx.note,
-            createdAt = trx.createdAt,
-            updatedAt = trx.updatedAt,
+            createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
         )
 
         TrxTypeEntity.Transfer -> Trx.Transfer(
@@ -189,11 +190,11 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             targetAccount = checkNotNull(targetAccount).toDomain(),
-            transactionAt = trx.transactionAt,
+            transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             category = category.toDomain(),
             note = trx.note,
-            createdAt = trx.createdAt,
-            updatedAt = trx.updatedAt,
+            createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
         )
     }
 }

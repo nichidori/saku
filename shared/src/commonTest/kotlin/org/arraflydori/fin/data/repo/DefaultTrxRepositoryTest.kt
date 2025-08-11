@@ -4,7 +4,9 @@ import androidx.room.Room
 import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
+import kotlinx.datetime.toLocalDateTime
 import org.arraflydori.fin.data.AppDatabase
 import org.arraflydori.fin.data.entity.toDomain
 import org.arraflydori.fin.data.entity.toEntity
@@ -15,6 +17,8 @@ import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxFilter
 import org.arraflydori.fin.domain.model.TrxType
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DefaultTrxRepositoryTest {
 
@@ -27,7 +31,7 @@ class DefaultTrxRepositoryTest {
         initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountType.Cash,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -37,7 +41,7 @@ class DefaultTrxRepositoryTest {
         initialAmount = 20_000L,
         currentAmount = 20_000L,
         type = AccountType.Bank,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -45,7 +49,7 @@ class DefaultTrxRepositoryTest {
         id = "cat-1",
         name = "Salary",
         type = TrxType.Income,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -53,7 +57,7 @@ class DefaultTrxRepositoryTest {
         id = "cat-2",
         name = "Food",
         type = TrxType.Spending,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -61,7 +65,7 @@ class DefaultTrxRepositoryTest {
         id = "cat-3",
         name = "Deposit",
         type = TrxType.Transfer,
-        createdAt = 0,
+        createdAt = Clock.System.now(),
         updatedAt = null
     )
 
@@ -91,9 +95,9 @@ class DefaultTrxRepositoryTest {
             amount = 5_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -114,9 +118,9 @@ class DefaultTrxRepositoryTest {
             amount = 2_000L,
             category = spendingCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -138,9 +142,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -163,9 +167,9 @@ class DefaultTrxRepositoryTest {
             amount = 0L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -186,9 +190,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = transferCategory,
             sourceAccount = nonExistentAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         assertFailsWith<IllegalStateException> {
@@ -206,9 +210,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = nonExistentAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         assertFailsWith<IllegalStateException> {
@@ -225,9 +229,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = nonExistentCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         assertFailsWith<Exception> {
@@ -243,9 +247,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = "Paid in cash",
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -270,9 +274,9 @@ class DefaultTrxRepositoryTest {
             amount = 5_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         val expense = Trx.Spending(
@@ -281,15 +285,17 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = spendingCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(income)
         repository.addTrx(expense)
         val filter = TrxFilter(
-            month = YearMonth(1970, 1),
+            month = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                YearMonth(it.year, it.month)
+            },
             type = TrxType.Income,
             categoryId = null,
             accountId = null
@@ -307,9 +313,9 @@ class DefaultTrxRepositoryTest {
             amount = 2_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -333,9 +339,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = spendingCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -360,9 +366,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         val initialCashUpdatedAt = db.accountDao().getById(cashAccount.id)!!.toDomain().updatedAt
@@ -370,8 +376,12 @@ class DefaultTrxRepositoryTest {
         repository.addTrx(trx)
         val afterAddCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val afterAddBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
-        assertTrue(afterAddCash.updatedAt!! > (initialCashUpdatedAt ?: 0))
-        assertTrue(afterAddBank.updatedAt!! > (initialBankUpdatedAt ?: 0))
+        assertTrue(
+            afterAddCash.updatedAt!! > (initialCashUpdatedAt ?: Instant.fromEpochMilliseconds(0))
+        )
+        assertTrue(
+            afterAddBank.updatedAt!! > (initialBankUpdatedAt ?: Instant.fromEpochMilliseconds(0))
+        )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Transfer
@@ -394,9 +404,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -418,9 +428,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = transferCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         assertFailsWith<NoSuchElementException> {
@@ -436,9 +446,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = transferCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -460,9 +470,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -483,9 +493,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = transferCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -507,9 +517,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -530,9 +540,9 @@ class DefaultTrxRepositoryTest {
             amount = 2_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -554,9 +564,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_500L,
             category = spendingCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -579,9 +589,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -605,9 +615,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = incomeCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         assertFailsWith<NoSuchElementException> {
@@ -630,9 +640,9 @@ class DefaultTrxRepositoryTest {
             amount = 1_000L,
             category = transferCategory,
             sourceAccount = cashAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
@@ -654,9 +664,9 @@ class DefaultTrxRepositoryTest {
             category = transferCategory,
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = 0,
+            transactionAt = Clock.System.now(),
             note = null,
-            createdAt = 0,
+            createdAt = Clock.System.now(),
             updatedAt = null,
         )
         repository.addTrx(trx)
