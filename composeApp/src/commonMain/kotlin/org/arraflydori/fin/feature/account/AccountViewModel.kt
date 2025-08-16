@@ -10,17 +10,19 @@ import kotlinx.coroutines.launch
 import org.arraflydori.fin.core.model.Status
 import org.arraflydori.fin.core.model.Status.*
 import org.arraflydori.fin.core.util.log
+import org.arraflydori.fin.core.util.toRupiah
 import org.arraflydori.fin.domain.model.AccountType
 import org.arraflydori.fin.domain.repo.AccountRepository
 
 data class AccountUiState(
     val isLoading: Boolean = false,
     val name: String = "",
-    val balance: String = "",
+    val balance: Long? = null,
     val type: AccountType? = null,
     val saveStatus: Status<Unit, Exception> = Initial,
 ) {
-    val canSave = name.isNotBlank() && balance.isNotBlank() && type != null
+    val canSave = name.isNotBlank() && balance != null && type != null
+    val balanceFormatted = balance?.toRupiah().orEmpty()
 }
 
 class AccountViewModel(
@@ -41,7 +43,7 @@ class AccountViewModel(
                     it.copy(
                         isLoading = false,
                         name = account?.name.orEmpty(),
-                        balance = account?.currentAmount?.toString().orEmpty(),
+                        balance = account?.currentAmount,
                         type = account?.type
                     )
                 }
@@ -55,7 +57,7 @@ class AccountViewModel(
 
     fun onBalanceChange(newValue: String) {
         if (newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(balance = newValue)
+            _uiState.value = _uiState.value.copy(balance = newValue.toLongOrNull())
         }
     }
 
@@ -67,7 +69,7 @@ class AccountViewModel(
         viewModelScope.launch {
             try {
                 if (uiState.value.name.isBlank()) throw  Exception("Name cannot be empty")
-                if (uiState.value.balance.isBlank()) throw  Exception("Balance cannot be empty")
+                if (uiState.value.balance == null) throw  Exception("Balance cannot be empty")
                 if (uiState.value.type == null) throw  Exception("Type cannot be empty")
                 _uiState.update {
                     it.copy(saveStatus = Loading)
@@ -76,13 +78,13 @@ class AccountViewModel(
                     accountRepository.updateAccount(
                         id = id,
                         name = uiState.value.name,
-                        initialAmount = uiState.value.balance.toLong(),
+                        initialAmount = uiState.value.balance!!,
                         type = uiState.value.type!!
                     )
                 } else {
                     accountRepository.addAccount(
                         name = uiState.value.name,
-                        initialAmount = uiState.value.balance.toLong(),
+                        initialAmount = uiState.value.balance!!,
                         type = uiState.value.type!!
                     )
                 }

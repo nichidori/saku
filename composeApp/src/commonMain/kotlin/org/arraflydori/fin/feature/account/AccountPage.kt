@@ -1,10 +1,18 @@
 package org.arraflydori.fin.feature.account
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -19,14 +27,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
 import org.arraflydori.fin.core.composable.MyButton
+import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
 import org.arraflydori.fin.core.model.Status.Success
 import org.arraflydori.fin.domain.model.AccountType
@@ -40,9 +58,12 @@ fun AccountPage(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showBalanceInput by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.saveStatus) {
-        if (uiState.saveStatus is Success) { onSaveSuccess() }
+        if (uiState.saveStatus is Success) {
+            onSaveSuccess()
+        }
     }
 
     Scaffold(
@@ -64,6 +85,41 @@ fun AccountPage(
                     style = MaterialTheme.typography.headlineSmall,
                 )
             }
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding()
+                    ),
+            ) {
+                if (showBalanceInput) {
+                    val focusManager = LocalFocusManager.current
+                    NumberKeyboard(
+                        onValueClick = {
+                            viewModel.onBalanceChange(
+                                uiState.balance?.toString().orEmpty() + it.toString()
+                            )
+                        },
+                        onDeleteClick = {
+                            viewModel.onBalanceChange(
+                                uiState.balance?.toString().orEmpty().dropLast(1)
+                            )
+                        },
+                        onDoneClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                    )
+                } else {
+                    MyButton(
+                        text = "Save",
+                        enabled = uiState.canSave,
+                        onClick = { viewModel.saveAccount() },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
         }
     ) { contentPadding ->
         Column(
@@ -75,7 +131,6 @@ fun AccountPage(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
-            // TODO: Customize keyboard actions to Next
             MyTextField(
                 value = uiState.name,
                 onValueChange = { viewModel.onNameChange(it) },
@@ -85,14 +140,14 @@ fun AccountPage(
                 )
             )
 
-            // TODO: Use custom number keyboard
             MyTextField(
-                value = uiState.balance,
-                onValueChange = { viewModel.onBalanceChange(it) },
+                value = uiState.balanceFormatted,
+                onValueChange = { },
                 label = "Balance",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                )
+                readOnly = true,
+                modifier = Modifier.onFocusChanged { focusState ->
+                    showBalanceInput = focusState.isFocused
+                }
             )
 
             // TODO: Show AccountType as input
@@ -108,14 +163,80 @@ fun AccountPage(
                 onValueChange = { viewModel.onTypeChange(AccountType.Cash) },
                 label = "Type"
             )
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            MyButton(
-                text = "Save",
-                enabled = uiState.canSave,
-                onClick = { viewModel.saveAccount() }
+@Composable
+fun NumberKeyboard(
+    onValueClick: (Int) -> Unit,
+    onDeleteClick: () -> Unit,
+    onDoneClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        for (i in 1..3) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (j in 1..3) {
+                    val value = ((i - 1) * 3 + j)
+                    KeyboardKey(
+                        label = value.toString(),
+                        onClick = { onValueClick(value) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KeyboardKey(
+                label = "Delete",
+                onClick = onDeleteClick,
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                modifier = Modifier.weight(1f)
+            )
+            KeyboardKey(
+                label = "0",
+                onClick = { onValueClick(0) },
+                modifier = Modifier.weight(1f)
+            )
+            KeyboardKey(
+                label = "Done",
+                onClick = onDoneClick,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.weight(1f)
             )
         }
+    }
+}
+
+@Composable
+fun KeyboardKey(
+    label: String,
+    onClick: () -> Unit,
+    color: Color? = null,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(
+                color = color ?: MaterialTheme.colorScheme.surfaceContainer,
+                shape = MyDefaultShape
+            )
+            .clip(MyDefaultShape)
+            .focusProperties { canFocus = false }
+            .clickable { onClick() }
+            .height(48.dp)
+    ) {
+        Text(
+            label,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge
+        )
     }
 }

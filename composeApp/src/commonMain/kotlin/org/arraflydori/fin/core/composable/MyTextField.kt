@@ -12,14 +12,16 @@ fun MyTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    readOnly: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         keyboardOptions = keyboardOptions,
+        readOnly = readOnly,
         modifier = modifier.fillMaxWidth()
     )
 }
