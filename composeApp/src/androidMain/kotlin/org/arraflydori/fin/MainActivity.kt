@@ -5,8 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.room.Room
+import org.arraflydori.fin.data.AppDatabase
+import org.arraflydori.fin.data.getRoomDatabase
+import org.arraflydori.fin.data.repo.DefaultAccountRepository
+import org.arraflydori.fin.data.repo.DefaultTrxRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,14 +19,16 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
+        // TODO: Build actual DB
+        val db = getRoomDatabase(
+            builder = Room.inMemoryDatabaseBuilder(this, AppDatabase::class.java)
+        )
+
         setContent {
-            App()
+            App(
+                accountRepository = DefaultAccountRepository(db = db),
+                trxRepository = DefaultTrxRepository(db = db),
+            )
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

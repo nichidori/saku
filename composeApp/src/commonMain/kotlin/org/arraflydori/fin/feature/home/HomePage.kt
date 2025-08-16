@@ -5,59 +5,70 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDateTime
 import org.arraflydori.fin.core.composable.MyDefaultShape
+import org.arraflydori.fin.core.util.format
+import org.arraflydori.fin.core.util.toRupiah
 import org.arraflydori.fin.domain.model.Account
-import org.arraflydori.fin.domain.model.AccountType
+import org.arraflydori.fin.domain.model.Trx
+import kotlin.time.Clock
 
 @Composable
 fun HomePage(
+    viewModel: HomeViewModel,
     onAccountClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.load(month = Clock.System.now().toYearMonth())
+    }
+
     Scaffold(
         modifier = modifier
-    ) { contentPadding ->
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Text("August", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(16.dp))
-            TrendCard(
-                title = "Net Worth",
-                value = "Rp 10.000.000"
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            AccountSection(onAccountClick = onAccountClick)
-            Spacer(modifier = Modifier.height(24.dp))
-            RecentActivities()
+    ) {
+        LazyColumn(contentPadding = PaddingValues(16.dp)) {
+            item {
+                Text("August", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.height(16.dp))
+                TrendCard(title = "Net Worth", value = uiState.netWorth)
+                Spacer(modifier = Modifier.height(16.dp))
+                AccountSection(accounts = uiState.accounts, onAccountClick = onAccountClick)
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Recent Activities", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            items(uiState.trxs) { trx ->
+                TransactionCard(trx = trx)
+            }
         }
     }
 }
 
 @Composable
-fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
+fun TrendCard(title: String, value: Long, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
@@ -68,7 +79,7 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(title, style = MaterialTheme.typography.labelSmall)
-            Text(value, style = MaterialTheme.typography.titleMedium)
+            Text(value.toRupiah(), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
@@ -87,11 +98,11 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun AccountSection(
+    accounts: List<Account>,
     onAccountClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = List(8) { 900_000L }
-    val rows = items.chunked(3)
+    val rows = accounts.chunked(3)
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -101,17 +112,9 @@ fun AccountSection(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                row.forEach { amount ->
+                row.forEach { account ->
                     AccountCard(
-                        account = Account(
-                            id = "",
-                            name = "Bank BCA",
-                            initialAmount = amount,
-                            currentAmount = amount,
-                            type = AccountType.Bank,
-                            createdAt = 0,
-                            updatedAt = null,
-                        ),
+                        account = account,
                         onClick = onAccountClick,
                         modifier = Modifier.weight(1f)
                     )
@@ -146,45 +149,7 @@ fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier 
 }
 
 @Composable
-fun RecentActivities() {
-    Column {
-        Text(
-            "Recent Activities",
-            style = MaterialTheme.typography.titleMedium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TransactionCard(
-            title = "Dinner",
-            subtitle = "BCA · Needs",
-            amount = "Rp 30.000",
-            time = "19.42"
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TransactionCard(
-            title = "Dinner",
-            subtitle = "BCA · Needs",
-            amount = "Rp 30.000",
-            time = "19.42"
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TransactionCard(
-            title = "Dinner",
-            subtitle = "BCA · Needs",
-            amount = "Rp 30.000",
-            time = "19.42"
-        )
-    }
-}
-
-
-@Composable
-fun TransactionCard(
-    title: String,
-    subtitle: String,
-    amount: String,
-    time: String,
-    modifier: Modifier = Modifier
-) {
+fun TransactionCard(trx: Trx, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
@@ -203,12 +168,15 @@ fun TransactionCard(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall)
+                Text(trx.name, style = MaterialTheme.typography.titleMedium)
+                Text(trx.sourceAccount.name, style = MaterialTheme.typography.labelSmall)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(amount, style = MaterialTheme.typography.titleMedium)
-                Text(time, style = MaterialTheme.typography.labelSmall)
+                Text(trx.amount.toRupiah(), style = MaterialTheme.typography.titleMedium)
+                Text(trx.transactionAt.format(LocalDateTime.Format {
+                    hour()
+                    minute()
+                }), style = MaterialTheme.typography.labelSmall)
             }
         }
     }

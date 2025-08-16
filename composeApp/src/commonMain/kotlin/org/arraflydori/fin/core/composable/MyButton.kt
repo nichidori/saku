@@ -9,12 +9,13 @@ import androidx.compose.ui.Modifier
 @Composable
 fun MyButton(
     text: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Button(
         onClick = onClick,
-        enabled = true,
+        enabled = enabled,
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(text)

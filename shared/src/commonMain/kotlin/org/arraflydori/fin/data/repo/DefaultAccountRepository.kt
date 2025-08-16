@@ -7,6 +7,7 @@ import org.arraflydori.fin.data.AppDatabase
 import org.arraflydori.fin.data.entity.toDomain
 import org.arraflydori.fin.data.entity.toEntity
 import org.arraflydori.fin.domain.model.Account
+import org.arraflydori.fin.domain.model.AccountType
 import org.arraflydori.fin.domain.repo.AccountRepository
 import java.util.UUID
 import kotlin.time.Clock
@@ -14,13 +15,18 @@ import kotlin.time.Clock
 class DefaultAccountRepository(
     private val db: AppDatabase,
 ) : AccountRepository {
-    override suspend fun addAccount(account: Account) {
-        val accountWithId = account.copy(
+    override suspend fun addAccount(name: String, initialAmount: Long, type: AccountType) {
+        val account = Account(
             id = UUID.randomUUID().toString(),
-            createdAt = Clock.System.now()
+            name = name,
+            initialAmount = initialAmount,
+            currentAmount = initialAmount,
+            type = type,
+            createdAt = Clock.System.now(),
+            updatedAt = null
         )
         db.useWriterConnection {
-            db.accountDao().insert(accountWithId.toEntity())
+            db.accountDao().insert(account.toEntity())
         }
     }
 
@@ -34,10 +40,22 @@ class DefaultAccountRepository(
         }
     }
 
-    override suspend fun updateAccount(account: Account) {
+    override suspend fun updateAccount(
+        id: String, name: String, initialAmount: Long, type: AccountType
+    ) {
         db.useWriterConnection {
-            val updatedAccount = account.copy(updatedAt = Clock.System.now())
-            db.accountDao().update(updatedAccount.toEntity())
+            it.immediateTransaction {
+                val updatedAccount = db.accountDao().getById(id)?.toDomain()
+                    ?.copy(
+                        name = name,
+                        initialAmount = initialAmount,
+                        currentAmount = initialAmount,
+                        type = type,
+                        updatedAt = Clock.System.now()
+                    )
+                    ?: throw NoSuchElementException("Account not found")
+                db.accountDao().update(updatedAccount.toEntity())
+            }
         }
     }
 

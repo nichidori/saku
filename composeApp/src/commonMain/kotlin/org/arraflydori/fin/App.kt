@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -21,8 +22,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.arraflydori.fin.core.composable.MyNavBar
+import org.arraflydori.fin.domain.repo.AccountRepository
+import org.arraflydori.fin.domain.repo.TrxRepository
 import org.arraflydori.fin.feature.account.AccountPage
+import org.arraflydori.fin.feature.account.AccountViewModel
 import org.arraflydori.fin.feature.home.HomePage
+import org.arraflydori.fin.feature.home.HomeViewModel
 import org.arraflydori.fin.feature.statistic.StatisticPage
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -40,7 +45,10 @@ data object Statistic : Route
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    accountRepository: AccountRepository,
+    trxRepository: TrxRepository
+) {
     val focusManager = LocalFocusManager.current
     val navController = rememberNavController()
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
@@ -80,14 +88,20 @@ fun App() {
                 ) {
                     composable<Home> {
                         HomePage(
+                            viewModel = viewModel {
+                                HomeViewModel(accountRepository, trxRepository)
+                            },
                             onAccountClick = { id -> navController.navigate(Account(id)) }
                         )
                     }
                     composable<Account> { backStackEntry ->
                         val account = backStackEntry.toRoute<Account>()
                         AccountPage(
-                            id = account.id,
-                            onUp = { navController.popBackStack() }
+                            viewModel = viewModel {
+                                AccountViewModel(accountRepository, account.id)
+                            },
+                            onUp = { navController.popBackStack() },
+                            onSaveSuccess = { navController.popBackStack() }
                         )
                     }
                     composable<Statistic> {

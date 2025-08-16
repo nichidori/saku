@@ -37,6 +37,8 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.icons.lucide)
             implementation(libs.lifecycle.viewmodel.compose)
@@ -50,6 +52,9 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
+    }
+    sourceSets.all {
+        languageSettings.optIn("kotlin.time.ExperimentalTime")
     }
 }
 

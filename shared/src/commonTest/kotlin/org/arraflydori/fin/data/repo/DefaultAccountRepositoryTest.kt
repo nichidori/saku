@@ -48,7 +48,7 @@ class DefaultAccountRepositoryTest {
 
     @Test
     fun addAccount_shouldInsertAccountWithGeneratedIdAndCreatedAt() = runTest {
-        repository.addAccount(account)
+        repository.addAccount(account.name, account.initialAmount, account.type)
         val accounts = db.accountDao().getAll().map { it.toDomain() }
         assertEquals(1, accounts.size)
         assertNotEquals("acc-1", accounts.first().id)
@@ -79,8 +79,7 @@ class DefaultAccountRepositoryTest {
     @Test
     fun updateAccount_shouldUpdateExistingAccount() = runTest {
         db.accountDao().insert(account.toEntity())
-        val updated = account.copy(name = "Updated Cash")
-        repository.updateAccount(updated)
+        repository.updateAccount(account.id, "Updated Cash", account.initialAmount, account.type)
         val result = db.accountDao().getById(account.id)!!.toDomain()
         assertEquals("Updated Cash", result.name)
         assertNotNull(result.updatedAt)
