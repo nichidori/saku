@@ -2,6 +2,7 @@ package org.arraflydori.fin.feature.account
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -59,6 +61,8 @@ fun AccountPage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showBalanceInput by remember { mutableStateOf(false) }
+    var showTypeInput by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(uiState.saveStatus) {
         if (uiState.saveStatus is Success) {
@@ -94,30 +98,43 @@ fun AccountPage(
                             .calculateBottomPadding()
                     ),
             ) {
-                if (showBalanceInput) {
-                    val focusManager = LocalFocusManager.current
-                    NumberKeyboard(
-                        onValueClick = {
-                            viewModel.onBalanceChange(
-                                uiState.balance?.toString().orEmpty() + it.toString()
-                            )
-                        },
-                        onDeleteClick = {
-                            viewModel.onBalanceChange(
-                                uiState.balance?.toString().orEmpty().dropLast(1)
-                            )
-                        },
-                        onDoneClick = {
-                            focusManager.moveFocus(FocusDirection.Next)
-                        },
-                    )
-                } else {
-                    MyButton(
-                        text = "Save",
-                        enabled = uiState.canSave,
-                        onClick = { viewModel.saveAccount() },
-                        modifier = Modifier.padding(16.dp)
-                    )
+                when {
+                    showBalanceInput -> {
+                        NumberKeyboard(
+                            onValueClick = {
+                                viewModel.onBalanceChange(
+                                    uiState.balance?.toString().orEmpty() + it.toString()
+                                )
+                            },
+                            onDeleteClick = {
+                                viewModel.onBalanceChange(
+                                    uiState.balance?.toString().orEmpty().dropLast(1)
+                                )
+                            },
+                            onDoneClick = {
+                                focusManager.moveFocus(FocusDirection.Next)
+                            },
+                        )
+                    }
+
+                    showTypeInput -> {
+                        AccountTypeSelector(
+                            types = viewModel.typeOptions,
+                            onSelected = {
+                                viewModel.onTypeChange(it)
+                                focusManager.moveFocus(FocusDirection.Next)
+                            }
+                        )
+                    }
+
+                    else -> {
+                        MyButton(
+                            text = "Save",
+                            enabled = uiState.canSave,
+                            onClick = { viewModel.saveAccount() },
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -150,18 +167,14 @@ fun AccountPage(
                 }
             )
 
-            // TODO: Show AccountType as input
             MyTextField(
-                value = when (uiState.type) {
-                    AccountType.Cash -> "Cash"
-                    AccountType.Bank -> "Bank"
-                    AccountType.Credit -> "Credit"
-                    AccountType.Ewallet -> "Ewallet"
-                    AccountType.Emoney -> "Emoney"
-                    null -> ""
-                },
-                onValueChange = { viewModel.onTypeChange(AccountType.Cash) },
-                label = "Type"
+                value = uiState.type?.label().orEmpty(),
+                onValueChange = {},
+                label = "Type",
+                readOnly = true,
+                modifier = Modifier.onFocusChanged { focusState ->
+                    showTypeInput = focusState.isFocused
+                }
             )
         }
     }
@@ -176,9 +189,7 @@ fun NumberKeyboard(
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+        modifier = modifier.padding(16.dp).fillMaxWidth()
     ) {
         for (i in 1..3) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -238,5 +249,54 @@ fun KeyboardKey(
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.labelLarge
         )
+    }
+}
+
+@Composable
+fun AccountTypeSelector(
+    types: List<AccountType>,
+    onSelected: (AccountType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures {}
+            }
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        for (type in types) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = MyDefaultShape
+                    )
+                    .clip(MyDefaultShape)
+                    .focusProperties { canFocus = false }
+                    .clickable { onSelected(type) }
+                    .height(48.dp)
+            ) {
+                Text(
+                    type.label(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+    }
+}
+
+fun AccountType.label(): String {
+    return when (this) {
+        AccountType.Cash -> "Cash"
+        AccountType.Bank -> "Bank"
+        AccountType.Credit -> "Credit"
+        AccountType.Ewallet -> "E-wallet"
+        AccountType.Emoney -> "E-money"
     }
 }

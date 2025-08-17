@@ -32,6 +32,8 @@ class AccountViewModel(
     private val _uiState = MutableStateFlow(AccountUiState())
     val uiState: StateFlow<AccountUiState> = _uiState.asStateFlow()
 
+    val typeOptions = AccountType.entries.toList()
+
     init {
         id?.let {
             viewModelScope.launch {
