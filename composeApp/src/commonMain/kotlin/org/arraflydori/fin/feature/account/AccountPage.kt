@@ -122,7 +122,7 @@ fun AccountPage(
                             types = viewModel.typeOptions,
                             onSelected = {
                                 viewModel.onTypeChange(it)
-                                focusManager.moveFocus(FocusDirection.Next)
+                                focusManager.clearFocus()
                             }
                         )
                     }
@@ -189,7 +189,11 @@ fun NumberKeyboard(
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier.padding(16.dp).fillMaxWidth()
+        modifier = modifier
+            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .pointerInput(Unit) { detectTapGestures {} }
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
         for (i in 1..3) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -236,13 +240,13 @@ fun KeyboardKey(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = color ?: MaterialTheme.colorScheme.surfaceContainer,
+                color = color ?: MaterialTheme.colorScheme.surface,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
             .focusProperties { canFocus = false }
             .clickable { onClick() }
-            .height(48.dp)
+            .height(56.dp)
     ) {
         Text(
             label,
@@ -261,9 +265,8 @@ fun AccountTypeSelector(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures {}
-            }
+            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
     ) {
@@ -273,7 +276,7 @@ fun AccountTypeSelector(
                 modifier = modifier
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = MyDefaultShape
                     )
                     .clip(MyDefaultShape)
