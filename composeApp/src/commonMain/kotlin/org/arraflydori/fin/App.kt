@@ -1,5 +1,6 @@
 package org.arraflydori.fin
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -73,9 +74,18 @@ fun App(
                     Box(modifier = Modifier.animateContentSize()) {
                         if (showNavBar) {
                             MyNavBar(
-                                onHomeClick = { navController.navigate(Home) },
-                                onAddClick = { navController.navigate(Account(id = null)) },
-                                onStatisticClick = { navController.navigate(Statistic) },
+                                onHomeClick = {
+                                    navController.popBackStack(Home, inclusive = false)
+                                },
+                                onAddClick = {
+                                    navController.navigate(Account(id = null))
+                                },
+                                onStatisticClick = {
+                                    navController.navigate(Statistic) {
+                                        popUpTo(Home) { inclusive = false }
+                                        launchSingleTop = true
+                                    }
+                                }
                             )
                         }
                     }
@@ -84,6 +94,18 @@ fun App(
                 NavHost(
                     navController,
                     startDestination = Home,
+                    enterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start)
+                    },
+                    popEnterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                    },
+                    popExitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                    },
                     modifier = Modifier.padding(contentPadding)
                 ) {
                     composable<Home> {
