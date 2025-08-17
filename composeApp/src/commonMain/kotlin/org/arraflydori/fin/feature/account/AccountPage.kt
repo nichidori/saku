@@ -48,7 +48,10 @@ import com.composables.icons.lucide.Lucide
 import org.arraflydori.fin.core.composable.MyButton
 import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
+import org.arraflydori.fin.core.platform.showToast
+import org.arraflydori.fin.core.model.Status
 import org.arraflydori.fin.core.model.Status.Success
+import org.arraflydori.fin.core.platform.ToastDuration
 import org.arraflydori.fin.domain.model.AccountType
 
 // TODO: Fix l10n
@@ -64,9 +67,17 @@ fun AccountPage(
     var showTypeInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(uiState.saveStatus) {
-        if (uiState.saveStatus is Success) {
-            onSaveSuccess()
+    uiState.saveStatus.let { status ->
+        LaunchedEffect(status) {
+            when (status) {
+                is Success<*> -> onSaveSuccess()
+                is Status.Failure<*> -> showToast(
+                    status.error.toString(),
+                    duration = ToastDuration.Long
+                )
+
+                else -> {}
+            }
         }
     }
 
