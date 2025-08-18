@@ -57,15 +57,11 @@ class DefaultCategoryRepositoryTest {
 
     @Test
     fun addCategory_shouldInsertNewCategory() = runTest {
-        val category = Category(
-            id = "",
+        repository.addCategory(
             name = "Food",
             type = TrxType.Spending,
-            parent = incomeCategory,
-            createdAt = Clock.System.now(),
-            updatedAt = null
+            parent = incomeCategory
         )
-        repository.addCategory(category)
         val all = db.categoryDao().getAll()
         assertEquals(3, all.size)
         assertTrue(all.any { it.name == "Food" && it.parentId == incomeCategory.id })
@@ -90,7 +86,11 @@ class DefaultCategoryRepositoryTest {
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         val exception = assertFailsWith<NoSuchElementException> {
-            repository.addCategory(child)
+            repository.addCategory(
+                name = child.name,
+                type = child.type,
+                parent = child.parent
+            )
         }
         assertEquals("Parent category not found", exception.message)
     }
@@ -123,7 +123,11 @@ class DefaultCategoryRepositoryTest {
         db.categoryDao().insert(parent.toEntity())
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         val exception = assertFailsWith<IllegalArgumentException> {
-            repository.addCategory(grandChild)
+            repository.addCategory(
+                name = grandChild.name,
+                type = grandChild.type,
+                parent = grandChild.parent
+            )
         }
         assertEquals("Nested categories beyond one level are not allowed", exception.message)
     }
@@ -182,8 +186,12 @@ class DefaultCategoryRepositoryTest {
     @Test
     fun updateCategory_shouldUpdateData() = runTest {
         val beforeUpdate = db.categoryDao().getById("cat-1")!!
-        val updated = incomeCategory.copy(name = "Updated Salary")
-        repository.updateCategory(updated)
+        repository.updateCategory(
+            id = incomeCategory.id,
+            name = "Updated Salary",
+            type = incomeCategory.type,
+            parent = incomeCategory.parent
+        )
         val result = db.categoryDao().getById("cat-1")!!
         assertEquals("Updated Salary", result.name)
         assertTrue(result.updatedAt!! > (beforeUpdate.updatedAt ?: 0))
@@ -208,7 +216,12 @@ class DefaultCategoryRepositoryTest {
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         val exception = assertFailsWith<NoSuchElementException> {
-            repository.updateCategory(child.copy(name = "new child"))
+            repository.updateCategory(
+                id = child.id,
+                name = "new child",
+                type = child.type,
+                parent = child.parent
+            )
         }
         assertEquals("Parent category not found", exception.message)
     }
@@ -242,7 +255,12 @@ class DefaultCategoryRepositoryTest {
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         db.categoryDao().insert(grandchild.copy(parent = child).toEntity())
         val exception = assertFailsWith<IllegalArgumentException> {
-            repository.updateCategory(grandchild)
+            repository.updateCategory(
+                id = grandchild.id,
+                name = grandchild.name,
+                type = grandchild.type,
+                parent = grandchild.parent
+            )
         }
         assertEquals("Nested categories beyond one level are not allowed", exception.message)
     }
@@ -251,7 +269,12 @@ class DefaultCategoryRepositoryTest {
     fun updateCategory_shouldThrowIfParentIsSelf() = runTest {
         val selfReferencing = incomeCategory.copy(parent = incomeCategory)
         val exception = assertFailsWith<IllegalArgumentException> {
-            repository.updateCategory(selfReferencing)
+            repository.updateCategory(
+                id = selfReferencing.id,
+                name = selfReferencing.name,
+                type = selfReferencing.type,
+                parent = selfReferencing
+            )
         }
         assertEquals("Category cannot be its own parent", exception.message)
     }

@@ -20,24 +20,30 @@ import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.arraflydori.fin.core.composable.MyNavBar
 import org.arraflydori.fin.domain.repo.AccountRepository
+import org.arraflydori.fin.domain.repo.CategoryRepository
 import org.arraflydori.fin.domain.repo.TrxRepository
 import org.arraflydori.fin.feature.account.AccountPage
 import org.arraflydori.fin.feature.account.AccountViewModel
+import org.arraflydori.fin.feature.category.CategoryPage
+import org.arraflydori.fin.feature.category.CategoryViewModel
 import org.arraflydori.fin.feature.home.HomePage
 import org.arraflydori.fin.feature.home.HomeViewModel
 import org.arraflydori.fin.feature.statistic.StatisticPage
+import org.arraflydori.fin.feature.statistic.StatisticViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Serializable sealed interface Route
 @Serializable data object Main : Route
 @Serializable data object Home : Route
-@Serializable data class Account(val id: String?) : Route
 @Serializable data object Statistic : Route
+@Serializable data class Account(val id: String?) : Route
+@Serializable data class Category(val id: String?) : Route
 
 @Composable
 @Preview
 fun App(
     accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
     trxRepository: TrxRepository
 ) {
     val focusManager = LocalFocusManager.current
@@ -73,6 +79,7 @@ fun App(
                     MainContainer(
                         rootNavController = rootNavController,
                         accountRepository = accountRepository,
+                        categoryRepository = categoryRepository,
                         trxRepository = trxRepository
                     )
                 }
@@ -81,6 +88,16 @@ fun App(
                     AccountPage(
                         viewModel = viewModel {
                             AccountViewModel(accountRepository, account.id)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onSaveSuccess = { rootNavController.popBackStack() }
+                    )
+                }
+                composable<Category> { backStackEntry ->
+                    val category = backStackEntry.toRoute<Category>()
+                    CategoryPage(
+                        viewModel = viewModel {
+                            CategoryViewModel(categoryRepository, category.id)
                         },
                         onUp = { rootNavController.popBackStack() },
                         onSaveSuccess = { rootNavController.popBackStack() }
@@ -95,6 +112,7 @@ fun App(
 fun MainContainer(
     rootNavController: NavHostController,
     accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
 ) {
     val innerNavController = rememberNavController()
@@ -107,6 +125,9 @@ fun MainContainer(
                 },
                 onAddClick = {
                     rootNavController.navigate(Account(id = null))
+                },
+                onAddLongPress = {
+                    rootNavController.navigate(Category(id = null))
                 },
                 onStatisticClick = {
                     innerNavController.navigate(Statistic) {
@@ -145,7 +166,11 @@ fun MainContainer(
                 )
             }
             composable<Statistic> {
-                StatisticPage()
+                StatisticPage(
+                    viewModel = viewModel {
+                        StatisticViewModel(categoryRepository)
+                    }
+                )
             }
         }
     }

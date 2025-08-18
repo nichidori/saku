@@ -7,6 +7,7 @@ import org.arraflydori.fin.data.AppDatabase
 import org.arraflydori.fin.data.entity.toDomain
 import org.arraflydori.fin.data.entity.toEntity
 import org.arraflydori.fin.domain.model.Category
+import org.arraflydori.fin.domain.model.TrxType
 import org.arraflydori.fin.domain.repo.CategoryRepository
 import java.util.UUID
 import kotlin.time.Clock
@@ -14,10 +15,10 @@ import kotlin.time.Clock
 class DefaultCategoryRepository(
     private val db: AppDatabase,
 ) : CategoryRepository {
-    override suspend fun addCategory(category: Category) {
+    override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {
         db.useWriterConnection {
             it.immediateTransaction {
-                val parentId = category.parent?.id
+                val parentId = parent?.id
                 if (parentId != null) {
                     val parentEntity = db.categoryDao().getById(parentId)
                         ?: throw NoSuchElementException("Parent category not found")
@@ -26,11 +27,15 @@ class DefaultCategoryRepository(
                     }
                 }
 
-                val categoryWithId = category.copy(
+                val category = Category(
                     id = UUID.randomUUID().toString(),
-                    createdAt = Clock.System.now()
+                    name = name,
+                    parent = parent,
+                    type = type,
+                    createdAt = Clock.System.now(),
+                    updatedAt = null
                 )
-                db.categoryDao().insert(categoryWithId.toEntity())
+                db.categoryDao().insert(category.toEntity())
             }
         }
     }
@@ -55,23 +60,38 @@ class DefaultCategoryRepository(
         }
     }
 
-    override suspend fun updateCategory(category: Category) {
+    override suspend fun updateCategory(
+        id: String,
+        name: String,
+        type: TrxType,
+        parent: Category?
+    ) {
         db.useWriterConnection {
             it.immediateTransaction {
-                val parentId = category.parent?.id
-                if (parentId != null) {
-                    if (parentId == category.id) {
+                val parentId = parent?.id
+                val parentEntity = if (parentId != null) {
+                    if (parentId == id) {
                         throw IllegalArgumentException("Category cannot be its own parent")
                     }
-
-                    val parentEntity = db.categoryDao().getById(parentId)
+                    val entity = db.categoryDao().getById(parentId)
                         ?: throw NoSuchElementException("Parent category not found")
-                    if (parentEntity.parentId != null) {
+                    if (entity.parentId != null) {
                         throw IllegalArgumentException("Nested categories beyond one level are not allowed")
                     }
+                    entity
+                } else {
+                    null
                 }
 
-                val updatedCategory = category.copy(updatedAt = Clock.System.now())
+                val parent = parentEntity?.toDomain(parent = null)
+                val category = db.categoryDao().getById(id)?.toDomain(parent = parent)
+                    ?: throw NoSuchElementException("Category not found")
+                val updatedCategory = category.copy(
+                    name = name,
+                    type = type,
+                    parent = parent,
+                    updatedAt = Clock.System.now()
+                )
                 db.categoryDao().update(updatedCategory.toEntity())
             }
         }

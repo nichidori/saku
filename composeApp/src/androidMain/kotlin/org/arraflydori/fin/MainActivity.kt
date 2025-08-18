@@ -10,6 +10,7 @@ import org.arraflydori.fin.core.platform.setToastActivityProvider
 import org.arraflydori.fin.data.AppDatabase
 import org.arraflydori.fin.data.getRoomDatabase
 import org.arraflydori.fin.data.repo.DefaultAccountRepository
+import org.arraflydori.fin.data.repo.DefaultCategoryRepository
 import org.arraflydori.fin.data.repo.DefaultTrxRepository
 
 class MainActivity : ComponentActivity() {
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             App(
                 accountRepository = DefaultAccountRepository(db = db),
+                categoryRepository = DefaultCategoryRepository(db = db),
                 trxRepository = DefaultTrxRepository(db = db),
             )
         }

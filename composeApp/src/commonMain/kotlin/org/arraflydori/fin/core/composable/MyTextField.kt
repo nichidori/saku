@@ -16,6 +16,7 @@ fun MyTextField(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    enabled: Boolean = true,
     readOnly: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -24,6 +25,7 @@ fun MyTextField(
         onValueChange = onValueChange,
         label = { Text(text = label) },
         keyboardOptions = keyboardOptions,
+        enabled = enabled,
         readOnly = readOnly,
         singleLine = true,
         shape = RectangleShape,

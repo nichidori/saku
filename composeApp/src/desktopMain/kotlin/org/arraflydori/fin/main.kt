@@ -8,6 +8,7 @@ import androidx.compose.ui.window.rememberWindowState
 import androidx.room.Room
 import org.arraflydori.fin.data.getRoomDatabase
 import org.arraflydori.fin.data.repo.DefaultAccountRepository
+import org.arraflydori.fin.data.repo.DefaultCategoryRepository
 import org.arraflydori.fin.data.repo.DefaultTrxRepository
 
 fun main() = application {
@@ -24,6 +25,7 @@ fun main() = application {
         val db = getRoomDatabase(builder = Room.inMemoryDatabaseBuilder())
         App(
             accountRepository = DefaultAccountRepository(db = db),
+            categoryRepository = DefaultCategoryRepository(db = db),
             trxRepository = DefaultTrxRepository(db = db),
         )
     }
