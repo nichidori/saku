@@ -48,6 +48,7 @@ import org.arraflydori.fin.core.model.Status.Success
 import org.arraflydori.fin.core.platform.ToastDuration
 import org.arraflydori.fin.core.platform.showToast
 import org.arraflydori.fin.domain.model.AccountType
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 // TODO: Fix l10n
 @Composable
@@ -58,9 +59,6 @@ fun AccountPage(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showBalanceInput by remember { mutableStateOf(false) }
-    var showTypeInput by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
     uiState.saveStatus.let { status ->
         LaunchedEffect(status) {
@@ -76,6 +74,33 @@ fun AccountPage(
         }
     }
 
+    AccountPageContent(
+        uiState = uiState,
+        typeOptions = viewModel.typeOptions,
+        onUp = onUp,
+        onNameChange = viewModel::onNameChange,
+        onBalanceChange = viewModel::onBalanceChange,
+        onTypeChange = viewModel::onTypeChange,
+        onSaveClick = viewModel::saveAccount,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun AccountPageContent(
+    uiState: AccountUiState,
+    typeOptions: List<AccountType>,
+    onUp: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onBalanceChange: (String) -> Unit,
+    onTypeChange: (AccountType) -> Unit,
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showBalanceInput by remember { mutableStateOf(false) }
+    var showTypeInput by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         topBar = {
             MyAppBar(title = "Account", onUp = onUp)
@@ -87,12 +112,12 @@ fun AccountPage(
                 showBalanceInput -> {
                     NumberKeyboard(
                         onValueClick = {
-                            viewModel.onBalanceChange(
+                            onBalanceChange(
                                 uiState.balance?.toString().orEmpty() + it.toString()
                             )
                         },
                         onDeleteClick = {
-                            viewModel.onBalanceChange(
+                            onBalanceChange(
                                 uiState.balance?.toString().orEmpty().dropLast(1)
                             )
                         },
@@ -106,9 +131,9 @@ fun AccountPage(
                 }
                 showTypeInput -> {
                     AccountTypeSelector(
-                        types = viewModel.typeOptions,
+                        types = typeOptions,
                         onSelected = {
-                            viewModel.onTypeChange(it)
+                            onTypeChange(it)
                             focusManager.clearFocus()
                         },
                         modifier = Modifier
@@ -120,7 +145,7 @@ fun AccountPage(
                     MyButton(
                         text = "Save",
                         enabled = uiState.canSave,
-                        onClick = { viewModel.saveAccount() },
+                        onClick = onSaveClick,
                         modifier = modifier.padding(16.dp).padding(bottom = bottomPadding)
                     )
                 }
@@ -138,7 +163,7 @@ fun AccountPage(
         ) {
             MyTextField(
                 value = uiState.name,
-                onValueChange = { viewModel.onNameChange(it) },
+                onValueChange = onNameChange,
                 label = "Name",
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next
@@ -166,6 +191,24 @@ fun AccountPage(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun AccountPageContentPreview() {
+    AccountPageContent(
+        uiState = AccountUiState(
+            name = "My Bank Account",
+            balance = 1000000L,
+            type = AccountType.Bank
+        ),
+        typeOptions = AccountType.entries,
+        onUp = {},
+        onNameChange = {},
+        onBalanceChange = {},
+        onTypeChange = {},
+        onSaveClick = {}
+    )
 }
 
 @Composable
@@ -216,6 +259,16 @@ fun NumberKeyboard(
     }
 }
 
+@Preview
+@Composable
+fun NumberKeyboardPreview() {
+    NumberKeyboard(
+        onValueClick = {},
+        onDeleteClick = {},
+        onDoneClick = {}
+    )
+}
+
 @Composable
 fun KeyboardKey(
     label: String,
@@ -241,6 +294,15 @@ fun KeyboardKey(
             style = MaterialTheme.typography.labelLarge
         )
     }
+}
+
+@Preview
+@Composable
+fun KeyboardKeyPreview() {
+    KeyboardKey(
+        label = "1",
+        onClick = {}
+    )
 }
 
 @Composable
@@ -278,6 +340,15 @@ fun AccountTypeSelector(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun AccountTypeSelectorPreview() {
+    AccountTypeSelector(
+        types = AccountType.entries,
+        onSelected = {}
+    )
 }
 
 fun AccountType.label(): String {

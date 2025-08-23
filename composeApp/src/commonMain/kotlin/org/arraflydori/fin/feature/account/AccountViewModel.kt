@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.arraflydori.fin.core.model.Status
-import org.arraflydori.fin.core.model.Status.*
+import org.arraflydori.fin.core.model.Status.Failure
+import org.arraflydori.fin.core.model.Status.Initial
+import org.arraflydori.fin.core.model.Status.Loading
+import org.arraflydori.fin.core.model.Status.Success
 import org.arraflydori.fin.core.util.log
 import org.arraflydori.fin.core.util.toRupiah
 import org.arraflydori.fin.domain.model.AccountType
@@ -35,12 +38,12 @@ class AccountViewModel(
     val typeOptions = AccountType.entries.toList()
 
     init {
-        id?.let {
+        id?.let { id ->
             viewModelScope.launch {
                 _uiState.update {
                     it.copy(isLoading = true)
                 }
-                val account = accountRepository.getAccountById(it)
+                val account = accountRepository.getAccountById(id)
                 _uiState.update {
                     it.copy(
                         isLoading = false,

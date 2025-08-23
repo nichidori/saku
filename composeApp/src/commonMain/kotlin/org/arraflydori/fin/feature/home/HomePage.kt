@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,11 +28,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.YearMonth
 import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.util.format
 import org.arraflydori.fin.core.util.toRupiah
 import org.arraflydori.fin.domain.model.Account
+import org.arraflydori.fin.domain.model.AccountType
+import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.Trx
+import org.arraflydori.fin.domain.model.TrxType
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 
 @Composable
@@ -46,10 +53,22 @@ fun HomePage(
         viewModel.load(month = Clock.System.now().toYearMonth())
     }
 
+    HomePageContent(uiState = uiState, onAccountClick = onAccountClick, modifier = modifier)
+}
+
+@Composable
+fun HomePageContent(
+    uiState: HomeUiState,
+    onAccountClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier
-    ) {
-        LazyColumn(contentPadding = PaddingValues(16.dp)) {
+    ) { contentPadding ->
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier.consumeWindowInsets(contentPadding)
+        ) {
             item {
                 Text("August", style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -58,13 +77,84 @@ fun HomePage(
                 AccountSection(accounts = uiState.accounts, onAccountClick = onAccountClick)
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Recent Activities", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
             items(uiState.trxs) { trx ->
                 TransactionCard(trx = trx)
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun HomePageContentPreview() {
+    val sampleAccount = Account(
+        id = "1",
+        name = "Cash",
+        initialAmount = 100000,
+        currentAmount = 150000,
+        type = AccountType.Cash,
+        createdAt = Clock.System.now(),
+        updatedAt = null
+    )
+    val sampleTrx = Trx.Income(
+        id = "trx1",
+        name = "Salary",
+        amount = 5000000,
+        category = Category(
+            id = "cat1",
+            name = "Income",
+            type = TrxType.Income,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        sourceAccount = sampleAccount,
+        transactionAt = Clock.System.now(),
+        note = "Monthly salary",
+        createdAt = Clock.System.now(),
+        updatedAt = null
+    )
+    val uiState = HomeUiState(
+        isLoading = false,
+        currentMonth = YearMonth(2023, Month.AUGUST),
+        netWorth = 10000000,
+        netWorthTrend = listOf(1f, 1.2f, 1.1f, 1.3f),
+        accounts = listOf(
+            sampleAccount,
+            Account(
+                id = "2",
+                name = "Bank BCA",
+                initialAmount = 5000000,
+                currentAmount = 4500000,
+                type = AccountType.Bank,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+        ),
+        trxs = listOf(
+            sampleTrx,
+            Trx.Expense(
+                id = "trx2",
+                name = "Groceries",
+                amount = 200000,
+                category = Category(
+                    id = "cat2",
+                    name = "Food",
+                    type = TrxType.Expense,
+                    createdAt = Clock.System.now(),
+                    updatedAt = null
+                ),
+                sourceAccount = sampleAccount,
+                transactionAt = Clock.System.now(),
+                note = null,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+        )
+    )
+    HomePageContent(uiState = uiState, onAccountClick = {})
 }
 
 @Composable
@@ -94,6 +184,12 @@ fun TrendCard(title: String, value: Long, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun TrendCardPreview() {
+    TrendCard(title = "Net Worth", value = 123456789L)
 }
 
 @Composable
@@ -130,6 +226,93 @@ fun AccountSection(
     }
 }
 
+@Preview
+@Composable
+fun AccountSectionPreview() {
+    val accounts = listOf(
+        Account(
+            id = "1",
+            name = "Cash",
+            initialAmount = 1000,
+            currentAmount = 1500,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        Account(
+            id = "2",
+            name = "Bank Mandiri",
+            initialAmount = 5000,
+            currentAmount = 4500,
+            type = AccountType.Bank,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        Account(
+            id = "3",
+            name = "GoPay",
+            initialAmount = 200,
+            currentAmount = 150,
+            type = AccountType.Ewallet,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        Account(
+            id = "4",
+            name = "OVO",
+            initialAmount = 300,
+            currentAmount = 250,
+            type = AccountType.Ewallet,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+    )
+    AccountSection(accounts = accounts, onAccountClick = {})
+}
+
+@Preview
+@Composable
+fun AccountSectionSinglePreview() {
+    val accounts = listOf(
+        Account(
+            id = "1",
+            name = "Cash",
+            initialAmount = 1000,
+            currentAmount = 1500,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+    )
+    AccountSection(accounts = accounts, onAccountClick = {})
+}
+
+@Preview
+@Composable
+fun AccountSectionDoublePreview() {
+    val accounts = listOf(
+        Account(
+            id = "1",
+            name = "Cash",
+            initialAmount = 1000,
+            currentAmount = 1500,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        Account(
+            id = "2",
+            name = "Bank Mandiri",
+            initialAmount = 5000,
+            currentAmount = 4500,
+            type = AccountType.Bank,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+    )
+    AccountSection(accounts = accounts, onAccountClick = {})
+}
+
 @Composable
 fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Box(
@@ -146,6 +329,21 @@ fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier 
             Text(account.currentAmount.toString(), style = MaterialTheme.typography.titleMedium)
         }
     }
+}
+
+@Preview
+@Composable
+fun AccountCardPreview() {
+    val account = Account(
+        id = "1",
+        name = "Bank BCA",
+        initialAmount = 1000000,
+        currentAmount = 1200000,
+        type = AccountType.Bank,
+        createdAt = Clock.System.now(),
+        updatedAt = null
+    )
+    AccountCard(account = account, onClick = {})
 }
 
 @Composable
@@ -180,4 +378,34 @@ fun TransactionCard(trx: Trx, modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun TransactionCardPreview() {
+    val sampleAccount = Account(
+        id = "1",
+        name = "Cash",
+        initialAmount = 100000,
+        currentAmount = 150000,
+        type = AccountType.Cash,
+        createdAt = Clock.System.now(),
+        updatedAt = null
+    )
+    val trx = Trx.Expense(
+        id = "trx123",
+        name = "Lunch at Warteg",
+        amount = 25000,
+        category = Category(
+            id = "cat1", name = "Food", type = TrxType.Expense,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        ),
+        sourceAccount = sampleAccount,
+        transactionAt = Clock.System.now(),
+        note = "Nasi, ayam, es teh",
+        createdAt = Clock.System.now(),
+        updatedAt = null
+    )
+    TransactionCard(trx = trx)
 }

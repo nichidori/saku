@@ -50,6 +50,8 @@ import org.arraflydori.fin.core.platform.ToastDuration
 import org.arraflydori.fin.core.platform.showToast
 import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.TrxType
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.time.Instant
 
 @Composable
 fun CategoryPage(
@@ -59,8 +61,6 @@ fun CategoryPage(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showParentInput by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
     uiState.saveStatus.let { status ->
         LaunchedEffect(status) {
@@ -75,6 +75,32 @@ fun CategoryPage(
         }
     }
 
+    CategoryPageContent(
+        uiState = uiState,
+        types = viewModel.types,
+        onUp = onUp,
+        onTypeChange = viewModel::onTypeChange,
+        onNameChange = viewModel::onNameChange,
+        onParentChange = viewModel::onParentChange,
+        onSaveClick = viewModel::saveCategory,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CategoryPageContent(
+    uiState: CategoryUiState,
+    types: List<TrxType>,
+    onUp: () -> Unit,
+    onTypeChange: (TrxType) -> Unit,
+    onNameChange: (String) -> Unit,
+    onParentChange: (Category) -> Unit,
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showParentInput by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         topBar = {
             MyAppBar(title = "Category", onUp = onUp)
@@ -87,7 +113,7 @@ fun CategoryPage(
                     CategorySelector(
                         categories = uiState.parentOptions,
                         onSelected = {
-                            viewModel.onParentChange(it)
+                            onParentChange(it)
                             focusManager.clearFocus()
                         },
                         modifier = Modifier
@@ -99,7 +125,7 @@ fun CategoryPage(
                     MyButton(
                         text = "Save",
                         enabled = uiState.canSave,
-                        onClick = { viewModel.saveCategory() },
+                        onClick = onSaveClick,
                         modifier = Modifier.padding(16.dp).padding(bottom = bottomPadding)
                     )
                 }
@@ -116,14 +142,14 @@ fun CategoryPage(
                 .padding(16.dp),
         ) {
             SingleChoiceSegmentedButtonRow {
-                viewModel.types.forEachIndexed { i, type ->
+                types.forEachIndexed { i, type ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
                             index = i,
-                            count = viewModel.types.size
+                            count = types.size
                         ),
                         selected = type == uiState.type,
-                        onClick = { viewModel.onTypeChange(type) },
+                        onClick = { onTypeChange(type) },
                     ) {
                         Text(
                             when (type) {
@@ -139,7 +165,7 @@ fun CategoryPage(
 
             MyTextField(
                 value = uiState.name,
-                onValueChange = { viewModel.onNameChange(it) },
+                onValueChange = onNameChange,
                 label = "Name",
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next
@@ -158,6 +184,46 @@ fun CategoryPage(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun CategoryPageContentPreview() {
+    val uiState = CategoryUiState(
+        name = "Food",
+        type = TrxType.Expense,
+        parent = Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
+        parentsMap = mapOf(
+            TrxType.Expense to listOf(
+                Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
+                Category(id = "2", name = "Food", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null)
+            )
+        )
+    )
+    val types = listOf(TrxType.Income, TrxType.Expense, TrxType.Transfer)
+    CategoryPageContent(
+        uiState = uiState,
+        types = types,
+        onUp = {},
+        onTypeChange = {},
+        onNameChange = {},
+        onParentChange = {},
+        onSaveClick = {}
+    )
+}
+
+@Preview
+@Composable
+fun CategorySelectorPreview() {
+    val categories = listOf(
+        Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
+        Category(id = "2", name = "Salary", type = TrxType.Income, createdAt = Instant.DISTANT_PAST, updatedAt = null),
+        Category(id = "3", name = "Freelance", type = TrxType.Income, createdAt = Instant.DISTANT_PAST, updatedAt = null)
+    )
+    CategorySelector(
+        categories = categories,
+        onSelected = {}
+    )
 }
 
 @Composable
