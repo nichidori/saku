@@ -63,7 +63,7 @@ class DefaultTrxRepository(
                         )
                     }
 
-                    is Trx.Spending -> {
+                    is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
                                 currentAmount = source.currentAmount - trx.amount,
@@ -139,7 +139,7 @@ class DefaultTrxRepository(
                         )
                     }
 
-                    is Trx.Spending -> {
+                    is Trx.Expense -> {
                         accountDao.update(
                             oldSource.copy(
                                 currentAmount = oldSource.currentAmount + existing.amount,
@@ -185,7 +185,7 @@ class DefaultTrxRepository(
                         )
                     }
 
-                    is Trx.Spending -> {
+                    is Trx.Expense -> {
                         accountDao.update(
                             newSource.copy(
                                 currentAmount = newSource.currentAmount - trx.amount,
@@ -243,7 +243,7 @@ class DefaultTrxRepository(
                         )
                     }
 
-                    is Trx.Spending -> {
+                    is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
                                 currentAmount = source.currentAmount + trx.amount,

@@ -46,10 +46,10 @@ private val incomeCategory = CategoryEntity(
     updatedAt = null
 )
 
-private val spendingCategory = CategoryEntity(
+private val expenseCategory = CategoryEntity(
     id = "cat-2",
     name = "Food",
-    type = TrxTypeEntity.Spending,
+    type = TrxTypeEntity.Expense,
     parentId = null,
     createdAt = 0L,
     updatedAt = null
@@ -116,7 +116,7 @@ class TrxDaoTest {
         accountDao.insert(sourceAccount)
         accountDao.insert(targetAccount)
         categoryDao.insert(incomeCategory)
-        categoryDao.insert(spendingCategory)
+        categoryDao.insert(expenseCategory)
         categoryDao.insert(transferCategory)
     }
 
@@ -365,14 +365,14 @@ class TrxDaoTest {
             id = "expense-trx",
             name = "Lunch",
             amount = 50_000,
-            categoryId = spendingCategory.id,
+            categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = System.currentTimeMillis(),
             note = "Daily meal",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
-            type = TrxTypeEntity.Spending
+            type = TrxTypeEntity.Expense
         )
 
         trxDao.insert(incomeTrx)
@@ -390,7 +390,7 @@ class TrxDaoTest {
         val expenseResults = trxDao.getFilteredWithDetails(
             startTime = 0,
             endTime = Long.MAX_VALUE,
-            type = TrxTypeEntity.Spending,
+            type = TrxTypeEntity.Expense,
             categoryId = null,
             accountId = null
         )

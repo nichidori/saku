@@ -78,7 +78,7 @@ fun TrxEntity.toDomain(
         updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
     )
 
-    TrxTypeEntity.Spending -> Trx.Spending(
+    TrxTypeEntity.Expense -> Trx.Expense(
         id = id,
         name = name,
         amount = amount,
@@ -118,7 +118,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Income
     )
-    is Trx.Spending -> TrxEntity(
+    is Trx.Expense -> TrxEntity(
         id = id,
         name = name,
         amount = amount,
@@ -129,7 +129,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         note = note,
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
-        type = TrxTypeEntity.Spending
+        type = TrxTypeEntity.Expense
     )
     is Trx.Transfer -> TrxEntity(
         id = id,
@@ -148,13 +148,13 @@ fun Trx.toEntity(): TrxEntity = when (this) {
 
 fun TrxTypeEntity.toDomain(): TrxType = when (this) {
     TrxTypeEntity.Income -> TrxType.Income
-    TrxTypeEntity.Spending -> TrxType.Spending
+    TrxTypeEntity.Expense -> TrxType.Expense
     TrxTypeEntity.Transfer -> TrxType.Transfer
 }
 
 fun TrxType.toEntity(): TrxTypeEntity = when (this) {
     TrxType.Income -> TrxTypeEntity.Income
-    TrxType.Spending -> TrxTypeEntity.Spending
+    TrxType.Expense -> TrxTypeEntity.Expense
     TrxType.Transfer -> TrxTypeEntity.Transfer
 }
 
@@ -172,7 +172,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
         )
 
-        TrxTypeEntity.Spending -> Trx.Spending(
+        TrxTypeEntity.Expense -> Trx.Expense(
             id = trx.id,
             name = trx.name,
             amount = trx.amount,

@@ -53,10 +53,10 @@ class DefaultTrxRepositoryTest {
         updatedAt = null
     )
 
-    private val spendingCategory = Category(
+    private val expenseCategory = Category(
         id = "cat-2",
         name = "Food",
-        type = TrxType.Spending,
+        type = TrxType.Expense,
         createdAt = Clock.System.now(),
         updatedAt = null
     )
@@ -77,7 +77,7 @@ class DefaultTrxRepositoryTest {
             db.accountDao().insert(cashAccount.toEntity())
             db.accountDao().insert(bankAccount.toEntity())
             db.categoryDao().insert(incomeCategory.toEntity())
-            db.categoryDao().insert(spendingCategory.toEntity())
+            db.categoryDao().insert(expenseCategory.toEntity())
             db.categoryDao().insert(transferCategory.toEntity())
         }
     }
@@ -111,12 +111,12 @@ class DefaultTrxRepositoryTest {
     }
 
     @Test
-    fun addTrx_shouldInsertSpendingAndSubtractFromBalance() = runTest {
-        val trx = Trx.Spending(
+    fun addTrx_shouldInsertExpenseAndSubtractFromBalance() = runTest {
+        val trx = Trx.Expense(
             id = "",
             name = "Groceries",
             amount = 2_000L,
-            category = spendingCategory,
+            category = expenseCategory,
             sourceAccount = cashAccount,
             transactionAt = Clock.System.now(),
             note = null,
@@ -128,7 +128,7 @@ class DefaultTrxRepositoryTest {
         assertEquals(8_000L, updatedAccount.currentAmount)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Spending
+            .toDomain() as Trx.Expense
         assertEquals("Groceries", addedTrx.name)
         assertEquals(2_000L, addedTrx.amount)
     }
@@ -279,11 +279,11 @@ class DefaultTrxRepositoryTest {
             createdAt = Clock.System.now(),
             updatedAt = null,
         )
-        val expense = Trx.Spending(
+        val expense = Trx.Expense(
             id = "",
             name = "Food",
             amount = 1_000L,
-            category = spendingCategory,
+            category = expenseCategory,
             sourceAccount = cashAccount,
             transactionAt = Clock.System.now(),
             note = null,
@@ -332,12 +332,12 @@ class DefaultTrxRepositoryTest {
     }
 
     @Test
-    fun updateTrx_shouldUpdateSpendingAndAdjustBalance() = runTest {
-        val trx = Trx.Spending(
+    fun updateTrx_shouldUpdateExpenseAndAdjustBalance() = runTest {
+        val trx = Trx.Expense(
             id = "",
             name = "Shopping",
             amount = 1_000L,
-            category = spendingCategory,
+            category = expenseCategory,
             sourceAccount = cashAccount,
             transactionAt = Clock.System.now(),
             note = null,
@@ -347,13 +347,13 @@ class DefaultTrxRepositoryTest {
         repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Spending
+            .toDomain() as Trx.Expense
         repository.updateTrx(addedTrx.copy(amount = 1_500L))
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(8_500L, updatedAccount.currentAmount)
         val updatedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Spending
+            .toDomain() as Trx.Expense
         assertEquals(1_500L, updatedTrx.amount)
     }
 
@@ -557,12 +557,12 @@ class DefaultTrxRepositoryTest {
     }
 
     @Test
-    fun deleteTrx_shouldDeleteSpendingAndRevertBalance() = runTest {
-        val trx = Trx.Spending(
+    fun deleteTrx_shouldDeleteExpenseAndRevertBalance() = runTest {
+        val trx = Trx.Expense(
             id = "",
             name = "Food",
             amount = 1_500L,
-            category = spendingCategory,
+            category = expenseCategory,
             sourceAccount = cashAccount,
             transactionAt = Clock.System.now(),
             note = null,
@@ -572,7 +572,7 @@ class DefaultTrxRepositoryTest {
         repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Spending
+            .toDomain() as Trx.Expense
         repository.deleteTrx(addedTrx.id)
         val deletedTrx = repository.getTrxById(addedTrx.id)
         assertNull(deletedTrx)

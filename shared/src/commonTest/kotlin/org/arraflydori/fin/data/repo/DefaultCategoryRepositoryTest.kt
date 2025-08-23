@@ -59,7 +59,7 @@ class DefaultCategoryRepositoryTest {
     fun addCategory_shouldInsertNewCategory() = runTest {
         repository.addCategory(
             name = "Food",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = incomeCategory
         )
         val all = db.categoryDao().getAll()
@@ -72,14 +72,14 @@ class DefaultCategoryRepositoryTest {
         val parent = Category(
             id = "parent",
             name = "Parent",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
             id = "child",
             name = "Child",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -100,14 +100,14 @@ class DefaultCategoryRepositoryTest {
         val parent = Category(
             id = "parent",
             name = "Parent",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
             id = "child",
             name = "Child",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -115,7 +115,7 @@ class DefaultCategoryRepositoryTest {
         val grandChild = Category(
             id = "grand",
             name = "Grandchild",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = child,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -202,14 +202,14 @@ class DefaultCategoryRepositoryTest {
         val parent = Category(
             id = "parent",
             name = "Parent",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
             id = "child",
             name = "Child",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -231,14 +231,14 @@ class DefaultCategoryRepositoryTest {
         val parent = Category(
             id = "parent",
             name = "Parent",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             createdAt = Clock.System.now(),
             updatedAt = null
         )
         val child = Category(
             id = "child",
             name = "Child",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -246,7 +246,7 @@ class DefaultCategoryRepositoryTest {
         val grandchild = Category(
             id = "grandchild",
             name = "Grandchild",
-            type = TrxType.Spending,
+            type = TrxType.Expense,
             parent = child,
             createdAt = Clock.System.now(),
             updatedAt = null

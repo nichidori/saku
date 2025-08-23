@@ -152,7 +152,7 @@ fun CategoryPage(
                         Text(
                             when (type) {
                                 TrxType.Income -> "Income"
-                                TrxType.Spending -> "Expense"
+                                TrxType.Expense -> "Expense"
                                 TrxType.Transfer -> "Transfer"
                             }
                         )

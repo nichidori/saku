@@ -25,7 +25,7 @@ sealed class Trx(
         override val updatedAt: Instant?
     ) : Trx(id, name, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
 
-    data class Spending(
+    data class Expense(
         override val id: String,
         override val name: String,
         override val amount: Long,
@@ -53,18 +53,18 @@ sealed class Trx(
 
 fun Trx.withId(id: String): Trx = when (this) {
     is Trx.Income -> copy(id = id)
-    is Trx.Spending -> copy(id = id)
+    is Trx.Expense -> copy(id = id)
     is Trx.Transfer -> copy(id = id)
 }
 
 fun Trx.withCreatedAt(createdAt: Instant): Trx = when (this) {
     is Trx.Income -> copy(createdAt = createdAt)
-    is Trx.Spending -> copy(createdAt = createdAt)
+    is Trx.Expense -> copy(createdAt = createdAt)
     is Trx.Transfer -> copy(createdAt = createdAt)
 }
 
 fun Trx.withUpdatedAt(updatedAt: Instant): Trx = when (this) {
     is Trx.Income -> copy(updatedAt = updatedAt)
-    is Trx.Spending -> copy(updatedAt = updatedAt)
+    is Trx.Expense -> copy(updatedAt = updatedAt)
     is Trx.Transfer -> copy(updatedAt = updatedAt)
 }
