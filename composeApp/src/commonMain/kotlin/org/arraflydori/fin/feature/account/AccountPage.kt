@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,15 +39,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ChevronLeft
-import com.composables.icons.lucide.Lucide
+import org.arraflydori.fin.core.composable.MyAppBar
 import org.arraflydori.fin.core.composable.MyButton
 import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
-import org.arraflydori.fin.core.platform.showToast
 import org.arraflydori.fin.core.model.Status
 import org.arraflydori.fin.core.model.Status.Success
 import org.arraflydori.fin.core.platform.ToastDuration
+import org.arraflydori.fin.core.platform.showToast
 import org.arraflydori.fin.domain.model.AccountType
 
 // TODO: Fix l10n
@@ -83,69 +78,51 @@ fun AccountPage(
 
     Scaffold(
         topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(8.dp)
-            ) {
-                IconButton(onClick = { onUp() }) {
-                    Icon(
-                        imageVector = Lucide.ChevronLeft,
-                        contentDescription = "Back"
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Account",
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-            }
+            MyAppBar(title = "Account", onUp = onUp)
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .padding(
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding()
-                    ),
-            ) {
-                when {
-                    showBalanceInput -> {
-                        NumberKeyboard(
-                            onValueClick = {
-                                viewModel.onBalanceChange(
-                                    uiState.balance?.toString().orEmpty() + it.toString()
-                                )
-                            },
-                            onDeleteClick = {
-                                viewModel.onBalanceChange(
-                                    uiState.balance?.toString().orEmpty().dropLast(1)
-                                )
-                            },
-                            onDoneClick = {
-                                focusManager.moveFocus(FocusDirection.Next)
-                            },
-                        )
-                    }
-
-                    showTypeInput -> {
-                        AccountTypeSelector(
-                            types = viewModel.typeOptions,
-                            onSelected = {
-                                viewModel.onTypeChange(it)
-                                focusManager.clearFocus()
-                            }
-                        )
-                    }
-
-                    else -> {
-                        MyButton(
-                            text = "Save",
-                            enabled = uiState.canSave,
-                            onClick = { viewModel.saveAccount() },
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+            val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
+                .calculateBottomPadding()
+            when {
+                showBalanceInput -> {
+                    NumberKeyboard(
+                        onValueClick = {
+                            viewModel.onBalanceChange(
+                                uiState.balance?.toString().orEmpty() + it.toString()
+                            )
+                        },
+                        onDeleteClick = {
+                            viewModel.onBalanceChange(
+                                uiState.balance?.toString().orEmpty().dropLast(1)
+                            )
+                        },
+                        onDoneClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+                showTypeInput -> {
+                    AccountTypeSelector(
+                        types = viewModel.typeOptions,
+                        onSelected = {
+                            viewModel.onTypeChange(it)
+                            focusManager.clearFocus()
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+                else -> {
+                    MyButton(
+                        text = "Save",
+                        enabled = uiState.canSave,
+                        onClick = { viewModel.saveAccount() },
+                        modifier = modifier.padding(16.dp).padding(bottom = bottomPadding)
+                    )
                 }
             }
         }
@@ -201,7 +178,6 @@ fun NumberKeyboard(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(16.dp)
@@ -276,15 +252,14 @@ fun AccountTypeSelector(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(16.dp)
             .fillMaxWidth()
+            .padding(16.dp)
     ) {
         for (type in types) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         color = MaterialTheme.colorScheme.primaryContainer,

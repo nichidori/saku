@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -15,12 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -44,8 +40,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ChevronLeft
-import com.composables.icons.lucide.Lucide
+import org.arraflydori.fin.core.composable.MyAppBar
 import org.arraflydori.fin.core.composable.MyButton
 import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
@@ -82,52 +77,33 @@ fun CategoryPage(
 
     Scaffold(
         topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(8.dp)
-            ) {
-                IconButton(onClick = { onUp() }) {
-                    Icon(
-                        imageVector = Lucide.ChevronLeft,
-                        contentDescription = "Back"
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Category",
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-            }
+            MyAppBar(title = "Category", onUp = onUp)
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .padding(
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding()
-                    ),
-            ) {
-                when {
-                    showParentInput -> {
-                        CategorySelector(
-                            categories = uiState.parentOptions,
-                            onSelected = {
-                                viewModel.onParentChange(it)
-                                focusManager.clearFocus()
-                            }
-                        )
-                    }
-                    else -> {
-                        MyButton(
-                            text = "Save",
-                            enabled = uiState.canSave,
-                            onClick = { viewModel.saveCategory() },
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+            val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
+                .calculateBottomPadding()
+            when {
+                showParentInput -> {
+                    CategorySelector(
+                        categories = uiState.parentOptions,
+                        onSelected = {
+                            viewModel.onParentChange(it)
+                            focusManager.clearFocus()
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+                else -> {
+                    MyButton(
+                        text = "Save",
+                        enabled = uiState.canSave,
+                        onClick = { viewModel.saveCategory() },
+                        modifier = Modifier.padding(16.dp).padding(bottom = bottomPadding)
+                    )
                 }
             }
-
         }
     ) { contentPadding ->
         Column(
@@ -193,7 +169,6 @@ fun CategorySelector(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
             .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
@@ -201,7 +176,7 @@ fun CategorySelector(
         for (category in categories) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         color = MaterialTheme.colorScheme.primaryContainer,
