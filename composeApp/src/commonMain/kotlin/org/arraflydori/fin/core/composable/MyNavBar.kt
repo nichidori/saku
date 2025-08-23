@@ -27,11 +27,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChartPie
@@ -39,7 +38,6 @@ import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MyNavBar(
     onHomeClick: () -> Unit,
@@ -93,17 +91,26 @@ fun MyNavBar(
                         onLongPress = { onAddLongPress() }
                     )
                 }
-                .onPointerEvent(PointerEventType.Enter) {
-                    if (hoverInteraction == null) {
-                        val enter = HoverInteraction.Enter()
-                        hoverInteraction = enter
-                        interactionSource.tryEmit(enter)
-                    }
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    hoverInteraction?.let {
-                        interactionSource.tryEmit(HoverInteraction.Exit(it))
-                        hoverInteraction = null
+                .pointerInput(interactionSource) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Main)
+                            when (event.type) {
+                                PointerEventType.Enter -> {
+                                    if (hoverInteraction == null) {
+                                        val enter = HoverInteraction.Enter()
+                                        hoverInteraction = enter
+                                        interactionSource.tryEmit(enter)
+                                    }
+                                }
+                                PointerEventType.Exit -> {
+                                    hoverInteraction?.let {
+                                        interactionSource.tryEmit(HoverInteraction.Exit(it))
+                                        hoverInteraction = null
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
             contentAlignment = Alignment.Center
