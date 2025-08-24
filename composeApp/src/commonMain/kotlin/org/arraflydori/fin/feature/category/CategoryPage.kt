@@ -138,7 +138,8 @@ fun CategoryPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
         ) {
             SingleChoiceSegmentedButtonRow {
                 types.forEachIndexed { i, type ->

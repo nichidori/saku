@@ -157,7 +157,8 @@ fun AccountPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
         ) {
             MyTextField(
                 value = uiState.name,

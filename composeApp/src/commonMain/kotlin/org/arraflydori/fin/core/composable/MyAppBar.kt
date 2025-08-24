@@ -29,13 +29,13 @@ fun MyAppBar(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxWidth()
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding()
             )
-            .padding(8.dp)
+            .padding(horizontal = 4.dp)
+            .padding(top = 4.dp, bottom = 12.dp)
     ) {
         IconButton(onClick = { onUp() }) {
             Icon(
@@ -47,7 +47,7 @@ fun MyAppBar(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = it,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
             )
         }
     }

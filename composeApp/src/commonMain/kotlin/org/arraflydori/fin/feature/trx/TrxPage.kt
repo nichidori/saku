@@ -1,7 +1,6 @@
 package org.arraflydori.fin.feature.trx
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -225,7 +224,8 @@ fun TrxPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
         ) {
             SingleChoiceSegmentedButtonRow {
                 types.forEachIndexed { i, type ->
