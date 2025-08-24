@@ -35,6 +35,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -160,10 +162,23 @@ fun App(
 @Composable
 fun AppPreview() {
     val accountRepository = object : AccountRepository {
-        override suspend fun addAccount(name: String, initialAmount: Long, type: org.arraflydori.fin.domain.model.AccountType) {}
+        override suspend fun addAccount(
+            name: String,
+            initialAmount: Long,
+            type: org.arraflydori.fin.domain.model.AccountType
+        ) {
+        }
+
         override suspend fun getAccountById(id: String): Account? = null
         override suspend fun getAllAccounts(): List<Account> = emptyList()
-        override suspend fun updateAccount(id: String, name: String, initialAmount: Long, type: org.arraflydori.fin.domain.model.AccountType) {}
+        override suspend fun updateAccount(
+            id: String,
+            name: String,
+            initialAmount: Long,
+            type: org.arraflydori.fin.domain.model.AccountType
+        ) {
+        }
+
         override suspend fun deleteAccount(id: String) {}
         override suspend fun getTotalBalance(): Long = 0
     }
@@ -172,14 +187,44 @@ fun AppPreview() {
         override suspend fun getCategoryById(id: String): Category? = null
         override suspend fun getAllCategories(): List<Category> = emptyList()
         override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
-        override suspend fun updateCategory(id: String, name: String, type: TrxType, parent: Category?) {}
+        override suspend fun updateCategory(
+            id: String,
+            name: String,
+            type: TrxType,
+            parent: Category?
+        ) {
+        }
+
         override suspend fun deleteCategory(id: String) {}
     }
     val trxRepository = object : TrxRepository {
-        override suspend fun addTrx(type: TrxType, transactionAt: Instant, amount: Long, name: String, sourceAccount: Account, targetAccount: Account?, category: Category, note: String) {}
+        override suspend fun addTrx(
+            type: TrxType,
+            transactionAt: Instant,
+            amount: Long,
+            name: String,
+            sourceAccount: Account,
+            targetAccount: Account?,
+            category: Category,
+            note: String
+        ) {
+        }
+
         override suspend fun getTrxById(id: String): Trx? = null
         override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> = emptyList()
-        override suspend fun updateTrx(id: String, type: TrxType, transactionAt: Instant, amount: Long, name: String, sourceAccount: Account, targetAccount: Account?, category: Category, note: String) {}
+        override suspend fun updateTrx(
+            id: String,
+            type: TrxType,
+            transactionAt: Instant,
+            amount: Long,
+            name: String,
+            sourceAccount: Account,
+            targetAccount: Account?,
+            category: Category,
+            note: String
+        ) {
+        }
+
         override suspend fun deleteTrx(id: String) {}
     }
     App(
@@ -214,9 +259,12 @@ fun MainContainer(
                     showInputOption = true
                 },
                 onStatisticClick = {
-                    innerNavController.navigate(Route.Statistic) {
-                        popUpTo(Route.Home) { inclusive = false }
-                        launchSingleTop = true
+                    val currentDestination = innerNavController.currentBackStackEntry?.destination
+                    if (currentDestination?.hierarchy?.none { it.hasRoute<Route.Statistic>() } == true) {
+                        innerNavController.navigate(Route.Statistic) {
+                            popUpTo(Route.Home) { inclusive = false }
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
