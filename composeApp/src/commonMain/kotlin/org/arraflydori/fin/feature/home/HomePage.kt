@@ -26,10 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.YearMonth
+import kotlinx.datetime.format.MonthNames
 import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.util.format
 import org.arraflydori.fin.core.util.toRupiah
@@ -79,7 +81,7 @@ fun HomePageContent(
             item {
                 Text("August", style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(16.dp))
-                TrendCard(title = "Net Worth", value = uiState.netWorth)
+                TrendCard(title = "Net Worth", value = uiState.netWorthFormatted)
                 Spacer(modifier = Modifier.height(16.dp))
                 AccountSection(accounts = uiState.accounts, onAccountClick = onAccountClick)
                 Spacer(modifier = Modifier.height(24.dp))
@@ -165,7 +167,7 @@ fun HomePageContentPreview() {
 }
 
 @Composable
-fun TrendCard(title: String, value: Long, modifier: Modifier = Modifier) {
+fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
@@ -176,7 +178,7 @@ fun TrendCard(title: String, value: Long, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(title, style = MaterialTheme.typography.labelSmall)
-            Text(value.toRupiah(), style = MaterialTheme.typography.titleMedium)
+            Text(value, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
@@ -196,24 +198,24 @@ fun TrendCard(title: String, value: Long, modifier: Modifier = Modifier) {
 @Preview
 @Composable
 fun TrendCardPreview() {
-    TrendCard(title = "Net Worth", value = 123456789L)
+    TrendCard(title = "Net Worth", value = "Rp 1.310.000")
 }
 
 @Composable
 fun AccountSection(
     accounts: List<Account>,
     onAccountClick: (String) -> Unit,
+    spacing: Dp = 12.dp,
     modifier: Modifier = Modifier
 ) {
-    val rows = accounts.chunked(3)
-
+    val rows = accounts.chunked(2)
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier,
     ) {
         rows.forEach { row ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing)
             ) {
                 row.forEach { account ->
                     AccountCard(
@@ -223,9 +225,6 @@ fun AccountSection(
                     )
                 }
                 if (row.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-                if (row.size < 3) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -333,7 +332,7 @@ fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier 
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(account.name, style = MaterialTheme.typography.labelSmall)
-            Text(account.currentAmount.toString(), style = MaterialTheme.typography.titleMedium)
+            Text(account.balanceFormatted(), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -380,10 +379,20 @@ fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Mo
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(trx.amount.toRupiah(), style = MaterialTheme.typography.titleMedium)
-                Text(trx.transactionAt.format(LocalDateTime.Format {
-                    hour()
-                    minute()
-                }), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    trx.transactionAt.format(LocalDateTime.Format {
+                        day()
+                        chars(" ")
+                        monthName(MonthNames.ENGLISH_ABBREVIATED)
+                        chars(" ")
+                        year()
+                        chars(" • ")
+                        hour()
+                        chars(":")
+                        minute()
+                    }),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
     }

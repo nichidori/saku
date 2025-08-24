@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.toLocalDateTime
+import org.arraflydori.fin.core.util.toRupiah
 import org.arraflydori.fin.domain.model.Account
 import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxFilter
@@ -24,7 +25,11 @@ data class HomeUiState(
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
     val trxs: List<Trx> = emptyList(),
-)
+) {
+    val netWorthFormatted = netWorth.toRupiah()
+}
+
+fun Account.balanceFormatted() = currentAmount.toRupiah()
 
 class HomeViewModel(
     private val accountRepository: AccountRepository,
