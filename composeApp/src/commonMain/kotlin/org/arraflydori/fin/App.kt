@@ -1,16 +1,39 @@
 package org.arraflydori.fin
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -18,7 +41,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
+import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyNavBar
+import org.arraflydori.fin.domain.model.Account
+import org.arraflydori.fin.domain.model.Category
+import org.arraflydori.fin.domain.model.Trx
+import org.arraflydori.fin.domain.model.TrxFilter
+import org.arraflydori.fin.domain.model.TrxType
 import org.arraflydori.fin.domain.repo.AccountRepository
 import org.arraflydori.fin.domain.repo.CategoryRepository
 import org.arraflydori.fin.domain.repo.TrxRepository
@@ -33,6 +62,7 @@ import org.arraflydori.fin.feature.statistic.StatisticViewModel
 import org.arraflydori.fin.feature.trx.TrxPage
 import org.arraflydori.fin.feature.trx.TrxViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.time.Instant
 
 @Serializable sealed interface Route {
     @Serializable data object Main : Route
@@ -44,7 +74,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 }
 
 @Composable
-@Preview
 fun App(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
@@ -127,6 +156,40 @@ fun App(
     }
 }
 
+@Preview
+@Composable
+fun AppPreview() {
+    val accountRepository = object : AccountRepository {
+        override suspend fun addAccount(name: String, initialAmount: Long, type: org.arraflydori.fin.domain.model.AccountType) {}
+        override suspend fun getAccountById(id: String): Account? = null
+        override suspend fun getAllAccounts(): List<Account> = emptyList()
+        override suspend fun updateAccount(id: String, name: String, initialAmount: Long, type: org.arraflydori.fin.domain.model.AccountType) {}
+        override suspend fun deleteAccount(id: String) {}
+        override suspend fun getTotalBalance(): Long = 0
+    }
+    val categoryRepository = object : CategoryRepository {
+        override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {}
+        override suspend fun getCategoryById(id: String): Category? = null
+        override suspend fun getAllCategories(): List<Category> = emptyList()
+        override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
+        override suspend fun updateCategory(id: String, name: String, type: TrxType, parent: Category?) {}
+        override suspend fun deleteCategory(id: String) {}
+    }
+    val trxRepository = object : TrxRepository {
+        override suspend fun addTrx(type: TrxType, transactionAt: Instant, amount: Long, name: String, sourceAccount: Account, targetAccount: Account?, category: Category, note: String) {}
+        override suspend fun getTrxById(id: String): Trx? = null
+        override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> = emptyList()
+        override suspend fun updateTrx(id: String, type: TrxType, transactionAt: Instant, amount: Long, name: String, sourceAccount: Account, targetAccount: Account?, category: Category, note: String) {}
+        override suspend fun deleteTrx(id: String) {}
+    }
+    App(
+        accountRepository = accountRepository,
+        categoryRepository = categoryRepository,
+        trxRepository = trxRepository
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContainer(
     rootNavController: NavHostController,
@@ -135,6 +198,8 @@ fun MainContainer(
     trxRepository: TrxRepository,
 ) {
     val innerNavController = rememberNavController()
+    val sheetState = rememberModalBottomSheetState()
+    var showInputOption by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -146,9 +211,7 @@ fun MainContainer(
                     rootNavController.navigate(Route.Trx(id = null))
                 },
                 onAddLongPress = {
-                    // TODO: Add option to create
-                    // Trx, Account, or Category
-                    rootNavController.navigate(Route.Category(id = null))
+                    showInputOption = true
                 },
                 onStatisticClick = {
                     innerNavController.navigate(Route.Statistic) {
@@ -194,5 +257,89 @@ fun MainContainer(
                 )
             }
         }
+
+        if (showInputOption) {
+            ModalBottomSheet(
+                dragHandle = null,
+                onDismissRequest = { showInputOption = false },
+                sheetState = sheetState,
+                shape = MyDefaultShape,
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding() + 24.dp
+                    )
+            ) {
+                InputOptionSelector(
+                    onAccountClick = {
+                        rootNavController.navigate(Route.Account(id = null))
+                        showInputOption = false
+                    },
+                    onCategoryClick = {
+                        rootNavController.navigate(Route.Category(id = null))
+                        showInputOption = false
+                    },
+                    onTrxClick = {
+                        rootNavController.navigate(Route.Trx(id = null))
+                        showInputOption = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun InputOptionSelector(
+    onAccountClick: () -> Unit,
+    onCategoryClick: () -> Unit,
+    onTrxClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.padding(16.dp)
+    ) {
+        InputOption(label = "Add Account", onClick = onAccountClick)
+        InputOption(label = "Add Category", onClick = onCategoryClick)
+        InputOption(label = "Add Transaction", onClick = onTrxClick)
+    }
+}
+
+@Preview
+@Composable
+fun InputOptionSelectorPreview() {
+    InputOptionSelector(
+        onAccountClick = {},
+        onCategoryClick = {},
+        onTrxClick = {}
+    )
+}
+
+@Composable
+fun InputOption(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MyDefaultShape
+            )
+            .clip(MyDefaultShape)
+            .focusProperties { canFocus = false }
+            .clickable { onClick() }
+            .height(48.dp)
+    ) {
+        Text(
+            label,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge
+        )
     }
 }

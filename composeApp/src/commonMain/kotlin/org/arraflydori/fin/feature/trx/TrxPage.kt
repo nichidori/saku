@@ -119,7 +119,7 @@ fun TrxPageContent(
 
     Scaffold(
         topBar = {
-            MyAppBar(title = "Trx", onUp = onUp)
+            MyAppBar(title = "Transaction", onUp = onUp)
         },
         bottomBar = {
             val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
