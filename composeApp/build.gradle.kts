@@ -60,11 +60,11 @@ kotlin {
 }
 
 android {
-    namespace = "org.arraflydori.fin"
+    namespace = "dev.nichidori.saku"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.arraflydori.fin"
+        applicationId = "dev.nichidori.saku"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -95,11 +95,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "org.arraflydori.fin.MainKt"
+        mainClass = "dev.nichidori.saku.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.arraflydori.fin"
+            packageName = "dev.nichidori.saku"
             packageVersion = "1.0.0"
         }
     }

@@ -46,7 +46,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.arraflydori.fin.shared"
+    namespace = "dev.nichidori.saku.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
