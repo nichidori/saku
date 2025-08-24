@@ -294,6 +294,9 @@ fun MainContainer(
                     },
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))
+                    },
+                    onTrxClick = { id ->
+                        rootNavController.navigate(Route.Trx(id))
                     }
                 )
             }

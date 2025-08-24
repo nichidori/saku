@@ -45,6 +45,7 @@ import kotlin.time.Clock
 fun HomePage(
     viewModel: HomeViewModel,
     onAccountClick: (String) -> Unit,
+    onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -53,13 +54,19 @@ fun HomePage(
         viewModel.load(month = Clock.System.now().toYearMonth())
     }
 
-    HomePageContent(uiState = uiState, onAccountClick = onAccountClick, modifier = modifier)
+    HomePageContent(
+        uiState = uiState,
+        onAccountClick = onAccountClick,
+        onTrxClick = onTrxClick,
+        modifier = modifier
+    )
 }
 
 @Composable
 fun HomePageContent(
     uiState: HomeUiState,
     onAccountClick: (String) -> Unit,
+    onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -80,7 +87,7 @@ fun HomePageContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             items(uiState.trxs) { trx ->
-                TransactionCard(trx = trx)
+                TransactionCard(trx = trx, onClick = onTrxClick)
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
@@ -154,7 +161,7 @@ fun HomePageContentPreview() {
             )
         )
     )
-    HomePageContent(uiState = uiState, onAccountClick = {})
+    HomePageContent(uiState = uiState, onAccountClick = {}, onTrxClick = {})
 }
 
 @Composable
@@ -347,13 +354,15 @@ fun AccountCardPreview() {
 }
 
 @Composable
-fun TransactionCard(trx: Trx, modifier: Modifier = Modifier) {
+fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = MyDefaultShape
-            ),
+            )
+            .clip(MyDefaultShape)
+            .clickable { onClick(trx.id) },
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
             Box(
@@ -407,5 +416,5 @@ fun TransactionCardPreview() {
         createdAt = Clock.System.now(),
         updatedAt = null
     )
-    TransactionCard(trx = trx)
+    TransactionCard(trx = trx, onClick = {})
 }
