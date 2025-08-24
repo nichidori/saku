@@ -8,10 +8,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.room.Room
 import org.arraflydori.fin.core.platform.setToastActivityProvider
 import org.arraflydori.fin.data.AppDatabase
+import org.arraflydori.fin.data.getDatabaseBuilder
 import org.arraflydori.fin.data.getRoomDatabase
 import org.arraflydori.fin.data.repo.DefaultAccountRepository
 import org.arraflydori.fin.data.repo.DefaultCategoryRepository
 import org.arraflydori.fin.data.repo.DefaultTrxRepository
+
+const val useInMemoryDb = false
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,9 +25,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setToastActivityProvider { this }
 
-        // TODO: Build actual DB
         val db = getRoomDatabase(
-            builder = Room.inMemoryDatabaseBuilder(this, AppDatabase::class.java)
+            builder = if (useInMemoryDb) {
+                Room.inMemoryDatabaseBuilder(this, AppDatabase::class.java)
+            } else {
+                getDatabaseBuilder(this)
+            }
         )
         setContent {
             App(
