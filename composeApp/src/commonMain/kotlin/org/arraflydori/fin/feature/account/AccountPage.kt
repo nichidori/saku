@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -101,6 +103,7 @@ fun AccountPageContent(
             when {
                 showBalanceInput -> {
                     NumberKeyboard(
+                        actionLabel = "Next",
                         onValueClick = {
                             onBalanceChange(
                                 uiState.balance?.toString().orEmpty() + it.toString()
@@ -111,7 +114,7 @@ fun AccountPageContent(
                                 uiState.balance?.toString().orEmpty().dropLast(1)
                             )
                         },
-                        onDoneClick = {
+                        onActionClick = {
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
@@ -136,7 +139,10 @@ fun AccountPageContent(
                         text = "Save",
                         enabled = uiState.canSave,
                         onClick = onSaveClick,
-                        modifier = modifier.padding(16.dp).padding(bottom = bottomPadding)
+                        modifier = modifier
+                            .background(color = MaterialTheme.colorScheme.background)
+                            .padding(16.dp)
+                            .padding(bottom = bottomPadding)
                     )
                 }
             }
@@ -146,9 +152,11 @@ fun AccountPageContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
-                .padding(contentPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .consumeWindowInsets(contentPadding)
+                .imePadding()
                 .padding(16.dp),
         ) {
             MyTextField(

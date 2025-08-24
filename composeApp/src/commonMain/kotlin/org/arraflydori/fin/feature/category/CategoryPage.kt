@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -118,7 +120,10 @@ fun CategoryPageContent(
                         text = "Save",
                         enabled = uiState.canSave,
                         onClick = onSaveClick,
-                        modifier = Modifier.padding(16.dp).padding(bottom = bottomPadding)
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.background)
+                            .padding(16.dp)
+                            .padding(bottom = bottomPadding)
                     )
                 }
             }
@@ -128,9 +133,11 @@ fun CategoryPageContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
-                .padding(contentPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .consumeWindowInsets(contentPadding)
+                .imePadding()
                 .padding(16.dp),
         ) {
             SingleChoiceSegmentedButtonRow {
@@ -184,11 +191,29 @@ fun CategoryPageContentPreview() {
     val uiState = CategoryUiState(
         name = "Food",
         type = TrxType.Expense,
-        parent = Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
+        parent = Category(
+            id = "1",
+            name = "Groceries",
+            type = TrxType.Expense,
+            createdAt = Instant.DISTANT_PAST,
+            updatedAt = null
+        ),
         parentsMap = mapOf(
             TrxType.Expense to listOf(
-                Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
-                Category(id = "2", name = "Food", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null)
+                Category(
+                    id = "1",
+                    name = "Groceries",
+                    type = TrxType.Expense,
+                    createdAt = Instant.DISTANT_PAST,
+                    updatedAt = null
+                ),
+                Category(
+                    id = "2",
+                    name = "Food",
+                    type = TrxType.Expense,
+                    createdAt = Instant.DISTANT_PAST,
+                    updatedAt = null
+                )
             )
         )
     )

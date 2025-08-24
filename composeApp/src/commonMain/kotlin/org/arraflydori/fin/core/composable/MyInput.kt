@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
@@ -37,22 +38,25 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@Suppress("ModifierParameter")
 @Composable
 fun NumberKeyboard(
     onValueClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
-    onDoneClick: () -> Unit,
+    onActionClick: () -> Unit,
+    actionLabel: String = "Done",
+    spacing: Dp = 8.dp,
     modifier: Modifier = Modifier
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         for (i in 1..3) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
                 for (j in 1..3) {
                     val value = ((i - 1) * 3 + j)
                     KeyboardKey(
@@ -63,7 +67,7 @@ fun NumberKeyboard(
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
             KeyboardKey(
                 label = "Delete",
                 onClick = onDeleteClick,
@@ -76,8 +80,8 @@ fun NumberKeyboard(
                 modifier = Modifier.weight(1f)
             )
             KeyboardKey(
-                label = "Done",
-                onClick = onDoneClick,
+                label = actionLabel,
+                onClick = onActionClick,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.weight(1f)
             )
@@ -91,7 +95,7 @@ fun NumberKeyboardPreview() {
     NumberKeyboard(
         onValueClick = {},
         onDeleteClick = {},
-        onDoneClick = {}
+        onActionClick = {}
     )
 }
 
@@ -380,6 +384,7 @@ fun MyDateTimePicker(
         timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
         onSnappedDateTime = onDateTimePicked,
         modifier = modifier
+            .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
     )

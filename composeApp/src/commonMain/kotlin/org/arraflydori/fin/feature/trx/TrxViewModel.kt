@@ -98,7 +98,11 @@ class TrxViewModel(
     }
 
     fun onTypeChange(newValue: TrxType) {
-        _uiState.value = _uiState.value.copy(type = newValue, targetAccount = null)
+        _uiState.value = _uiState.value.copy(
+            type = newValue,
+            category = null,
+            targetAccount = null
+        )
     }
 
     fun onTimeChange(newValue: Instant) {

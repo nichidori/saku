@@ -1,13 +1,17 @@
 package org.arraflydori.fin.feature.trx
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -143,6 +147,7 @@ fun TrxPageContent(
                 }
                 showAmountInput -> {
                     NumberKeyboard(
+                        actionLabel = "Next",
                         onValueClick = {
                             onAmountChange(
                                 uiState.amount?.toString().orEmpty() + it.toString()
@@ -153,7 +158,7 @@ fun TrxPageContent(
                                 uiState.amount?.toString().orEmpty().dropLast(1)
                             )
                         },
-                        onDoneClick = {
+                        onActionClick = {
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
@@ -202,7 +207,10 @@ fun TrxPageContent(
                         text = "Save",
                         enabled = uiState.canSave,
                         onClick = onSaveClick,
-                        modifier = modifier.padding(16.dp).padding(bottom = bottomPadding)
+                        modifier = modifier
+                            .background(color = MaterialTheme.colorScheme.background)
+                            .padding(16.dp)
+                            .padding(bottom = bottomPadding)
                     )
                 }
             }
@@ -212,9 +220,11 @@ fun TrxPageContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
-                .padding(contentPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .consumeWindowInsets(contentPadding)
+                .imePadding()
                 .padding(16.dp),
         ) {
             SingleChoiceSegmentedButtonRow {
@@ -225,7 +235,10 @@ fun TrxPageContent(
                             count = types.size
                         ),
                         selected = type == uiState.type,
-                        onClick = { onTypeChange(type) },
+                        onClick = {
+                            onTypeChange(type)
+                            showTargetAccountInput = false
+                        },
                     ) {
                         Text(
                             when (type) {
@@ -299,16 +312,17 @@ fun TrxPageContent(
                 }
             )
 
-            if (uiState.type == TrxType.Transfer) {
+            AnimatedVisibility(visible = uiState.type == TrxType.Transfer) {
                 MyTextField(
                     value = uiState.targetAccount?.name.orEmpty(),
                     onValueChange = { },
                     label = "Target Account",
                     enabled = uiState.accountOptions.isNotEmpty(),
                     readOnly = true,
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        showTargetAccountInput = focusState.isFocused
-                    }
+                    modifier = Modifier
+                        .onFocusChanged { focusState ->
+                            showTargetAccountInput = focusState.isFocused
+                        }
                 )
             }
 
