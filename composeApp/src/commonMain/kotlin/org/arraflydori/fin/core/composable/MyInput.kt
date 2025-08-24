@@ -22,11 +22,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
+import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
+import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
+import dev.darkokoa.datetimewheelpicker.core.format.timeFormatter
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.arraflydori.fin.domain.model.Account
 import org.arraflydori.fin.domain.model.AccountType
 import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.TrxType
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 @Composable
@@ -347,5 +355,41 @@ fun CategorySelectorPreview() {
     CategorySelector(
         categories = categories,
         onSelected = {}
+    )
+}
+
+@Composable
+fun MyDateTimePicker(
+    startDateTime: LocalDateTime,
+    onDateTimePicked: (LocalDateTime) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    WheelDateTimePicker(
+        startDateTime = startDateTime,
+        maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
+            LocalDateTime(
+                year = it.year,
+                month = 12,
+                day = 31,
+                hour = 23,
+                minute = 59,
+                second = 59
+            )
+        },
+        dateFormatter = dateFormatter(),
+        timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
+        onSnappedDateTime = onDateTimePicked,
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    )
+}
+
+@Preview
+@Composable
+fun MyDateTimePickerPreview() {
+    MyDateTimePicker(
+        startDateTime = LocalDateTime(2024, 1, 1, 0, 0, 0),
+        onDateTimePicked = {}
     )
 }

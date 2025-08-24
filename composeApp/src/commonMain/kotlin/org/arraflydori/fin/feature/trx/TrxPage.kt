@@ -35,11 +35,15 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.arraflydori.fin.core.composable.AccountSelector
 import org.arraflydori.fin.core.composable.CategorySelector
 import org.arraflydori.fin.core.composable.MyAppBar
 import org.arraflydori.fin.core.composable.MyButton
+import org.arraflydori.fin.core.composable.MyDateTimePicker
 import org.arraflydori.fin.core.composable.MyTextField
 import org.arraflydori.fin.core.composable.NumberKeyboard
 import org.arraflydori.fin.core.model.Status
@@ -126,7 +130,16 @@ fun TrxPageContent(
                 .calculateBottomPadding()
             when {
                 showTimeInput -> {
-                    // TODO: Add date time picker
+                    MyDateTimePicker(
+                        startDateTime = (uiState.time ?: Clock.System.now())
+                            .toLocalDateTime(TimeZone.currentSystemDefault()),
+                        onDateTimePicked = {
+                            onTimeChange(it.toInstant(TimeZone.currentSystemDefault()))
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
                 }
                 showAmountInput -> {
                     NumberKeyboard(

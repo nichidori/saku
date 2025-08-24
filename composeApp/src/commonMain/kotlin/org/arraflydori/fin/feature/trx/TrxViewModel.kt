@@ -23,6 +23,7 @@ import org.arraflydori.fin.domain.repo.CategoryRepository
 import org.arraflydori.fin.domain.repo.TrxRepository
 import kotlin.collections.orEmpty
 import kotlin.text.orEmpty
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 data class TrxUiState(
@@ -82,7 +83,7 @@ class TrxViewModel(
                             is Trx.Transfer -> TrxType.Transfer
                             null -> it.type
                         },
-                        time = this?.transactionAt ?: it.time,
+                        time = this?.transactionAt ?: Clock.System.now(),
                         amount = this?.amount ?: it.amount,
                         name = this?.name ?: it.name,
                         sourceAccount = this?.sourceAccount ?: it.sourceAccount,
