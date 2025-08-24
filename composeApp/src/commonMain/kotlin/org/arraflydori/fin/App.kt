@@ -30,14 +30,18 @@ import org.arraflydori.fin.feature.home.HomePage
 import org.arraflydori.fin.feature.home.HomeViewModel
 import org.arraflydori.fin.feature.statistic.StatisticPage
 import org.arraflydori.fin.feature.statistic.StatisticViewModel
+import org.arraflydori.fin.feature.trx.TrxPage
+import org.arraflydori.fin.feature.trx.TrxViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-@Serializable sealed interface Route
-@Serializable data object Main : Route
-@Serializable data object Home : Route
-@Serializable data object Statistic : Route
-@Serializable data class Account(val id: String?) : Route
-@Serializable data class Category(val id: String?) : Route
+@Serializable sealed interface Route {
+    @Serializable data object Main : Route
+    @Serializable data object Home : Route
+    @Serializable data object Statistic : Route
+    @Serializable data class Account(val id: String?) : Route
+    @Serializable data class Category(val id: String?) : Route
+    @Serializable data class Trx(val id: String?) : Route
+}
 
 @Composable
 @Preview
@@ -61,7 +65,7 @@ fun App(
         ) {
             NavHost(
                 rootNavController,
-                startDestination = Main,
+                startDestination = Route.Main,
                 enterTransition = {
                     slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
                 },
@@ -75,7 +79,7 @@ fun App(
                     slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
                 }
             ) {
-                composable<Main> {
+                composable<Route.Main> {
                     MainContainer(
                         rootNavController = rootNavController,
                         accountRepository = accountRepository,
@@ -83,8 +87,8 @@ fun App(
                         trxRepository = trxRepository
                     )
                 }
-                composable<Account> { backStackEntry ->
-                    val account = backStackEntry.toRoute<Account>()
+                composable<Route.Account> { backStackEntry ->
+                    val account = backStackEntry.toRoute<Route.Account>()
                     AccountPage(
                         viewModel = viewModel {
                             AccountViewModel(accountRepository, account.id)
@@ -93,11 +97,26 @@ fun App(
                         onSaveSuccess = { rootNavController.popBackStack() }
                     )
                 }
-                composable<Category> { backStackEntry ->
-                    val category = backStackEntry.toRoute<Category>()
+                composable<Route.Category> { backStackEntry ->
+                    val category = backStackEntry.toRoute<Route.Category>()
                     CategoryPage(
                         viewModel = viewModel {
                             CategoryViewModel(categoryRepository, category.id)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onSaveSuccess = { rootNavController.popBackStack() }
+                    )
+                }
+                composable<Route.Trx> { backStackEntry ->
+                    val trx = backStackEntry.toRoute<Route.Trx>()
+                    TrxPage(
+                        viewModel = viewModel {
+                            TrxViewModel(
+                                accountRepository,
+                                categoryRepository,
+                                trxRepository,
+                                trx.id
+                            )
                         },
                         onUp = { rootNavController.popBackStack() },
                         onSaveSuccess = { rootNavController.popBackStack() }
@@ -121,17 +140,19 @@ fun MainContainer(
         bottomBar = {
             MyNavBar(
                 onHomeClick = {
-                    innerNavController.popBackStack(Home, inclusive = false)
+                    innerNavController.popBackStack(Route.Home, inclusive = false)
                 },
                 onAddClick = {
-                    rootNavController.navigate(Account(id = null))
+                    rootNavController.navigate(Route.Trx(id = null))
                 },
                 onAddLongPress = {
-                    rootNavController.navigate(Category(id = null))
+                    // TODO: Add option to create
+                    // Trx, Account, or Category
+                    rootNavController.navigate(Route.Category(id = null))
                 },
                 onStatisticClick = {
-                    innerNavController.navigate(Statistic) {
-                        popUpTo(Home) { inclusive = false }
+                    innerNavController.navigate(Route.Statistic) {
+                        popUpTo(Route.Home) { inclusive = false }
                         launchSingleTop = true
                     }
                 }
@@ -140,7 +161,7 @@ fun MainContainer(
     ) { contentPadding ->
         NavHost(
             innerNavController,
-            startDestination = Home,
+            startDestination = Route.Home,
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
             },
@@ -155,17 +176,17 @@ fun MainContainer(
             },
             modifier = Modifier.padding(contentPadding)
         ) {
-            composable<Home> {
+            composable<Route.Home> {
                 HomePage(
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository)
                     },
                     onAccountClick = { id ->
-                        rootNavController.navigate(Account(id))
+                        rootNavController.navigate(Route.Account(id))
                     }
                 )
             }
-            composable<Statistic> {
+            composable<Route.Statistic> {
                 StatisticPage(
                     viewModel = viewModel {
                         StatisticViewModel(categoryRepository)

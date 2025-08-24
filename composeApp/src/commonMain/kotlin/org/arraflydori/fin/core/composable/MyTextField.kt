@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 
+@Suppress("ModifierParameter")
 @Composable
 fun MyTextField(
     value: String,
@@ -18,6 +19,7 @@ fun MyTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     TextField(
@@ -29,6 +31,7 @@ fun MyTextField(
         readOnly = readOnly,
         singleLine = true,
         shape = RectangleShape,
+        trailingIcon = trailingIcon,
         modifier = modifier
             .fillMaxWidth()
             .height(TextFieldDefaults.MinHeight)

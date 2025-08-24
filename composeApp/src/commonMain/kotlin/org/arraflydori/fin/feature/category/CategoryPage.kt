@@ -1,16 +1,12 @@
 package org.arraflydori.fin.feature.category
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -32,17 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.arraflydori.fin.core.composable.CategorySelector
 import org.arraflydori.fin.core.composable.MyAppBar
 import org.arraflydori.fin.core.composable.MyButton
-import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
 import org.arraflydori.fin.core.model.Status
 import org.arraflydori.fin.core.model.Status.Success
@@ -210,55 +202,4 @@ fun CategoryPageContentPreview() {
         onParentChange = {},
         onSaveClick = {}
     )
-}
-
-@Preview
-@Composable
-fun CategorySelectorPreview() {
-    val categories = listOf(
-        Category(id = "1", name = "Groceries", type = TrxType.Expense, createdAt = Instant.DISTANT_PAST, updatedAt = null),
-        Category(id = "2", name = "Salary", type = TrxType.Income, createdAt = Instant.DISTANT_PAST, updatedAt = null),
-        Category(id = "3", name = "Freelance", type = TrxType.Income, createdAt = Instant.DISTANT_PAST, updatedAt = null)
-    )
-    CategorySelector(
-        categories = categories,
-        onSelected = {}
-    )
-}
-
-@Composable
-fun CategorySelector(
-    categories: List<Category>,
-    onSelected: (Category) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .pointerInput(Unit) { detectTapGestures {} }
-            .padding(16.dp)
-            .fillMaxWidth()
-    ) {
-        for (category in categories) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MyDefaultShape
-                    )
-                    .clip(MyDefaultShape)
-                    .focusProperties { canFocus = false }
-                    .clickable { onSelected(category) }
-                    .height(48.dp)
-            ) {
-                Text(
-                    category.name,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-        }
-    }
 }

@@ -2,7 +2,6 @@ package org.arraflydori.fin.data.repo
 
 import androidx.room.Room
 import kotlinx.coroutines.runBlocking
-import kotlin.test.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
@@ -17,6 +16,14 @@ import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxFilter
 import org.arraflydori.fin.domain.model.TrxType
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -89,18 +96,16 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun addTrx_shouldInsertIncomeAndAddToBalance() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "July Salary",
-            amount = 5_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 5_000L,
+            name = "July Salary",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(15_000L, updatedAccount.currentAmount)
         val addedTrx = db.trxDao()
@@ -112,18 +117,16 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun addTrx_shouldInsertExpenseAndSubtractFromBalance() = runTest {
-        val trx = Trx.Expense(
-            id = "",
-            name = "Groceries",
-            amount = 2_000L,
-            category = expenseCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Expense,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 2_000L,
+            name = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(8_000L, updatedAccount.currentAmount)
         val addedTrx = db.trxDao()
@@ -135,19 +138,16 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun addTrx_shouldInsertTransferAndUpdateBothBalances() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Cash to Bank",
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
             amount = 3_000L,
-            category = transferCategory,
+            name = "Cash to Bank",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            category = transferCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
         assertEquals(7_000L, updatedCash.currentAmount)
@@ -161,18 +161,16 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun addTrx_shouldHandleZeroAmountTransactions() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Zero Income",
-            amount = 0L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 0L,
+            name = "Zero Income",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(10_000L, updatedAccount.currentAmount)
         val addedTrx = db.trxDao()
@@ -184,75 +182,66 @@ class DefaultTrxRepositoryTest {
     @Test
     fun addTrx_shouldThrowWhenSourceAccountNotFound() = runTest {
         val nonExistentAccount = cashAccount.copy(id = "non-existent-id")
-        val trx = Trx.Income(
-            id = "",
-            name = "Income",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = nonExistentAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
         assertFailsWith<IllegalStateException> {
-            repository.addTrx(trx)
+            repository.addTrx(
+                type = TrxType.Income,
+                transactionAt = Clock.System.now(),
+                amount = 1_000L,
+                name = "Income",
+                sourceAccount = nonExistentAccount,
+                targetAccount = null,
+                category = incomeCategory,
+                note = ""
+            )
         }
     }
 
     @Test
     fun addTrx_shouldThrowWhenTargetAccountNotFoundForTransfer() = runTest {
         val nonExistentAccount = bankAccount.copy(id = "non-existent-id")
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
-            targetAccount = nonExistentAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
         assertFailsWith<IllegalStateException> {
-            repository.addTrx(trx)
+            repository.addTrx(
+                type = TrxType.Transfer,
+                transactionAt = Clock.System.now(),
+                amount = 1_000L,
+                name = "Transfer",
+                sourceAccount = cashAccount,
+                targetAccount = nonExistentAccount,
+                category = transferCategory,
+                note = ""
+            )
         }
     }
 
     @Test
     fun addTrx_shouldThrowWhenCategoryNotFound() = runTest {
-        val nonExistentCategory = transferCategory.copy(id = "non-existent-id")
-        val trx = Trx.Income(
-            id = "",
-            name = "Income",
-            amount = 1_000L,
-            category = nonExistentCategory,
-            sourceAccount = cashAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
+        val nonExistentCategory = incomeCategory.copy(id = "non-existent-id")
         assertFailsWith<Exception> {
-            repository.addTrx(trx)
+            repository.addTrx(
+                type = TrxType.Income,
+                transactionAt = Clock.System.now(),
+                amount = 1_000L,
+                name = "Income",
+                sourceAccount = cashAccount,
+                targetAccount = null,
+                category = nonExistentCategory,
+                note = ""
+            )
         }
     }
 
     @Test
     fun getTrxById_shouldReturnMatchingTrx() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Side Job",
-            amount = 1_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = "Paid in cash",
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Side Job",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = "Paid in cash"
         )
-        repository.addTrx(trx)
         val trxs = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE)
         val loadedTrx = repository.getTrxById(trxs.first().toDomain().id)
@@ -268,30 +257,26 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun getFilteredTrxs_shouldReturnFilteredResults() = runTest {
-        val income = Trx.Income(
-            id = "",
-            name = "Salary",
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = Clock.System.now(),
             amount = 5_000L,
+            name = "Salary",
+            sourceAccount = cashAccount,
+            targetAccount = null,
             category = incomeCategory,
-            sourceAccount = cashAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            note = ""
         )
-        val expense = Trx.Expense(
-            id = "",
-            name = "Food",
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
             amount = 1_000L,
-            category = expenseCategory,
+            name = "Food",
             sourceAccount = cashAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
         )
-        repository.addTrx(income)
-        repository.addTrx(expense)
         val filter = TrxFilter(
             month = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
                 YearMonth(it.year, it.month)
@@ -307,22 +292,30 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldUpdateIncomeAndAdjustBalance() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Bonus",
-            amount = 2_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 2_000L,
+            name = "Bonus",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
-        repository.updateTrx(addedTrx.copy(amount = 4_000L))
+            .toDomain()
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Income,
+            transactionAt = addedTrx.transactionAt,
+            amount = 4_000L,
+            name = addedTrx.name,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(14_000L, updatedAccount.currentAmount)
         val updatedTrx = db.trxDao()
@@ -333,22 +326,30 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldUpdateExpenseAndAdjustBalance() = runTest {
-        val trx = Trx.Expense(
-            id = "",
-            name = "Shopping",
-            amount = 1_000L,
-            category = expenseCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Expense,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Shopping",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Expense
-        repository.updateTrx(addedTrx.copy(amount = 1_500L))
+            .toDomain()
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Expense,
+            transactionAt = addedTrx.transactionAt,
+            amount = 1_500L,
+            name = addedTrx.name,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(8_500L, updatedAccount.currentAmount)
         val updatedTrx = db.trxDao()
@@ -359,21 +360,18 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldUpdateTransferAndAdjustBothBalances() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
-            amount = 2_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
-            targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
         val initialCashUpdatedAt = db.accountDao().getById(cashAccount.id)!!.toDomain().updatedAt
         val initialBankUpdatedAt = db.accountDao().getById(bankAccount.id)!!.toDomain().updatedAt
-        repository.addTrx(trx)
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            name = "Transfer",
+            sourceAccount = cashAccount,
+            targetAccount = bankAccount,
+            category = transferCategory,
+            note = ""
+        )
         val afterAddCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val afterAddBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
         assertTrue(
@@ -387,7 +385,17 @@ class DefaultTrxRepositoryTest {
             .toDomain() as Trx.Transfer
         val beforeUpdateCashTime = afterAddCash.updatedAt
         val beforeUpdateBankTime = afterAddBank.updatedAt
-        repository.updateTrx(addedTrx.copy(amount = 3_000L))
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Transfer,
+            transactionAt = addedTrx.transactionAt,
+            amount = 3_000L,
+            name = addedTrx.name,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = addedTrx.targetAccount,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
         assertEquals(7_000L, updatedCash.currentAmount)
@@ -398,22 +406,30 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldHandleAccountChange() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Freelance",
-            amount = 1_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Freelance",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
-        repository.updateTrx(addedTrx.copy(sourceAccount = bankAccount))
+            .toDomain()
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Income,
+            transactionAt = addedTrx.transactionAt,
+            amount = addedTrx.amount,
+            name = addedTrx.name,
+            sourceAccount = bankAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
         assertEquals(10_000L, updatedCash.currentAmount)
@@ -422,133 +438,160 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldThrowWhenTransactionNotFound() = runTest {
-        val nonExistentTrx = Trx.Income(
-            id = "non-existent-id",
-            name = "Income",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
         assertFailsWith<NoSuchElementException> {
-            repository.updateTrx(nonExistentTrx)
+            repository.updateTrx(
+                id = "non-existent-id",
+                type = TrxType.Income,
+                transactionAt = Clock.System.now(),
+                amount = 1_000L,
+                name = "Income",
+                sourceAccount = cashAccount,
+                targetAccount = null,
+                category = incomeCategory,
+                note = ""
+            )
         }
     }
 
     @Test
     fun updateTrx_shouldThrowWhenOldSourceAccountNotFound() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Income",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Income",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
+            .toDomain()
         db.accountDao().deleteById(cashAccount.id)
         assertFailsWith<NoSuchElementException> {
-            repository.updateTrx(addedTrx.copy(amount = 2_000L))
+            repository.updateTrx(
+                id = addedTrx.id,
+                type = TrxType.Income,
+                transactionAt = addedTrx.transactionAt,
+                amount = 2_000L,
+                name = addedTrx.name,
+                sourceAccount = addedTrx.sourceAccount,
+                targetAccount = null,
+                category = addedTrx.category,
+                note = addedTrx.note ?: ""
+            )
         }
     }
 
     @Test
     fun updateTrx_shouldThrowWhenOldTargetAccountNotFoundForTransfer() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
             amount = 1_000L,
-            category = transferCategory,
+            name = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            category = transferCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Transfer
         db.accountDao().deleteById(bankAccount.id)
         assertFailsWith<IllegalStateException> {
-            repository.updateTrx(addedTrx.copy(amount = 2_000L))
+            repository.updateTrx(
+                id = addedTrx.id,
+                type = TrxType.Transfer,
+                transactionAt = addedTrx.transactionAt,
+                amount = 2_000L,
+                name = addedTrx.name,
+                sourceAccount = addedTrx.sourceAccount,
+                targetAccount = addedTrx.targetAccount,
+                category = addedTrx.category,
+                note = addedTrx.note ?: ""
+            )
         }
     }
 
     @Test
     fun updateTrx_shouldThrowWhenNewSourceAccountNotFound() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Income",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Income",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
+            .toDomain()
         val nonExistentAccount = cashAccount.copy(id = "non-existent-id")
         assertFailsWith<IllegalStateException> {
-            repository.updateTrx(addedTrx.copy(sourceAccount = nonExistentAccount))
+            repository.updateTrx(
+                id = addedTrx.id,
+                type = TrxType.Income,
+                transactionAt = addedTrx.transactionAt,
+                amount = addedTrx.amount,
+                name = addedTrx.name,
+                sourceAccount = nonExistentAccount,
+                targetAccount = null,
+                category = addedTrx.category,
+                note = addedTrx.note ?: ""
+            )
         }
     }
 
     @Test
     fun updateTrx_shouldThrowWhenNewTargetAccountNotFoundForTransfer() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
             amount = 1_000L,
-            category = transferCategory,
+            name = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            category = transferCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Transfer
         val nonExistentAccount = bankAccount.copy(id = "non-existent-id")
         assertFailsWith<IllegalStateException> {
-            repository.updateTrx(addedTrx.copy(targetAccount = nonExistentAccount))
+            repository.updateTrx(
+                id = addedTrx.id,
+                type = TrxType.Transfer,
+                transactionAt = addedTrx.transactionAt,
+                amount = addedTrx.amount,
+                name = addedTrx.name,
+                sourceAccount = addedTrx.sourceAccount,
+                targetAccount = nonExistentAccount,
+                category = addedTrx.category,
+                note = addedTrx.note ?: ""
+            )
         }
     }
 
     @Test
     fun deleteTrx_shouldDeleteIncomeAndRevertBalance() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Salary",
-            amount = 2_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 2_000L,
+            name = "Salary",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
+            .toDomain()
         repository.deleteTrx(addedTrx.id)
         val deletedTrx = repository.getTrxById(addedTrx.id)
         assertNull(deletedTrx)
@@ -558,21 +601,19 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun deleteTrx_shouldDeleteExpenseAndRevertBalance() = runTest {
-        val trx = Trx.Expense(
-            id = "",
-            name = "Food",
-            amount = 1_500L,
-            category = expenseCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Expense,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_500L,
+            name = "Food",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Expense
+            .toDomain()
         repository.deleteTrx(addedTrx.id)
         val deletedTrx = repository.getTrxById(addedTrx.id)
         assertNull(deletedTrx)
@@ -582,22 +623,19 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun deleteTrx_shouldDeleteTransferAndRevertBothBalances() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
             amount = 2_500L,
-            category = transferCategory,
+            name = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            category = transferCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Transfer
+            .toDomain()
         repository.deleteTrx(addedTrx.id)
         val deletedTrx = repository.getTrxById(addedTrx.id)
         assertNull(deletedTrx)
@@ -609,19 +647,18 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun updateTrx_shouldThrowWhenTrxNotFound() = runTest {
-        val nonExistentTrx = Trx.Income(
-            id = "non-existent",
-            name = "Test",
-            amount = 1_000L,
-            category = incomeCategory,
-            sourceAccount = cashAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
-        )
         assertFailsWith<NoSuchElementException> {
-            repository.updateTrx(nonExistentTrx)
+            repository.updateTrx(
+                id = "non-existent",
+                type = TrxType.Income,
+                transactionAt = Clock.System.now(),
+                amount = 1_000L,
+                name = "Test",
+                sourceAccount = cashAccount,
+                targetAccount = null,
+                category = incomeCategory,
+                note = ""
+            )
         }
     }
 
@@ -634,21 +671,19 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun deleteTrx_shouldThrowWhenSourceAccountNotFound() = runTest {
-        val trx = Trx.Income(
-            id = "",
-            name = "Income",
-            amount = 1_000L,
-            category = transferCategory,
-            sourceAccount = cashAccount,
+        repository.addTrx(
+            type = TrxType.Income,
             transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            amount = 1_000L,
+            name = "Income",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Income
+            .toDomain()
         db.accountDao().deleteById(cashAccount.id)
         assertFailsWith<NoSuchElementException> {
             repository.deleteTrx(addedTrx.id)
@@ -657,22 +692,19 @@ class DefaultTrxRepositoryTest {
 
     @Test
     fun deleteTrx_shouldThrowWhenTargetAccountNotFoundForTransfer() = runTest {
-        val trx = Trx.Transfer(
-            id = "",
-            name = "Transfer",
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = Clock.System.now(),
             amount = 1_000L,
-            category = transferCategory,
+            name = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
-            transactionAt = Clock.System.now(),
-            note = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null,
+            category = transferCategory,
+            note = ""
         )
-        repository.addTrx(trx)
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
-            .toDomain() as Trx.Transfer
+            .toDomain()
         db.accountDao().deleteById(bankAccount.id)
         assertFailsWith<IllegalStateException> {
             repository.deleteTrx(addedTrx.id)

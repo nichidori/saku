@@ -1,17 +1,11 @@
 package org.arraflydori.fin.feature.account
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -19,7 +13,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,20 +22,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.arraflydori.fin.core.composable.AccountTypeSelector
 import org.arraflydori.fin.core.composable.MyAppBar
 import org.arraflydori.fin.core.composable.MyButton
-import org.arraflydori.fin.core.composable.MyDefaultShape
 import org.arraflydori.fin.core.composable.MyTextField
+import org.arraflydori.fin.core.composable.NumberKeyboard
+import org.arraflydori.fin.core.composable.label
 import org.arraflydori.fin.core.model.Status
 import org.arraflydori.fin.core.model.Status.Success
 import org.arraflydori.fin.core.platform.ToastDuration
@@ -209,154 +199,4 @@ fun AccountPageContentPreview() {
         onTypeChange = {},
         onSaveClick = {}
     )
-}
-
-@Composable
-fun NumberKeyboard(
-    onValueClick: (Int) -> Unit,
-    onDeleteClick: () -> Unit,
-    onDoneClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .pointerInput(Unit) { detectTapGestures {} }
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        for (i in 1..3) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (j in 1..3) {
-                    val value = ((i - 1) * 3 + j)
-                    KeyboardKey(
-                        label = value.toString(),
-                        onClick = { onValueClick(value) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            KeyboardKey(
-                label = "Delete",
-                onClick = onDeleteClick,
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                modifier = Modifier.weight(1f)
-            )
-            KeyboardKey(
-                label = "0",
-                onClick = { onValueClick(0) },
-                modifier = Modifier.weight(1f)
-            )
-            KeyboardKey(
-                label = "Done",
-                onClick = onDoneClick,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-fun NumberKeyboardPreview() {
-    NumberKeyboard(
-        onValueClick = {},
-        onDeleteClick = {},
-        onDoneClick = {}
-    )
-}
-
-@Composable
-fun KeyboardKey(
-    label: String,
-    onClick: () -> Unit,
-    color: Color? = null,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .background(
-                color = color ?: MaterialTheme.colorScheme.surface,
-                shape = MyDefaultShape
-            )
-            .clip(MyDefaultShape)
-            .focusProperties { canFocus = false }
-            .clickable { onClick() }
-            .height(56.dp)
-    ) {
-        Text(
-            label,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
-        )
-    }
-}
-
-@Preview
-@Composable
-fun KeyboardKeyPreview() {
-    KeyboardKey(
-        label = "1",
-        onClick = {}
-    )
-}
-
-@Composable
-fun AccountTypeSelector(
-    types: List<AccountType>,
-    onSelected: (AccountType) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .pointerInput(Unit) { detectTapGestures {} }
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        for (type in types) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MyDefaultShape
-                    )
-                    .clip(MyDefaultShape)
-                    .focusProperties { canFocus = false }
-                    .clickable { onSelected(type) }
-                    .height(48.dp)
-            ) {
-                Text(
-                    type.label(),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun AccountTypeSelectorPreview() {
-    AccountTypeSelector(
-        types = AccountType.entries,
-        onSelected = {}
-    )
-}
-
-fun AccountType.label(): String {
-    return when (this) {
-        AccountType.Cash -> "Cash"
-        AccountType.Bank -> "Bank"
-        AccountType.Credit -> "Credit"
-        AccountType.Ewallet -> "E-wallet"
-        AccountType.Emoney -> "E-money"
-    }
 }

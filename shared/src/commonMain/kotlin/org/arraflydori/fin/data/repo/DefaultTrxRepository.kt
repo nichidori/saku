@@ -11,14 +11,15 @@ import kotlinx.datetime.plus
 import org.arraflydori.fin.data.AppDatabase
 import org.arraflydori.fin.data.entity.toDomain
 import org.arraflydori.fin.data.entity.toEntity
+import org.arraflydori.fin.domain.model.Account
+import org.arraflydori.fin.domain.model.Category
 import org.arraflydori.fin.domain.model.Trx
 import org.arraflydori.fin.domain.model.TrxFilter
-import org.arraflydori.fin.domain.model.withCreatedAt
-import org.arraflydori.fin.domain.model.withId
-import org.arraflydori.fin.domain.model.withUpdatedAt
+import org.arraflydori.fin.domain.model.TrxType
 import org.arraflydori.fin.domain.repo.TrxRepository
 import java.util.UUID
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DefaultTrxRepository(
     private val db: AppDatabase,
@@ -27,15 +28,58 @@ class DefaultTrxRepository(
     private val trxDao = db.trxDao()
     private val accountDao = db.accountDao()
 
-    override suspend fun addTrx(trx: Trx) {
-        val trxWithId = trx
-            .withId(UUID.randomUUID().toString())
-            .withCreatedAt(Clock.System.now())
+    override suspend fun addTrx(
+        type: TrxType,
+        transactionAt: Instant,
+        amount: Long,
+        name: String,
+        sourceAccount: Account,
+        targetAccount: Account?,
+        category: Category,
+        note: String
+    ) {
+        val newId = UUID.randomUUID().toString()
+        val trx = when (type) {
+            TrxType.Income -> Trx.Income(
+                id = newId,
+                transactionAt = transactionAt,
+                amount = amount,
+                name = name,
+                sourceAccount = sourceAccount,
+                category = category,
+                note = note,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+            TrxType.Expense -> Trx.Expense(
+                id = newId,
+                transactionAt = transactionAt,
+                amount = amount,
+                name = name,
+                sourceAccount = sourceAccount,
+                category = category,
+                note = note,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+            TrxType.Transfer -> Trx.Transfer(
+                id = newId,
+                transactionAt = transactionAt,
+                amount = amount,
+                name = name,
+                sourceAccount = sourceAccount,
+                targetAccount = targetAccount ?: error("Target account cannot be null"),
+                category = category,
+                note = note,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+        }
 
         db.useWriterConnection {
             it.immediateTransaction {
                 try {
-                    trxDao.insert(trxWithId.toEntity())
+                    trxDao.insert(trx.toEntity())
                 } catch (e: SQLiteException) {
                     if (e.message?.contains("FOREIGN KEY constraint failed") == true) {
                         error("Referenced account or category not found")
@@ -43,15 +87,13 @@ class DefaultTrxRepository(
                     throw e
                 }
 
-                // Re-fetch accounts.
-                val source = accountDao.getById(trxWithId.sourceAccount.id)?.toDomain()
+                val source = accountDao.getById(sourceAccount.id)?.toDomain()
                     ?: error("Source account not found")
-                val target = when (trxWithId) {
-                    is Trx.Transfer -> accountDao.getById(trxWithId.targetAccount.id)?.toDomain()
+                val target = when (trx) {
+                    is Trx.Transfer -> accountDao.getById(trx.targetAccount.id)?.toDomain()
                     else -> null
                 }
 
-                // Update balance.
                 val currentTime = Clock.System.now()
                 when (trx) {
                     is Trx.Income -> {
@@ -62,7 +104,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
@@ -71,7 +112,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Transfer -> {
                         accountDao.update(
                             source.copy(
@@ -112,13 +152,22 @@ class DefaultTrxRepository(
         }
     }
 
-    override suspend fun updateTrx(trx: Trx) {
+    override suspend fun updateTrx(
+        id: String,
+        type: TrxType,
+        transactionAt: Instant,
+        amount: Long,
+        name: String,
+        sourceAccount: Account,
+        targetAccount: Account?,
+        category: Category,
+        note: String
+    ) {
         db.useWriterConnection {
             it.immediateTransaction {
-                val existing = trxDao.getByIdWithDetails(trx.id)?.toDomain()
+                val existing = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
 
-                // Re-fetch involved accounts for revert.
                 val oldSource = accountDao.getById(existing.sourceAccount.id)?.toDomain()
                     ?: error("Old source account not found")
                 val oldTarget = when (existing) {
@@ -128,7 +177,6 @@ class DefaultTrxRepository(
 
                 val currentTime = Clock.System.now()
 
-                // Revert balances.
                 when (existing) {
                     is Trx.Income -> {
                         accountDao.update(
@@ -138,7 +186,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Expense -> {
                         accountDao.update(
                             oldSource.copy(
@@ -147,7 +194,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Transfer -> {
                         accountDao.update(
                             oldSource.copy(
@@ -164,31 +210,64 @@ class DefaultTrxRepository(
                     }
                 }
 
-                // Re-fetch involved accounts for apply.
-                val newSource = accountDao.getById(trx.sourceAccount.id)?.toDomain()
+                val newSource = accountDao.getById(sourceAccount.id)?.toDomain()
                     ?: error("New source account not found")
-                val newTarget = when (trx) {
-                    is Trx.Transfer -> accountDao.getById(trx.targetAccount.id)?.toDomain()
+                val newTarget = when (type) {
+                    TrxType.Transfer -> accountDao.getById(targetAccount!!.id)?.toDomain()
                         ?: error("New target account not found")
-
                     else -> null
                 }
 
-                // Apply new balances.
-                when (trx) {
+                val updatedTrx = when (type) {
+                    TrxType.Income -> Trx.Income(
+                        id = id,
+                        transactionAt = transactionAt,
+                        amount = amount,
+                        name = name,
+                        sourceAccount = sourceAccount,
+                        category = category,
+                        note = note,
+                        createdAt = existing.createdAt,
+                        updatedAt = currentTime
+                    )
+                    TrxType.Expense -> Trx.Expense(
+                        id = id,
+                        transactionAt = transactionAt,
+                        amount = amount,
+                        name = name,
+                        sourceAccount = sourceAccount,
+                        category = category,
+                        note = note,
+                        createdAt = existing.createdAt,
+                        updatedAt = currentTime
+                    )
+                    TrxType.Transfer -> Trx.Transfer(
+                        id = id,
+                        transactionAt = transactionAt,
+                        amount = amount,
+                        name = name,
+                        sourceAccount = sourceAccount,
+                        targetAccount = targetAccount!!,
+                        category = category,
+                        note = note,
+                        createdAt = existing.createdAt,
+                        updatedAt = currentTime
+                    )
+                }
+
+                when (updatedTrx) {
                     is Trx.Income -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount + trx.amount,
+                                currentAmount = newSource.currentAmount + updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                     }
-
                     is Trx.Expense -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount - trx.amount,
+                                currentAmount = newSource.currentAmount - updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -197,20 +276,20 @@ class DefaultTrxRepository(
                     is Trx.Transfer -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount - trx.amount,
+                                currentAmount = newSource.currentAmount - updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                         accountDao.update(
                             newTarget!!.copy(
-                                currentAmount = newTarget.currentAmount + trx.amount,
+                                currentAmount = newTarget.currentAmount + updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                     }
                 }
 
-                trxDao.update(trx.withUpdatedAt(currentTime).toEntity())
+                trxDao.update(updatedTrx.toEntity())
             }
         }
     }
@@ -221,17 +300,14 @@ class DefaultTrxRepository(
                 val trx = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
 
-                // Re-fetch accounts.
                 val source = accountDao.getById(trx.sourceAccount.id)?.toDomain()
                     ?: error("Source account not found")
                 val target = when (trx) {
                     is Trx.Transfer -> accountDao.getById(trx.targetAccount.id)?.toDomain()
                         ?: error("Target account not found")
-
                     else -> null
                 }
 
-                // Revert balances.
                 val currentTime = Clock.System.now()
                 when (trx) {
                     is Trx.Income -> {
@@ -242,7 +318,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
@@ -251,7 +326,6 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
-
                     is Trx.Transfer -> {
                         accountDao.update(
                             source.copy(
