@@ -41,23 +41,22 @@ class CategoryViewModel(
     init {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val category = id?.let {
-                categoryRepository.getCategoryById(id)
-            }
+            val category = id?.let { categoryRepository.getCategoryById(id) }
             val parents = getParentlessCategories()
             val parentsMap = mutableMapOf<TrxType, List<Category>>()
             for (type in types) {
                 parentsMap[type] = parents.filter { it.type == type }
             }
             _uiState.update {
-                category?.let { c ->
+                with(category) {
                     it.copy(
-                        name = c.name,
-                        type = c.type,
-                        parent = c.parent
+                        name = this?.name ?: it.name,
+                        type = this?.type ?: it.type,
+                        parent = this?.parent ?: it.parent,
+                        isLoading = false,
+                        parentsMap = parentsMap
                     )
                 }
-                it.copy(isLoading = false, parentsMap = parentsMap)
             }
         }
     }
