@@ -1,4 +1,4 @@
-rootProject.name = "Fin"
+rootProject.name = "Saku"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
