@@ -296,7 +296,7 @@ fun HomePageContentPreview() {
     )
     val sampleTrx = Trx.Income(
         id = "trx1",
-        name = "Salary",
+        description = "Salary",
         amount = 5000000,
         category = Category(
             id = "cat1",
@@ -332,7 +332,7 @@ fun HomePageContentPreview() {
             sampleTrx,
             Trx.Expense(
                 id = "trx2",
-                name = "Groceries",
+                description = "Groceries",
                 amount = 200000,
                 category = Category(
                     id = "cat2",
@@ -482,7 +482,7 @@ fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Mo
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(trx.name, style = MaterialTheme.typography.titleMedium)
+                Text(trx.description, style = MaterialTheme.typography.titleMedium)
                 Text(trx.sourceAccount.name, style = MaterialTheme.typography.labelSmall)
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -520,7 +520,7 @@ fun TransactionCardPreview() {
     )
     val trx = Trx.Expense(
         id = "trx123",
-        name = "Lunch at Warteg",
+        description = "Lunch at Warteg",
         amount = 25000,
         category = Category(
             id = "cat1", name = "Food", type = TrxType.Expense,

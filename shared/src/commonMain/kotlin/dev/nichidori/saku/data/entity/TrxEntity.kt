@@ -36,7 +36,7 @@ import androidx.room.PrimaryKey
 )
 data class TrxEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: String,
-    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "amount") val amount: Long,
     @ColumnInfo(name = "category_id") val categoryId: String,
     @ColumnInfo(name = "source_account_id") val sourceAccountId: String,

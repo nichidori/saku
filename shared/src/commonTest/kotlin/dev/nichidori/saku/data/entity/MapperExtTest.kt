@@ -93,7 +93,7 @@ class MapperExtTest {
 
         val entity = TrxEntity(
             id = "trx1",
-            name = "July Salary",
+            description = "July Salary",
             amount = 1_000_000L,
             categoryId = category.id,
             sourceAccountId = account.id,
@@ -133,7 +133,7 @@ class MapperExtTest {
 
         val entity = TrxEntity(
             id = "trx3",
-            name = "Buy food",
+            description = "Buy food",
             amount = 20000L,
             categoryId = category.id,
             sourceAccountId = account.id,
@@ -182,7 +182,7 @@ class MapperExtTest {
 
         val entity = TrxEntity(
             id = "trx2",
-            name = "Move to Bank",
+            description = "Move to Bank",
             amount = 2000L,
             categoryId = category.id,
             sourceAccountId = source.id,
@@ -222,7 +222,7 @@ class MapperExtTest {
 
         val entity = TrxEntity(
             id = "trx2",
-            name = "Move to Bank",
+            description = "Move to Bank",
             amount = 2000L,
             categoryId = category.id,
             sourceAccountId = source.id,
@@ -262,7 +262,7 @@ class MapperExtTest {
 
         val trxEntity = TrxEntity(
             id = "trx-1",
-            name = "Monthly Salary",
+            description = "Monthly Salary",
             amount = 10_000_000L,
             categoryId = category.id,
             sourceAccountId = sourceAccount.id,
@@ -285,7 +285,7 @@ class MapperExtTest {
 
         assertTrue(domain is Trx.Income)
         assertEquals(trxEntity.id, domain.id)
-        assertEquals(trxEntity.name, domain.name)
+        assertEquals(trxEntity.description, domain.description)
         assertEquals(trxEntity.amount, domain.amount)
         assertEquals(trxEntity.transactionAt, domain.transactionAt.toEpochMilliseconds())
         assertEquals(trxEntity.note, domain.note)
@@ -300,7 +300,7 @@ class MapperExtTest {
         val entity = TrxWithDetailsEntity(
             trx = TrxEntity(
                 id = "trx-expense",
-                name = "Dinner",
+                description = "Dinner",
                 amount = 50000L,
                 categoryId = "cat-expense",
                 sourceAccountId = "acc-wallet",
@@ -335,7 +335,7 @@ class MapperExtTest {
 
         assertTrue(domain is Trx.Expense)
         assertEquals("trx-expense", domain.id)
-        assertEquals("Dinner", domain.name)
+        assertEquals("Dinner", domain.description)
         assertEquals(50000L, domain.amount)
         assertEquals("Food & Dining", domain.category.name)
         assertEquals("Wallet", domain.sourceAccount.name)
@@ -349,7 +349,7 @@ class MapperExtTest {
         val entity = TrxWithDetailsEntity(
             trx = TrxEntity(
                 id = "trx-transfer",
-                name = "Transfer to Bank",
+                description = "Transfer to Bank",
                 amount = 100_000L,
                 categoryId = "cat-transfer",
                 sourceAccountId = "acc-wallet",
@@ -392,7 +392,7 @@ class MapperExtTest {
 
         assertTrue(domain is Trx.Transfer)
         assertEquals("trx-transfer", domain.id)
-        assertEquals("Transfer to Bank", domain.name)
+        assertEquals("Transfer to Bank", domain.description)
         assertEquals(100_000L, domain.amount)
         assertEquals("Wallet", domain.sourceAccount.name)
         assertEquals("Bank", domain.targetAccount.name)

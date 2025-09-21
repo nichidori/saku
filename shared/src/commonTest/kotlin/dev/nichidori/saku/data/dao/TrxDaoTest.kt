@@ -66,7 +66,7 @@ private val transferCategory = CategoryEntity(
 
 private val transferTrx = TrxEntity(
     id = "trx-transfer",
-    name = "Move to Bank",
+    description = "Move to Bank",
     amount = 500_000,
     categoryId = transferCategory.id,
     sourceAccountId = sourceAccount.id,
@@ -80,7 +80,7 @@ private val transferTrx = TrxEntity(
 
 private val incomeTrx = TrxEntity(
     id = "trx-1",
-    name = "July Salary",
+    description = "July Salary",
     amount = 10_000_000,
     categoryId = incomeCategory.id,
     sourceAccountId = sourceAccount.id,
@@ -196,11 +196,11 @@ class TrxDaoTest {
         categoryDao.insert(incomeCategory)
         trxDao.insert(incomeTrx)
 
-        val updated = incomeTrx.copy(name = "Updated Income")
+        val updated = incomeTrx.copy(description = "Updated Income")
         trxDao.update(updated)
 
         val result = trxDao.getByIdWithDetails(incomeTrx.id)
-        assertEquals("Updated Income", result?.trx?.name)
+        assertEquals("Updated Income", result?.trx?.description)
     }
 
     @Test
@@ -363,7 +363,7 @@ class TrxDaoTest {
 
         val expenseTrx = TrxEntity(
             id = "expense-trx",
-            name = "Lunch",
+            description = "Lunch",
             amount = 50_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
@@ -467,14 +467,14 @@ class TrxDaoTest {
         trxDao.insert(incomeTrx)
 
         val replacementTrx = incomeTrx.copy(
-            name = "Replaced Transaction",
+            description = "Replaced Transaction",
             amount = 999_999
         )
         trxDao.insert(replacementTrx)
 
         val result = trxDao.getByIdWithDetails(incomeTrx.id)
         assertNotNull(result)
-        assertEquals("Replaced Transaction", result.trx.name)
+        assertEquals("Replaced Transaction", result.trx.description)
         assertEquals(999_999, result.trx.amount)
     }
 

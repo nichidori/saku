@@ -68,7 +68,7 @@ fun TrxEntity.toDomain(
 ): Trx = when (type) {
     TrxTypeEntity.Income -> Trx.Income(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         category = category,
         sourceAccount = sourceAccount,
@@ -80,7 +80,7 @@ fun TrxEntity.toDomain(
 
     TrxTypeEntity.Expense -> Trx.Expense(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         category = category,
         sourceAccount = sourceAccount,
@@ -92,7 +92,7 @@ fun TrxEntity.toDomain(
 
     TrxTypeEntity.Transfer -> Trx.Transfer(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         category = category,
         sourceAccount = sourceAccount,
@@ -107,7 +107,7 @@ fun TrxEntity.toDomain(
 fun Trx.toEntity(): TrxEntity = when (this) {
     is Trx.Income -> TrxEntity(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
@@ -120,7 +120,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
     )
     is Trx.Expense -> TrxEntity(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
@@ -133,7 +133,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
     )
     is Trx.Transfer -> TrxEntity(
         id = id,
-        name = name,
+        description = description,
         amount = amount,
         categoryId = category.id,
         sourceAccountId = sourceAccount.id,
@@ -162,7 +162,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
     return when (trx.type) {
         TrxTypeEntity.Income -> Trx.Income(
             id = trx.id,
-            name = trx.name,
+            description = trx.description,
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
@@ -174,7 +174,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
 
         TrxTypeEntity.Expense -> Trx.Expense(
             id = trx.id,
-            name = trx.name,
+            description = trx.description,
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
@@ -186,7 +186,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
 
         TrxTypeEntity.Transfer -> Trx.Transfer(
             id = trx.id,
-            name = trx.name,
+            description = trx.description,
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             targetAccount = checkNotNull(targetAccount).toDomain(),

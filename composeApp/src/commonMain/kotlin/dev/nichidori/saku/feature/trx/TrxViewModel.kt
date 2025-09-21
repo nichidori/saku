@@ -31,7 +31,7 @@ data class TrxUiState(
     val type: TrxType = TrxType.Expense,
     val time: Instant? = null,
     val amount: Long? = null,
-    val name: String = "",
+    val description: String = "",
     val sourceAccount: Account? = null,
     val targetAccount: Account? = null,
     val category: Category? = null,
@@ -46,7 +46,7 @@ data class TrxUiState(
     val amountFormatted = amount?.toRupiah().orEmpty()
     val canSave = time != null
             && amount != null
-            && name.isNotBlank()
+            && description.isNotBlank()
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
             && category != null
@@ -87,7 +87,7 @@ class TrxViewModel(
                         },
                         time = this?.transactionAt ?: Clock.System.now(),
                         amount = this?.amount ?: it.amount,
-                        name = this?.name ?: it.name,
+                        description = this?.description ?: it.description,
                         sourceAccount = this?.sourceAccount ?: it.sourceAccount,
                         targetAccount = (this as? Trx.Transfer)?.targetAccount ?: it.targetAccount,
                         category = this?.category ?: it.category,
@@ -116,8 +116,8 @@ class TrxViewModel(
         _uiState.value = _uiState.value.copy(amount = newValue.toLongOrNull())
     }
 
-    fun onNameChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(name = newValue)
+    fun onDescriptionChange(newValue: String) {
+        _uiState.value = _uiState.value.copy(description = newValue)
     }
 
     fun onSourceAccountChange(newValue: Account) {
@@ -140,7 +140,7 @@ class TrxViewModel(
         viewModelScope.launch {
             try {
                 if (uiState.value.time == null) throw Exception("Time cannot be empty")
-                if (uiState.value.name.isBlank()) throw Exception("Name cannot be empty")
+                if (uiState.value.description.isBlank()) throw Exception("Name cannot be empty")
                 if (uiState.value.amount == null) throw Exception("Amount cannot be empty")
                 if (uiState.value.sourceAccount == null) throw Exception("Source account cannot be empty")
                 if (uiState.value.type == TrxType.Transfer) {
@@ -153,7 +153,7 @@ class TrxViewModel(
                             type = it.type,
                             transactionAt = it.time!!,
                             amount = it.amount!!,
-                            name = it.name,
+                            description = it.description,
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
                             category = it.category!!,
@@ -167,7 +167,7 @@ class TrxViewModel(
                             type = it.type,
                             transactionAt = it.time!!,
                             amount = it.amount!!,
-                            name = it.name,
+                            description = it.description,
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
                             category = it.category!!,

@@ -4,7 +4,7 @@ import kotlin.time.Instant
 
 sealed class Trx(
     open val id: String,
-    open val name: String,
+    open val description: String,
     open val amount: Long,
     open val category: Category,
     open val sourceAccount: Account,
@@ -15,7 +15,7 @@ sealed class Trx(
 ) {
     data class Income(
         override val id: String,
-        override val name: String,
+        override val description: String,
         override val amount: Long,
         override val category: Category,
         override val sourceAccount: Account,
@@ -23,11 +23,11 @@ sealed class Trx(
         override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, name, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
 
     data class Expense(
         override val id: String,
-        override val name: String,
+        override val description: String,
         override val amount: Long,
         override val category: Category,
         override val sourceAccount: Account,
@@ -35,11 +35,11 @@ sealed class Trx(
         override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, name, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
 
     data class Transfer(
         override val id: String,
-        override val name: String,
+        override val description: String,
         override val amount: Long,
         override val category: Category,
         override val sourceAccount: Account,
@@ -48,5 +48,5 @@ sealed class Trx(
         override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, name, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt)
 }

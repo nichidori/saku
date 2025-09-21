@@ -110,7 +110,7 @@ fun TrxPage(
         onTypeChange = viewModel::onTypeChange,
         onTimeChange = viewModel::onTimeChange,
         onAmountChange = viewModel::onAmountChange,
-        onNameChange = viewModel::onNameChange,
+        onDescriptionChange = viewModel::onDescriptionChange,
         onSourceAccountChange = viewModel::onSourceAccountChange,
         onTargetAccountChange = viewModel::onTargetAccountChange,
         onCategoryChange = viewModel::onCategoryChange,
@@ -129,7 +129,7 @@ fun TrxPageContent(
     onTypeChange: (TrxType) -> Unit,
     onTimeChange: (Instant) -> Unit,
     onAmountChange: (String) -> Unit,
-    onNameChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
     onSourceAccountChange: (Account) -> Unit,
     onTargetAccountChange: (Account) -> Unit,
     onCategoryChange: (Category) -> Unit,
@@ -304,7 +304,7 @@ fun TrxPageContent(
                         minute()
                     }
                 ).orEmpty(),
-                onValueChange = onNameChange,
+                onValueChange = onDescriptionChange,
                 label = "Time",
                 readOnly = true,
                 trailingIcon = {
@@ -331,9 +331,9 @@ fun TrxPageContent(
             )
 
             MyTextField(
-                value = uiState.name,
-                onValueChange = onNameChange,
-                label = "Name",
+                value = uiState.description,
+                onValueChange = onDescriptionChange,
+                label = "Description",
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next
                 )
@@ -388,7 +388,7 @@ fun TrxPageContent(
 @Composable
 fun TrxPageContentPreview() {
     val uiState = TrxUiState(
-        name = "Dinner",
+        description = "Dinner",
         amount = 25000,
         category = Category(
             id = "1",
@@ -427,7 +427,7 @@ fun TrxPageContentPreview() {
         onTypeChange = {},
         onTimeChange = {},
         onAmountChange = {},
-        onNameChange = {},
+        onDescriptionChange = {},
         onSourceAccountChange = {},
         onTargetAccountChange = {},
         onCategoryChange = {},

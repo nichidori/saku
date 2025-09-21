@@ -100,7 +100,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 5_000L,
-            name = "July Salary",
+            description = "July Salary",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -111,7 +111,7 @@ class DefaultTrxRepositoryTest {
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Income
-        assertEquals("July Salary", addedTrx.name)
+        assertEquals("July Salary", addedTrx.description)
         assertEquals(5_000L, addedTrx.amount)
     }
 
@@ -121,7 +121,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Expense,
             transactionAt = Clock.System.now(),
             amount = 2_000L,
-            name = "Groceries",
+            description = "Groceries",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
@@ -132,7 +132,7 @@ class DefaultTrxRepositoryTest {
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Expense
-        assertEquals("Groceries", addedTrx.name)
+        assertEquals("Groceries", addedTrx.description)
         assertEquals(2_000L, addedTrx.amount)
     }
 
@@ -142,7 +142,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 3_000L,
-            name = "Cash to Bank",
+            description = "Cash to Bank",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
@@ -155,7 +155,7 @@ class DefaultTrxRepositoryTest {
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
             .toDomain() as Trx.Transfer
-        assertEquals("Cash to Bank", addedTrx.name)
+        assertEquals("Cash to Bank", addedTrx.description)
         assertEquals(3_000L, addedTrx.amount)
     }
 
@@ -165,7 +165,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 0L,
-            name = "Zero Income",
+            description = "Zero Income",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -187,7 +187,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = Clock.System.now(),
                 amount = 1_000L,
-                name = "Income",
+                description = "Income",
                 sourceAccount = nonExistentAccount,
                 targetAccount = null,
                 category = incomeCategory,
@@ -204,7 +204,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Transfer,
                 transactionAt = Clock.System.now(),
                 amount = 1_000L,
-                name = "Transfer",
+                description = "Transfer",
                 sourceAccount = cashAccount,
                 targetAccount = nonExistentAccount,
                 category = transferCategory,
@@ -221,7 +221,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = Clock.System.now(),
                 amount = 1_000L,
-                name = "Income",
+                description = "Income",
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = nonExistentCategory,
@@ -236,7 +236,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Side Job",
+            description = "Side Job",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -246,7 +246,7 @@ class DefaultTrxRepositoryTest {
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE)
         val loadedTrx = repository.getTrxById(trxs.first().toDomain().id)
         assertNotNull(loadedTrx)
-        assertEquals("Side Job", loadedTrx.name)
+        assertEquals("Side Job", loadedTrx.description)
     }
 
     @Test
@@ -261,7 +261,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 5_000L,
-            name = "Salary",
+            description = "Salary",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -271,7 +271,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Expense,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Food",
+            description = "Food",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
@@ -287,7 +287,7 @@ class DefaultTrxRepositoryTest {
         )
         val results = repository.getFilteredTrxs(filter)
         assertEquals(1, results.size)
-        assertEquals("Salary", results.first().name)
+        assertEquals("Salary", results.first().description)
     }
 
     @Test
@@ -296,7 +296,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 2_000L,
-            name = "Bonus",
+            description = "Bonus",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -310,7 +310,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = addedTrx.transactionAt,
             amount = 4_000L,
-            name = addedTrx.name,
+            description = addedTrx.description,
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
@@ -330,7 +330,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Expense,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Shopping",
+            description = "Shopping",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
@@ -344,7 +344,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Expense,
             transactionAt = addedTrx.transactionAt,
             amount = 1_500L,
-            name = addedTrx.name,
+            description = addedTrx.description,
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
@@ -366,7 +366,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 2_000L,
-            name = "Transfer",
+            description = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
@@ -390,7 +390,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = addedTrx.transactionAt,
             amount = 3_000L,
-            name = addedTrx.name,
+            description = addedTrx.description,
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = addedTrx.targetAccount,
             category = addedTrx.category,
@@ -410,7 +410,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Freelance",
+            description = "Freelance",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -424,7 +424,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = addedTrx.transactionAt,
             amount = addedTrx.amount,
-            name = addedTrx.name,
+            description = addedTrx.description,
             sourceAccount = bankAccount,
             targetAccount = null,
             category = addedTrx.category,
@@ -444,7 +444,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = Clock.System.now(),
                 amount = 1_000L,
-                name = "Income",
+                description = "Income",
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = incomeCategory,
@@ -459,7 +459,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Income",
+            description = "Income",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -475,7 +475,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = addedTrx.transactionAt,
                 amount = 2_000L,
-                name = addedTrx.name,
+                description = addedTrx.description,
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = null,
                 category = addedTrx.category,
@@ -490,7 +490,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Transfer",
+            description = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
@@ -506,7 +506,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Transfer,
                 transactionAt = addedTrx.transactionAt,
                 amount = 2_000L,
-                name = addedTrx.name,
+                description = addedTrx.description,
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = addedTrx.targetAccount,
                 category = addedTrx.category,
@@ -521,7 +521,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Income",
+            description = "Income",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -537,7 +537,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = addedTrx.transactionAt,
                 amount = addedTrx.amount,
-                name = addedTrx.name,
+                description = addedTrx.description,
                 sourceAccount = nonExistentAccount,
                 targetAccount = null,
                 category = addedTrx.category,
@@ -552,7 +552,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Transfer",
+            description = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
@@ -568,7 +568,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Transfer,
                 transactionAt = addedTrx.transactionAt,
                 amount = addedTrx.amount,
-                name = addedTrx.name,
+                description = addedTrx.description,
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = nonExistentAccount,
                 category = addedTrx.category,
@@ -583,7 +583,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 2_000L,
-            name = "Salary",
+            description = "Salary",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -605,7 +605,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Expense,
             transactionAt = Clock.System.now(),
             amount = 1_500L,
-            name = "Food",
+            description = "Food",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
@@ -627,7 +627,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 2_500L,
-            name = "Transfer",
+            description = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
@@ -653,7 +653,7 @@ class DefaultTrxRepositoryTest {
                 type = TrxType.Income,
                 transactionAt = Clock.System.now(),
                 amount = 1_000L,
-                name = "Test",
+                description = "Test",
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = incomeCategory,
@@ -675,7 +675,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Income,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Income",
+            description = "Income",
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
@@ -696,7 +696,7 @@ class DefaultTrxRepositoryTest {
             type = TrxType.Transfer,
             transactionAt = Clock.System.now(),
             amount = 1_000L,
-            name = "Transfer",
+            description = "Transfer",
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
