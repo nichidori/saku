@@ -35,8 +35,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ListX
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
@@ -110,9 +112,30 @@ fun HomePageContent(
                 Text("Recent Activities", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            items(uiState.trxs) { trx ->
-                TransactionCard(trx = trx, onClick = onTrxClick)
-                Spacer(modifier = Modifier.height(16.dp))
+            if (uiState.trxs.isEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Icon(
+                        imageVector = Lucide.ListX,
+                        contentDescription = "No data",
+                        tint = Color.LightGray,
+                        modifier = Modifier.fillMaxWidth().size(60.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "No transaction yet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            } else {
+                items(uiState.trxs) { trx ->
+                    TransactionCard(trx = trx, onClick = onTrxClick)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
