@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -37,6 +40,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Trash
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.MonthNames
@@ -67,6 +72,7 @@ fun TrxPage(
     viewModel: TrxViewModel,
     onUp: () -> Unit,
     onSaveSuccess: () -> Unit,
+    onDeleteSuccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -75,6 +81,19 @@ fun TrxPage(
         LaunchedEffect(status) {
             when (status) {
                 is Success<*> -> onSaveSuccess()
+                is Status.Failure<*> -> showToast(
+                    status.error.toString(),
+                    duration = ToastDuration.Long
+                )
+                else -> {}
+            }
+        }
+    }
+
+    uiState.deleteStatus.let { status ->
+        LaunchedEffect(status) {
+            when (status) {
+                is Success<*> -> onDeleteSuccess()
                 is Status.Failure<*> -> showToast(
                     status.error.toString(),
                     duration = ToastDuration.Long
@@ -97,6 +116,7 @@ fun TrxPage(
         onCategoryChange = viewModel::onCategoryChange,
         onNoteChange = viewModel::onNoteChange,
         onSaveClick = viewModel::saveTrx,
+        onDeleteClick = viewModel::deleteTrx,
         modifier = modifier
     )
 }
@@ -115,6 +135,7 @@ fun TrxPageContent(
     onCategoryChange: (Category) -> Unit,
     onNoteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showTimeInput by remember { mutableStateOf(false) }
@@ -126,7 +147,24 @@ fun TrxPageContent(
 
     Scaffold(
         topBar = {
-            MyAppBar(title = "Transaction", onUp = onUp)
+            MyAppBar(
+                title = "Transaction",
+                onUp = onUp,
+                action = {
+                    if (uiState.canDelete) {
+                        IconButton(
+                            content = {
+                                Icon(
+                                    imageVector = Lucide.Trash,
+                                    contentDescription = "Delete account",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            onClick = onDeleteClick,
+                        )
+                    }
+                }
+            )
         },
         bottomBar = {
             val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
@@ -394,6 +432,7 @@ fun TrxPageContentPreview() {
         onTargetAccountChange = {},
         onCategoryChange = {},
         onNoteChange = {},
-        onSaveClick = {}
+        onSaveClick = {},
+        onDeleteClick = {}
     )
 }

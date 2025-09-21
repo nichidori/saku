@@ -38,7 +38,9 @@ data class TrxUiState(
     val note: String = "",
     val accountOptions: List<Account> = listOf(),
     val categoryMap: Map<TrxType, List<Category>> = emptyMap(),
+    val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
+    val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
     val categoryOptions = categoryMap[type].orEmpty()
     val amountFormatted = amount?.toRupiah().orEmpty()
@@ -90,7 +92,8 @@ class TrxViewModel(
                         targetAccount = (this as? Trx.Transfer)?.targetAccount ?: it.targetAccount,
                         category = this?.category ?: it.category,
                         accountOptions = accounts,
-                        categoryMap = categoriesMap
+                        categoryMap = categoriesMap,
+                        canDelete = this != null
                     )
                 }
             }
@@ -176,6 +179,25 @@ class TrxViewModel(
             } catch (e: Exception) {
                 this@TrxViewModel.log(e)
                 _uiState.update { it.copy(saveStatus = Failure(e)) }
+            }
+        }
+    }
+
+    fun deleteTrx() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(deleteStatus = Loading)
+                }
+                trxRepository.deleteTrx(id!!)
+                _uiState.update {
+                    it.copy(deleteStatus = Success(Unit))
+                }
+            } catch (e: Exception) {
+                this@TrxViewModel.log(e)
+                _uiState.update {
+                    it.copy(deleteStatus = Failure(e))
+                }
             }
         }
     }

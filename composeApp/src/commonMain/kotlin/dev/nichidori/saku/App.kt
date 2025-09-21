@@ -151,7 +151,8 @@ fun App(
                             )
                         },
                         onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() }
+                        onSaveSuccess = { rootNavController.popBackStack() },
+                        onDeleteSuccess = { rootNavController.popBackStack() },
                     )
                 }
             }
