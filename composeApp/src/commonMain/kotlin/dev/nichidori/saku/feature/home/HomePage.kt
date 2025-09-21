@@ -5,11 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -160,7 +162,8 @@ fun AccountSection(
     ) {
         rows.forEach { row ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing)
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+                modifier = Modifier.height(IntrinsicSize.Min)
             ) {
                 row.forEach { account ->
                     AccountCard(
@@ -172,7 +175,7 @@ fun AccountSection(
                 if (row.size < 2) {
                     NewItemCard(
                         onClick = onNewAccountClick,
-                        modifier = Modifier.defaultMinSize(minHeight = 60.dp).weight(1f)
+                        modifier = Modifier.fillMaxHeight().weight(1f)
                     )
                 }
             }
