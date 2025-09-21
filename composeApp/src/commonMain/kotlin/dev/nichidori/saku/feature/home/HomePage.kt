@@ -204,10 +204,13 @@ fun AccountSection(
             }
         }
         if (accounts.size % 2 == 0) {
-            NewItemCard(
-                onClick = onNewAccountClick,
-                modifier = Modifier.defaultMinSize(minHeight = 60.dp)
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                NewItemCard(
+                    onClick = onNewAccountClick,
+                    modifier = Modifier.defaultMinSize(minHeight = 60.dp).weight(1f)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 }
