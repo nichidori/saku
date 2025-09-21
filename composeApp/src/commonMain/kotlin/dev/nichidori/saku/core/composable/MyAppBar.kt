@@ -23,7 +23,8 @@ import com.composables.icons.lucide.Lucide
 fun MyAppBar(
     title: String?,
     onUp: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    action: @Composable () -> Unit = {},
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -49,5 +50,7 @@ fun MyAppBar(
                 style = MaterialTheme.typography.titleLarge,
             )
         }
+        Spacer(modifier = Modifier.weight(1f))
+        action()
     }
 }

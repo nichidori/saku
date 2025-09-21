@@ -22,7 +22,9 @@ data class AccountUiState(
     val name: String = "",
     val balance: Long? = null,
     val type: AccountType? = null,
+    val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
+    val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
     val canSave = name.isNotBlank() && balance != null && type != null
     val balanceFormatted = balance?.toRupiah().orEmpty()
@@ -49,7 +51,8 @@ class AccountViewModel(
                         isLoading = false,
                         name = account?.name.orEmpty(),
                         balance = account?.currentAmount,
-                        type = account?.type
+                        type = account?.type,
+                        canDelete = account != null
                     )
                 }
             }
@@ -100,6 +103,25 @@ class AccountViewModel(
                 this@AccountViewModel.log(e)
                 _uiState.update {
                     it.copy(saveStatus = Failure(e))
+                }
+            }
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(deleteStatus = Loading)
+                }
+                accountRepository.deleteAccount(id!!)
+                _uiState.update {
+                    it.copy(deleteStatus = Success(Unit))
+                }
+            } catch (e: Exception) {
+                this@AccountViewModel.log(e)
+                _uiState.update {
+                    it.copy(deleteStatus = Failure(e))
                 }
             }
         }

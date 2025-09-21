@@ -125,7 +125,8 @@ fun App(
                             AccountViewModel(accountRepository, account.id)
                         },
                         onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() }
+                        onSaveSuccess = { rootNavController.popBackStack() },
+                        onDeleteSuccess = { rootNavController.popBackStack() }
                     )
                 }
                 composable<Route.Category> { backStackEntry ->
