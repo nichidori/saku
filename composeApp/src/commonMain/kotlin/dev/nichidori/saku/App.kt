@@ -42,9 +42,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import kotlinx.serialization.Serializable
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
+import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
@@ -63,7 +63,14 @@ import dev.nichidori.saku.feature.statistic.StatisticPage
 import dev.nichidori.saku.feature.statistic.StatisticViewModel
 import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 @Serializable sealed interface Route {
@@ -171,8 +178,29 @@ fun MainContainer(
     val innerNavController = rememberNavController()
     val sheetState = rememberModalBottomSheetState()
     var showInputOption by remember { mutableStateOf(false) }
+    var selectedMonth by remember { mutableStateOf(Clock.System.now().toYearMonth()) }
+    val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
     Scaffold(
+        topBar = {
+            Text(
+                LocalDate(
+                    year = selectedMonth.year,
+                    month = selectedMonth.month.ordinal + 1,
+                    day = 1
+                ).format(
+                    LocalDate.Format {
+                        monthName(MonthNames.ENGLISH_FULL)
+                        if (selectedMonth.year != currentYear) {
+                            chars(" ")
+                            year()
+                        }
+                    }
+                ),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            )
+        },
         bottomBar = {
             MyNavBar(
                 onHomeClick = {
@@ -215,8 +243,12 @@ fun MainContainer(
         ) {
             composable<Route.Home> {
                 HomePage(
+                    initialMonth = selectedMonth,
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository)
+                    },
+                    onMonthChange = { month ->
+                        selectedMonth = month
                     },
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))

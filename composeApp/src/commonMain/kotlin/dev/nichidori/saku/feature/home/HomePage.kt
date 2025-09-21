@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,16 +52,21 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.plus
+import kotlinx.datetime.until
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 
 @Composable
 fun HomePage(
+    initialMonth: YearMonth,
     viewModel: HomeViewModel,
+    onMonthChange: (YearMonth) -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     onTrxClick: (String) -> Unit,
@@ -66,17 +74,31 @@ fun HomePage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.load(month = Clock.System.now().toYearMonth())
+    val base = YearMonth(1970, 1)
+    val pagerState = rememberPagerState(
+        initialPage = base.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
+        pageCount = { Int.MAX_VALUE }
+    )
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            val month = base.plus(page, unit = DateTimeUnit.MONTH)
+            viewModel.load(month = month)
+            onMonthChange(month)
+        }
     }
 
-    HomePageContent(
-        uiState = uiState,
-        onAccountClick = onAccountClick,
-        onNewAccountClick = onNewAccountClick,
-        onTrxClick = onTrxClick,
-        modifier = modifier
-    )
+    HorizontalPager(
+        state = pagerState,
+    ) {
+        HomePageContent(
+            uiState = uiState,
+            onAccountClick = onAccountClick,
+            onNewAccountClick = onNewAccountClick,
+            onTrxClick = onTrxClick,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable
@@ -95,8 +117,6 @@ fun HomePageContent(
             modifier = Modifier.consumeWindowInsets(contentPadding)
         ) {
             item {
-                Text("August", style = MaterialTheme.typography.headlineSmall)
-                Spacer(modifier = Modifier.height(16.dp))
                 TrendCard(title = "Net Worth", value = uiState.netWorthFormatted)
                 Spacer(modifier = Modifier.height(16.dp))
             }

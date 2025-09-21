@@ -2,21 +2,18 @@ package dev.nichidori.saku.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.toLocalDateTime
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlin.time.Instant
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.datetime.YearMonth
 
 data class HomeUiState(
     val isLoading: Boolean = false,
@@ -41,7 +38,7 @@ class HomeViewModel(
     fun load(month: YearMonth) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = true)
+                it.copy(isLoading = true, currentMonth = month, trxs = listOf())
             }
             val accounts = accountRepository.getAllAccounts()
             val netWorth = accountRepository.getTotalBalance()
@@ -56,9 +53,4 @@ class HomeViewModel(
             }
         }
     }
-}
-
-fun Instant.toYearMonth(): YearMonth {
-    return toLocalDateTime(TimeZone.currentSystemDefault())
-        .let { YearMonth(it.year, it.month) }
 }
