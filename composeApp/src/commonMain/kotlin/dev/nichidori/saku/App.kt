@@ -158,82 +158,6 @@ fun App(
     }
 }
 
-@Preview
-@Composable
-fun AppPreview() {
-    val accountRepository = object : AccountRepository {
-        override suspend fun addAccount(
-            name: String,
-            initialAmount: Long,
-            type: dev.nichidori.saku.domain.model.AccountType
-        ) {
-        }
-
-        override suspend fun getAccountById(id: String): Account? = null
-        override suspend fun getAllAccounts(): List<Account> = emptyList()
-        override suspend fun updateAccount(
-            id: String,
-            name: String,
-            initialAmount: Long,
-            type: dev.nichidori.saku.domain.model.AccountType
-        ) {
-        }
-
-        override suspend fun deleteAccount(id: String) {}
-        override suspend fun getTotalBalance(): Long = 0
-    }
-    val categoryRepository = object : CategoryRepository {
-        override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {}
-        override suspend fun getCategoryById(id: String): Category? = null
-        override suspend fun getAllCategories(): List<Category> = emptyList()
-        override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
-        override suspend fun updateCategory(
-            id: String,
-            name: String,
-            type: TrxType,
-            parent: Category?
-        ) {
-        }
-
-        override suspend fun deleteCategory(id: String) {}
-    }
-    val trxRepository = object : TrxRepository {
-        override suspend fun addTrx(
-            type: TrxType,
-            transactionAt: Instant,
-            amount: Long,
-            name: String,
-            sourceAccount: Account,
-            targetAccount: Account?,
-            category: Category,
-            note: String
-        ) {
-        }
-
-        override suspend fun getTrxById(id: String): Trx? = null
-        override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> = emptyList()
-        override suspend fun updateTrx(
-            id: String,
-            type: TrxType,
-            transactionAt: Instant,
-            amount: Long,
-            name: String,
-            sourceAccount: Account,
-            targetAccount: Account?,
-            category: Category,
-            note: String
-        ) {
-        }
-
-        override suspend fun deleteTrx(id: String) {}
-    }
-    App(
-        accountRepository = accountRepository,
-        categoryRepository = categoryRepository,
-        trxRepository = trxRepository
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContainer(
@@ -358,16 +282,6 @@ fun InputOptionSelector(
     }
 }
 
-@Preview
-@Composable
-fun InputOptionSelectorPreview() {
-    InputOptionSelector(
-        onAccountClick = {},
-        onCategoryClick = {},
-        onTrxClick = {}
-    )
-}
-
 @Composable
 fun InputOption(
     label: String,
@@ -393,4 +307,90 @@ fun InputOption(
             style = MaterialTheme.typography.labelLarge
         )
     }
+}
+
+@Preview
+@Composable
+fun AppPreview() {
+    val accountRepository = object : AccountRepository {
+        override suspend fun addAccount(
+            name: String,
+            initialAmount: Long,
+            type: dev.nichidori.saku.domain.model.AccountType
+        ) {
+        }
+
+        override suspend fun getAccountById(id: String): Account? = null
+        override suspend fun getAllAccounts(): List<Account> = emptyList()
+        override suspend fun updateAccount(
+            id: String,
+            name: String,
+            initialAmount: Long,
+            type: dev.nichidori.saku.domain.model.AccountType
+        ) {
+        }
+
+        override suspend fun deleteAccount(id: String) {}
+        override suspend fun getTotalBalance(): Long = 0
+    }
+    val categoryRepository = object : CategoryRepository {
+        override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {}
+        override suspend fun getCategoryById(id: String): Category? = null
+        override suspend fun getAllCategories(): List<Category> = emptyList()
+        override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
+        override suspend fun updateCategory(
+            id: String,
+            name: String,
+            type: TrxType,
+            parent: Category?
+        ) {
+        }
+
+        override suspend fun deleteCategory(id: String) {}
+    }
+    val trxRepository = object : TrxRepository {
+        override suspend fun addTrx(
+            type: TrxType,
+            transactionAt: Instant,
+            amount: Long,
+            name: String,
+            sourceAccount: Account,
+            targetAccount: Account?,
+            category: Category,
+            note: String
+        ) {
+        }
+
+        override suspend fun getTrxById(id: String): Trx? = null
+        override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> = emptyList()
+        override suspend fun updateTrx(
+            id: String,
+            type: TrxType,
+            transactionAt: Instant,
+            amount: Long,
+            name: String,
+            sourceAccount: Account,
+            targetAccount: Account?,
+            category: Category,
+            note: String
+        ) {
+        }
+
+        override suspend fun deleteTrx(id: String) {}
+    }
+    App(
+        accountRepository = accountRepository,
+        categoryRepository = categoryRepository,
+        trxRepository = trxRepository
+    )
+}
+
+@Preview
+@Composable
+fun InputOptionSelectorPreview() {
+    InputOptionSelector(
+        onAccountClick = {},
+        onCategoryClick = {},
+        onTrxClick = {}
+    )
 }

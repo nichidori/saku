@@ -96,6 +96,84 @@ fun HomePageContent(
     }
 }
 
+@Composable
+fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = MyDefaultShape
+            )
+            .fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(title, style = MaterialTheme.typography.labelSmall)
+            Text(value, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MyDefaultShape
+                    )
+            ) {
+                // TODO: Draw line chart here
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountSection(
+    accounts: List<Account>,
+    onAccountClick: (String) -> Unit,
+    spacing: Dp = 12.dp,
+    modifier: Modifier = Modifier
+) {
+    val rows = accounts.chunked(2)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(spacing),
+        modifier = modifier,
+    ) {
+        rows.forEach { row ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                row.forEach { account ->
+                    AccountCard(
+                        account = account,
+                        onClick = onAccountClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (row.size < 2) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = MyDefaultShape
+            )
+            .clip(MyDefaultShape)
+            .clickable { onClick(account.id) },
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(account.name, style = MaterialTheme.typography.labelSmall)
+            Text(account.balanceFormatted(), style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
 @Preview
 @Composable
 fun HomePageContentPreview() {
@@ -166,70 +244,10 @@ fun HomePageContentPreview() {
     HomePageContent(uiState = uiState, onAccountClick = {}, onTrxClick = {})
 }
 
-@Composable
-fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
-            .fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(title, style = MaterialTheme.typography.labelSmall)
-            Text(value, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MyDefaultShape
-                    )
-            ) {
-                // TODO: Draw line chart here
-            }
-        }
-    }
-}
-
 @Preview
 @Composable
 fun TrendCardPreview() {
     TrendCard(title = "Net Worth", value = "Rp 1.310.000")
-}
-
-@Composable
-fun AccountSection(
-    accounts: List<Account>,
-    onAccountClick: (String) -> Unit,
-    spacing: Dp = 12.dp,
-    modifier: Modifier = Modifier
-) {
-    val rows = accounts.chunked(2)
-    Column(
-        verticalArrangement = Arrangement.spacedBy(spacing),
-        modifier = modifier,
-    ) {
-        rows.forEach { row ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing)
-            ) {
-                row.forEach { account ->
-                    AccountCard(
-                        account = account,
-                        onClick = onAccountClick,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (row.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
-    }
 }
 
 @Preview
@@ -317,24 +335,6 @@ fun AccountSectionDoublePreview() {
         )
     )
     AccountSection(accounts = accounts, onAccountClick = {})
-}
-
-@Composable
-fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
-            .clip(MyDefaultShape)
-            .clickable { onClick(account.id) },
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(account.name, style = MaterialTheme.typography.labelSmall)
-            Text(account.balanceFormatted(), style = MaterialTheme.typography.titleMedium)
-        }
-    }
 }
 
 @Preview
