@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,12 +28,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.format.MonthNames
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -40,6 +45,10 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.format.MonthNames
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 
@@ -47,6 +56,7 @@ import kotlin.time.Clock
 fun HomePage(
     viewModel: HomeViewModel,
     onAccountClick: (String) -> Unit,
+    onNewAccountClick: () -> Unit,
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -59,6 +69,7 @@ fun HomePage(
     HomePageContent(
         uiState = uiState,
         onAccountClick = onAccountClick,
+        onNewAccountClick = onNewAccountClick,
         onTrxClick = onTrxClick,
         modifier = modifier
     )
@@ -68,6 +79,7 @@ fun HomePage(
 fun HomePageContent(
     uiState: HomeUiState,
     onAccountClick: (String) -> Unit,
+    onNewAccountClick: () -> Unit,
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -83,8 +95,16 @@ fun HomePageContent(
                 Spacer(modifier = Modifier.height(16.dp))
                 TrendCard(title = "Net Worth", value = uiState.netWorthFormatted)
                 Spacer(modifier = Modifier.height(16.dp))
-                AccountSection(accounts = uiState.accounts, onAccountClick = onAccountClick)
+            }
+            item {
+                AccountSection(
+                    accounts = uiState.accounts,
+                    onAccountClick = onAccountClick,
+                    onNewAccountClick = onNewAccountClick,
+                )
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+            item {
                 Text("Recent Activities", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -129,6 +149,7 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
 fun AccountSection(
     accounts: List<Account>,
     onAccountClick: (String) -> Unit,
+    onNewAccountClick: () -> Unit,
     spacing: Dp = 12.dp,
     modifier: Modifier = Modifier
 ) {
@@ -149,9 +170,18 @@ fun AccountSection(
                     )
                 }
                 if (row.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    NewItemCard(
+                        onClick = onNewAccountClick,
+                        modifier = Modifier.defaultMinSize(minHeight = 60.dp).weight(1f)
+                    )
                 }
             }
+        }
+        if (accounts.size % 2 == 0) {
+            NewItemCard(
+                onClick = onNewAccountClick,
+                modifier = Modifier.defaultMinSize(minHeight = 60.dp)
+            )
         }
     }
 }
@@ -171,6 +201,35 @@ fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier 
             Text(account.name, style = MaterialTheme.typography.labelSmall)
             Text(account.balanceFormatted(), style = MaterialTheme.typography.titleMedium)
         }
+    }
+}
+
+@Composable
+fun NewItemCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val stroke = Stroke(
+        width = 3f,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+    )
+    val color = MaterialTheme.colorScheme.primary
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = Color.Transparent,
+                shape = MyDefaultShape
+            )
+            .clip(MyDefaultShape)
+            .clickable { onClick() }
+            .drawBehind {
+                drawRoundRect(
+                    color = color,
+                    style = stroke,
+                    cornerRadius = CornerRadius(16.dp.toPx())
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = Lucide.Plus, contentDescription = "Add new item", tint = color)
     }
 }
 
@@ -241,7 +300,7 @@ fun HomePageContentPreview() {
             )
         )
     )
-    HomePageContent(uiState = uiState, onAccountClick = {}, onTrxClick = {})
+    HomePageContent(uiState = uiState, onAccountClick = {}, onNewAccountClick = {}, onTrxClick = {})
 }
 
 @Preview
@@ -291,7 +350,7 @@ fun AccountSectionPreview() {
             updatedAt = null
         ),
     )
-    AccountSection(accounts = accounts, onAccountClick = {})
+    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
 }
 
 @Preview
@@ -308,7 +367,7 @@ fun AccountSectionSinglePreview() {
             updatedAt = null
         )
     )
-    AccountSection(accounts = accounts, onAccountClick = {})
+    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
 }
 
 @Preview
@@ -334,7 +393,7 @@ fun AccountSectionDoublePreview() {
             updatedAt = null
         )
     )
-    AccountSection(accounts = accounts, onAccountClick = {})
+    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
 }
 
 @Preview
@@ -426,4 +485,10 @@ fun TransactionCardPreview() {
         updatedAt = null
     )
     TransactionCard(trx = trx, onClick = {})
+}
+
+@Preview
+@Composable
+fun NewItemCardPreview() {
+    NewItemCard(onClick = {})
 }
