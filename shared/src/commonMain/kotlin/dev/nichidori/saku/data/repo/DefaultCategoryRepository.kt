@@ -41,12 +41,24 @@ class DefaultCategoryRepository(
     }
 
     override suspend fun getCategoryById(id: String): Category? {
-        return db.categoryDao().getById(id)?.toDomain()
+        return db.useReaderConnection {
+            val entity = db.categoryDao().getById(id) ?: return@useReaderConnection null
+            val parent = entity.parentId?.let {
+                db.categoryDao().getById(it)?.toDomain()
+            }
+            entity.toDomain(parent)
+        }
     }
 
     override suspend fun getAllCategories(): List<Category> {
         return db.useReaderConnection {
-            db.categoryDao().getAll().map { it.toDomain() }
+            val entities = db.categoryDao().getAll()
+            val byId = entities.associateBy { it.id }
+
+            entities.map { entity ->
+                val parent = entity.parentId?.let { byId[it]?.toDomain(null) }
+                entity.toDomain(parent)
+            }
         }
     }
 

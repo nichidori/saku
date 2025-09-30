@@ -7,6 +7,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -30,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +48,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Menu
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
 import dev.nichidori.saku.core.util.toYearMonth
@@ -57,6 +65,8 @@ import dev.nichidori.saku.feature.account.AccountPage
 import dev.nichidori.saku.feature.account.AccountViewModel
 import dev.nichidori.saku.feature.category.CategoryPage
 import dev.nichidori.saku.feature.category.CategoryViewModel
+import dev.nichidori.saku.feature.categoryList.CategoryListPage
+import dev.nichidori.saku.feature.categoryList.CategoryListViewModel
 import dev.nichidori.saku.feature.home.HomePage
 import dev.nichidori.saku.feature.home.HomeViewModel
 import dev.nichidori.saku.feature.statistic.StatisticPage
@@ -77,6 +87,7 @@ import kotlin.time.Instant
     @Serializable data object Main : Route
     @Serializable data object Home : Route
     @Serializable data object Statistic : Route
+    @Serializable data object CategoryList : Route
     @Serializable data class Account(val id: String?) : Route
     @Serializable data class Category(val id: String?) : Route
     @Serializable data class Trx(val id: String?) : Route
@@ -123,6 +134,17 @@ fun App(
                         accountRepository = accountRepository,
                         categoryRepository = categoryRepository,
                         trxRepository = trxRepository
+                    )
+                }
+                composable<Route.CategoryList> {
+                    CategoryListPage(
+                        viewModel = viewModel {
+                            CategoryListViewModel(categoryRepository)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onCategoryClick = { id ->
+                            rootNavController.navigate(Route.Category(id))
+                        }
                     )
                 }
                 composable<Route.Account> { backStackEntry ->
@@ -183,23 +205,36 @@ fun MainContainer(
 
     Scaffold(
         topBar = {
-            Text(
-                LocalDate(
-                    year = selectedMonth.year,
-                    month = selectedMonth.month.ordinal + 1,
-                    day = 1
-                ).format(
-                    LocalDate.Format {
-                        monthName(MonthNames.ENGLISH_FULL)
-                        if (selectedMonth.year != currentYear) {
-                            chars(" ")
-                            year()
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    LocalDate(
+                        year = selectedMonth.year,
+                        month = selectedMonth.month.ordinal + 1,
+                        day = 1
+                    ).format(
+                        LocalDate.Format {
+                            monthName(MonthNames.ENGLISH_FULL)
+                            if (selectedMonth.year != currentYear) {
+                                chars(" ")
+                                year()
+                            }
                         }
+                    ),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f).padding(16.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                IconButton(
+                    onClick = {
+                        rootNavController.navigate(Route.CategoryList)
                     }
-                ),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            )
+                ) {
+                    Icon(imageVector = Lucide.Menu, contentDescription = "Menu")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
         },
         bottomBar = {
             MyNavBar(

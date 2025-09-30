@@ -145,9 +145,26 @@ class DefaultCategoryRepositoryTest {
     }
 
     @Test
+    fun getCategoryById_shouldReturnWithParentSet() = runTest {
+        val result = repository.getCategoryById(subIncomeCategory.id)
+        assertEquals("Bonus", result?.name)
+        assertEquals(incomeCategory.id, result?.parent?.id)
+        assertEquals("Salary", result?.parent?.name)
+    }
+
+    @Test
     fun getAllCategories_shouldReturnAll() = runTest {
         val all = repository.getAllCategories()
         assertEquals(2, all.size)
+    }
+
+    @Test
+    fun getAllCategories_shouldReturnWithParentSet() = runTest {
+        val all = repository.getAllCategories()
+        val sub = all.first { it.id == subIncomeCategory.id }
+        assertEquals("Bonus", sub.name)
+        assertEquals(incomeCategory.id, sub.parent?.id)
+        assertEquals("Salary", sub.parent?.name)
     }
 
     @Test

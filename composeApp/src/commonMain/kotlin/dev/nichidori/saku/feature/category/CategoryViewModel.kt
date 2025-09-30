@@ -29,6 +29,7 @@ data class CategoryUiState(
     val parentOptions = parentsMap[type].orEmpty()
 }
 
+// TODO: Prevent adding parent if it has a child
 class CategoryViewModel(
     private val categoryRepository: CategoryRepository,
     private val id: String?
@@ -42,7 +43,7 @@ class CategoryViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val category = id?.let { categoryRepository.getCategoryById(id) }
-            val parents = getParentlessCategories()
+            val parents = getParentlessCategories(exceptId = id)
             val parentsMap = mutableMapOf<TrxType, List<Category>>()
             for (type in types) {
                 parentsMap[type] = parents.filter { it.type == type }
@@ -101,7 +102,7 @@ class CategoryViewModel(
     }
 
     // TODO: Filter this in DB?
-    private suspend fun getParentlessCategories(): List<Category> {
-        return categoryRepository.getAllCategories().filter { it.parent == null }
+    private suspend fun getParentlessCategories(exceptId: String?): List<Category> {
+        return categoryRepository.getAllCategories().filter { it.parent == null && it.id != exceptId }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -88,7 +89,7 @@ fun CategoryPageContent(
     onUp: () -> Unit,
     onTypeChange: (TrxType) -> Unit,
     onNameChange: (String) -> Unit,
-    onParentChange: (Category) -> Unit,
+    onParentChange: (Category?) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -178,6 +179,16 @@ fun CategoryPageContent(
                 label = "Parent",
                 enabled = uiState.parentOptions.isNotEmpty(),
                 readOnly = true,
+                trailingIcon = if (uiState.parent != null) {
+                    {
+                        TextButton(
+                            onClick = { onParentChange(null) },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Remove")
+                        }
+                    }
+                } else null,
                 modifier = Modifier.onFocusChanged { focusState ->
                     showParentInput = focusState.isFocused
                 }
