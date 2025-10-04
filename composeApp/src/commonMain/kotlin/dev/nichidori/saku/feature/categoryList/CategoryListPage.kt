@@ -1,14 +1,16 @@
 package dev.nichidori.saku.feature.categoryList
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -18,6 +20,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
@@ -58,7 +64,6 @@ fun CategoryListContent(
         modifier = modifier,
     ) { contentPadding ->
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.padding(contentPadding),
         ) {
@@ -67,20 +72,23 @@ fun CategoryListContent(
                     CategoryCard(
                         category = parent,
                         onClick = onCategoryClick,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                     )
                 }
-                items(children) { child ->
-                    CategoryCard(
-                        category = child,
-                        onClick = onCategoryClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp)
-                    )
+                itemsIndexed(children) { i, child ->
+                    Row {
+                        ChildNodeIndicator(
+                            isLast = i == children.lastIndex,
+                            modifier = Modifier.size(height = 64.dp, width = 48.dp)
+                        )
+                        CategoryCard(
+                            category = child,
+                            onClick = onCategoryClick,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        )
+                    }
                 }
             }
-
         }
     }
 }
@@ -89,7 +97,6 @@ fun CategoryListContent(
 fun CategoryCard(category: Category, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .padding(start = if (category.parent != null) 16.dp else 0.dp)
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = MyDefaultShape
@@ -98,6 +105,46 @@ fun CategoryCard(category: Category, onClick: (String) -> Unit, modifier: Modifi
             .clickable { onClick(category.id) }
             .padding(16.dp),
     ) {
-        Text(category.name, style = MaterialTheme.typography.labelSmall)
+        Text(category.name, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+fun ChildNodeIndicator(
+    modifier: Modifier = Modifier,
+    isLast: Boolean = false
+) {
+    val stroke = Stroke(
+        width = 2f,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f),
+        cap = StrokeCap.Round
+    )
+    val color = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        drawLine(
+            color = color,
+            start = Offset(x = size.width / 2, y = 0f),
+            end = Offset(x = size.width / 2, y = size.height / 2),
+            strokeWidth = stroke.width,
+            cap = stroke.cap,
+            pathEffect = stroke.pathEffect
+        )
+        drawLine(
+            color = color,
+            start = Offset(x = size.width / 2, y = size.height / 2),
+            end = Offset(x = size.width, y = size.height / 2),
+            strokeWidth = stroke.width,
+            cap = stroke.cap,
+            pathEffect = stroke.pathEffect
+        )
+        if (!isLast) drawLine(
+            color = color,
+            start = Offset(x = size.width / 2, y = size.height / 2),
+            end = Offset(x = size.width / 2, y = size.height),
+            strokeWidth = stroke.width,
+            cap = stroke.cap,
+            pathEffect = stroke.pathEffect
+        )
     }
 }
