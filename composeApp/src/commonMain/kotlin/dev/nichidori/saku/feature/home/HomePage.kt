@@ -174,18 +174,19 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(title, style = MaterialTheme.typography.labelSmall)
             Text(value, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MyDefaultShape
-                    )
-            ) {
-                // TODO: Draw line chart here
-            }
+
+            // TODO: Draw line chart here
+//            Spacer(modifier = Modifier.height(16.dp))
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(80.dp)
+//                    .background(
+//                        color = MaterialTheme.colorScheme.primaryContainer,
+//                        shape = MyDefaultShape
+//                    )
+//            ) {
+//            }
         }
     }
 }
