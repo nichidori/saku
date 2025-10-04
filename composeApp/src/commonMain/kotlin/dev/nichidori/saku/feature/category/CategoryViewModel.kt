@@ -22,14 +22,14 @@ data class CategoryUiState(
     val name: String = "",
     val type: TrxType = TrxType.Income,
     val parent: Category? = null,
-    val parentsMap: Map<TrxType, List<Category>> = emptyMap(),
+    val parentsOfType: Map<TrxType, List<Category>> = emptyMap(),
+    val children: List<Category> = emptyList(),
     val saveStatus: Status<Unit, Exception> = Initial,
 ) {
     val canSave = name.isNotBlank()
-    val parentOptions = parentsMap[type].orEmpty()
+    val parentOptions = parentsOfType[type].orEmpty()
 }
 
-// TODO: Prevent adding parent if it has a child
 class CategoryViewModel(
     private val categoryRepository: CategoryRepository,
     private val id: String?
@@ -43,21 +43,25 @@ class CategoryViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val category = id?.let { categoryRepository.getCategoryById(id) }
-            val parents = getParentlessCategories(exceptId = id)
-            val parentsMap = mutableMapOf<TrxType, List<Category>>()
-            for (type in types) {
-                parentsMap[type] = parents.filter { it.type == type }
+            val children = category?.let {
+                categoryRepository.getSubcategories(it.id)
+            } ?: emptyList()
+            val parents = if (children.isEmpty()) {
+                categoryRepository.getRootCategories().filter { it.id != id }
+            } else {
+                emptyList()
+            }
+            val parentsOfType = types.associateWith { type ->
+                parents.filter { it.type == type }
             }
             _uiState.update {
-                with(category) {
-                    it.copy(
-                        name = this?.name ?: it.name,
-                        type = this?.type ?: it.type,
-                        parent = this?.parent ?: it.parent,
-                        isLoading = false,
-                        parentsMap = parentsMap
-                    )
-                }
+                it.copy(
+                    name = category?.name ?: it.name,
+                    type = category?.type ?: it.type,
+                    parent = category?.parent ?: it.parent,
+                    isLoading = false,
+                    parentsOfType = parentsOfType
+                )
             }
         }
     }
@@ -99,10 +103,5 @@ class CategoryViewModel(
                 _uiState.update { it.copy(saveStatus = Failure(e)) }
             }
         }
-    }
-
-    // TODO: Filter this in DB?
-    private suspend fun getParentlessCategories(exceptId: String?): List<Category> {
-        return categoryRepository.getAllCategories().filter { it.parent == null && it.id != exceptId }
     }
 }

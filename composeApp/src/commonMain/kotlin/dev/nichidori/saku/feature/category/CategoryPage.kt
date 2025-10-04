@@ -210,7 +210,7 @@ fun CategoryPageContentPreview() {
             createdAt = Instant.DISTANT_PAST,
             updatedAt = null
         ),
-        parentsMap = mapOf(
+        parentsOfType = mapOf(
             TrxType.Expense to listOf(
                 Category(
                     id = "1",

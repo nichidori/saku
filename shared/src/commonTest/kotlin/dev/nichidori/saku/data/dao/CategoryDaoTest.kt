@@ -164,6 +164,22 @@ class CategoryDaoTest {
     }
 
     @Test
+    fun getRootCategories_shouldReturnOnlyCategoriesWithNullParentIdOrderedByName() = runTest {
+        categoryDao.insert(parentCategory)
+        categoryDao.insert(subcategoryRestaurant)
+        categoryDao.insert(independentCategory)
+        categoryDao.insert(subcategoryGrocery)
+
+        val roots = categoryDao.getRootCategories()
+
+        assertEquals(2, roots.size)
+        assertTrue(roots.all { it.parentId == null })
+
+        assertEquals("Food & Dining", roots[0].name)
+        assertEquals("Transportation", roots[1].name)
+    }
+
+    @Test
     fun getSubcategories_withValidParentId_shouldReturnOrderedSubcategories() = runTest {
         categoryDao.insert(parentCategory)
         categoryDao.insert(subcategoryRestaurant)

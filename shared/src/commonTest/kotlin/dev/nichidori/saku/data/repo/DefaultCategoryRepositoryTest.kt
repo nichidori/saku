@@ -168,6 +168,13 @@ class DefaultCategoryRepositoryTest {
     }
 
     @Test
+    fun getRootCategories_shouldReturnAll() = runTest {
+        val result = repository.getRootCategories()
+        assertEquals(1, result.size)
+        assertEquals("Salary", result.first().name)
+    }
+
+    @Test
     fun getSubcategories_shouldReturnListWithParentSet() = runTest {
         val result = repository.getSubcategories("cat-1")
         assertEquals(1, result.size)

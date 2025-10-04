@@ -19,6 +19,9 @@ interface CategoryDao {
     @Query("SELECT * FROM category ORDER BY name ASC")
     suspend fun getAll(): List<CategoryEntity>
 
+    @Query("SELECT * FROM category WHERE parent_id IS NULL ORDER BY name ASC")
+    suspend fun getRootCategories(): List<CategoryEntity>
+
     @Query("SELECT * FROM category WHERE parent_id = :parentId ORDER BY name ASC")
     suspend fun getSubcategories(parentId: String): List<CategoryEntity>
 

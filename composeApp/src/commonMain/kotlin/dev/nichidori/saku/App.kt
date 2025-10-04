@@ -413,6 +413,7 @@ fun AppPreview() {
         override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {}
         override suspend fun getCategoryById(id: String): Category? = null
         override suspend fun getAllCategories(): List<Category> = emptyList()
+        override suspend fun getRootCategories(): List<Category> = emptyList()
         override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
         override suspend fun updateCategory(
             id: String,
