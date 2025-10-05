@@ -1,11 +1,12 @@
 package dev.nichidori.saku.feature.statistic
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,12 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -28,17 +32,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ListX
+import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.coroutines.delay
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.plus
@@ -92,7 +103,9 @@ fun StatisticPageContent(
                 .fillMaxSize()
                 .consumeWindowInsets(contentPadding)
         ) {
-            SingleChoiceSegmentedButtonRow {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
                 SegmentedButton(
                     shape = MyDefaultShape.copy(
                         topEnd = CornerSize(0.dp),
@@ -102,7 +115,7 @@ fun StatisticPageContent(
                     onClick = { selectedType = TrxType.Income },
                     icon = {},
                 ) {
-                    Column {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text("Income", style = MaterialTheme.typography.labelSmall)
                         Text(
                             uiState.totalIncome.toRupiah(),
@@ -119,7 +132,7 @@ fun StatisticPageContent(
                     onClick = { selectedType = TrxType.Expense },
                     icon = {},
                 ) {
-                    Column {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text("Expense", style = MaterialTheme.typography.labelSmall)
                         Text(
                             uiState.totalExpense.toRupiah(),
@@ -134,18 +147,41 @@ fun StatisticPageContent(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier.weight(1f)
             ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
-                        Pair(uiState.incomesOfCategory, uiState.totalIncome)
-                    } else {
-                        Pair(uiState.expensesOfCategory, uiState.totalExpense)
+                val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
+                    Pair(uiState.incomesOfCategory, uiState.totalIncome)
+                } else {
+                    Pair(uiState.expensesOfCategory, uiState.totalExpense)
+                }
+                if (trxsOfCategory.isEmpty()) {
+                    Column(modifier = Modifier.fillMaxSize().wrapContentSize()) {
+                        Icon(
+                            imageVector = Lucide.ListX,
+                            contentDescription = "No data",
+                            tint = Color.LightGray,
+                            modifier = Modifier.fillMaxWidth().size(60.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "No data",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = Color.Gray,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-                    items(trxsOfCategory.entries.toList()) { (category, amount) ->
-                        CategoryItem(category = category, amount = amount, maxAmount = maxAmount)
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(trxsOfCategory.entries.toList()) { (category, amount) ->
+                            CategoryItem(
+                                category = category,
+                                amount = amount,
+                                maxAmount = maxAmount
+                            )
+                        }
                     }
                 }
             }
@@ -160,30 +196,42 @@ fun CategoryItem(
     maxAmount: Long,
     modifier: Modifier = Modifier
 ) {
-    val fraction = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
+    var fraction by remember { mutableFloatStateOf(0f) }
+    val target = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction,
+        animationSpec = tween(durationMillis = 500)
+    )
+
+    LaunchedEffect(target) {
+        delay(200)
+        fraction = target
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.surfaceContainer, shape = MyDefaultShape)
+            .height(100.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = MyDefaultShape
+            )
+            .clip(shape = MyDefaultShape)
     ) {
-        Row(modifier = Modifier.height(80.dp)) {
-            if (fraction != 0f) {
-                Box(
-                    modifier = Modifier
-                        .weight(fraction)
-                        .fillMaxHeight()
-                        .background(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = MyDefaultShape
-                        )
-                )
-            }
-            if (fraction != 1f) {
-                Spacer(modifier = Modifier.weight(1 - fraction))
-            }
+        if (animatedFraction > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedFraction)
+                    .background(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = MyDefaultShape
+                    )
+            )
         }
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(top = 16.dp).padding(horizontal = 16.dp)
+        ) {
             Text(category.name, style = MaterialTheme.typography.labelSmall)
             Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
         }
