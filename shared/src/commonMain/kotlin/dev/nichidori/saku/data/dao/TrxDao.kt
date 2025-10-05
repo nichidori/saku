@@ -27,18 +27,21 @@ interface TrxDao {
     suspend fun getByIdWithDetails(id: String): TrxWithDetailsEntity?
 
     @Transaction
-    @Query("""
-        SELECT * FROM trx
-        WHERE transaction_at BETWEEN :startTime AND :endTime
-        AND (:type IS NULL OR type = :type)
-        AND (:categoryId IS NULL OR category_id = :categoryId)
-        AND (
-            :accountId IS NULL OR 
-            source_account_id = :accountId OR 
-            target_account_id = :accountId
-        )
-        ORDER BY transaction_at DESC
-    """)
+    @Query(
+        """
+    SELECT * FROM trx
+    WHERE transaction_at >= :startTime
+      AND transaction_at < :endTime
+      AND (:type IS NULL OR type = :type)
+      AND (:categoryId IS NULL OR category_id = :categoryId)
+      AND (
+          :accountId IS NULL OR 
+          source_account_id = :accountId OR 
+          target_account_id = :accountId
+      )
+    ORDER BY transaction_at DESC
+"""
+    )
     suspend fun getFilteredWithDetails(
         startTime: Long,
         endTime: Long,
