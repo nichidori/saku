@@ -132,7 +132,6 @@ fun App(
                     MainContainer(
                         rootNavController = rootNavController,
                         accountRepository = accountRepository,
-                        categoryRepository = categoryRepository,
                         trxRepository = trxRepository
                     )
                 }
@@ -194,7 +193,6 @@ fun App(
 fun MainContainer(
     rootNavController: NavHostController,
     accountRepository: AccountRepository,
-    categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
 ) {
     val innerNavController = rememberNavController()
@@ -302,8 +300,12 @@ fun MainContainer(
             }
             composable<Route.Statistic> {
                 StatisticPage(
+                    initialMonth = selectedMonth,
                     viewModel = viewModel {
-                        StatisticViewModel(categoryRepository)
+                        StatisticViewModel(trxRepository)
+                    },
+                    onMonthChange = { month ->
+                        selectedMonth = month
                     }
                 )
             }

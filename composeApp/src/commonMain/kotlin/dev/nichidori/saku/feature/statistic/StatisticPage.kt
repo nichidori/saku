@@ -1,40 +1,191 @@
 package dev.nichidori.saku.feature.statistic
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.util.toRupiah
+import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.plus
+import kotlinx.datetime.until
 
 @Composable
 fun StatisticPage(
+    initialMonth: YearMonth,
     viewModel: StatisticViewModel,
+    onMonthChange: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.load()
+    val base = YearMonth(1970, 1)
+    val pagerState = rememberPagerState(
+        initialPage = base.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
+        pageCount = { Int.MAX_VALUE }
+    )
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            val month = base.plus(page, unit = DateTimeUnit.MONTH)
+            viewModel.load(month = month)
+            onMonthChange(month)
+        }
     }
 
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        modifier = modifier.fillMaxSize()
-    ) {
-        items(uiState.categories) {
-            Row {
-                Text(it.name)
-                Spacer(modifier = Modifier.weight(1f))
-                Text(it.type.toString())
+    StatisticPageContent(
+        uiState = uiState,
+        pagerState = pagerState,
+        modifier = modifier
+    )
+}
+
+
+@Composable
+fun StatisticPageContent(
+    uiState: StatisticUiState,
+    pagerState: PagerState,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        modifier = modifier
+    ) { contentPadding ->
+        var selectedType by remember { mutableStateOf(TrxType.Expense) }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .consumeWindowInsets(contentPadding)
+        ) {
+            SingleChoiceSegmentedButtonRow {
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topEnd = CornerSize(0.dp),
+                        bottomEnd = CornerSize(0.dp)
+                    ),
+                    selected = selectedType == TrxType.Income,
+                    onClick = { selectedType = TrxType.Income },
+                    icon = {},
+                ) {
+                    Column {
+                        Text("Income", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            uiState.totalIncome.toRupiah(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topStart = CornerSize(0.dp),
+                        bottomStart = CornerSize(0.dp)
+                    ),
+                    selected = selectedType == TrxType.Expense,
+                    onClick = { selectedType = TrxType.Expense },
+                    icon = {},
+                ) {
+                    Column {
+                        Text("Expense", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            uiState.totalExpense.toRupiah(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalPager(
+                state = pagerState,
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.weight(1f)
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
+                        Pair(uiState.incomesOfCategory, uiState.totalIncome)
+                    } else {
+                        Pair(uiState.expensesOfCategory, uiState.totalExpense)
+                    }
+                    items(trxsOfCategory.entries.toList()) { (category, amount) ->
+                        CategoryItem(category = category, amount = amount, maxAmount = maxAmount)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryItem(
+    category: Category,
+    amount: Long,
+    maxAmount: Long,
+    modifier: Modifier = Modifier
+) {
+    val fraction = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.surfaceContainer, shape = MyDefaultShape)
+    ) {
+        Row(modifier = Modifier.height(80.dp)) {
+            if (fraction != 0f) {
+                Box(
+                    modifier = Modifier
+                        .weight(fraction)
+                        .fillMaxHeight()
+                        .background(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MyDefaultShape
+                        )
+                )
+            }
+            if (fraction != 1f) {
+                Spacer(modifier = Modifier.weight(1 - fraction))
+            }
+        }
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(category.name, style = MaterialTheme.typography.labelSmall)
+            Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
