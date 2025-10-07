@@ -47,7 +47,6 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.domain.model.AccountType
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-// TODO: Fix l10n
 @Composable
 fun AccountPage(
     viewModel: AccountViewModel,
