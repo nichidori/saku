@@ -135,7 +135,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         id = id,
         description = description,
         amount = amount,
-        categoryId = category.id,
+        categoryId = null,
         sourceAccountId = sourceAccount.id,
         targetAccountId = targetAccount.id,
         transactionAt = transactionAt.toEpochMilliseconds(),
@@ -166,7 +166,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = category.toDomain(),
+            category = checkNotNull(category).toDomain(),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -178,7 +178,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = category.toDomain(),
+            category = checkNotNull(category).toDomain(),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -191,7 +191,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             sourceAccount = sourceAccount.toDomain(),
             targetAccount = checkNotNull(targetAccount).toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = category.toDomain(),
+            category = null,
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }

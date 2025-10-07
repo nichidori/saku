@@ -10,7 +10,7 @@ data class TrxWithDetailsEntity(
         parentColumn = "category_id",
         entityColumn = "id"
     )
-    val category: CategoryEntity,
+    val category: CategoryEntity?,
 
     @Relation(
         parentColumn = "source_account_id",

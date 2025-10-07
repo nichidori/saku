@@ -49,7 +49,7 @@ data class TrxUiState(
             && description.isNotBlank()
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
-            && category != null
+            && (if (type != TrxType.Transfer) category != null else true)
 }
 
 class TrxViewModel(
@@ -145,6 +145,8 @@ class TrxViewModel(
                 if (uiState.value.sourceAccount == null) throw Exception("Source account cannot be empty")
                 if (uiState.value.type == TrxType.Transfer) {
                     if (uiState.value.targetAccount == null) throw Exception("Target account cannot be empty")
+                } else {
+                    if (uiState.value.category == null) throw Exception("Category cannot be empty")
                 }
                 _uiState.update { it.copy(saveStatus = Loading) }
                 if (id == null) {
@@ -156,7 +158,7 @@ class TrxViewModel(
                             description = it.description,
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
-                            category = it.category!!,
+                            category = it.category,
                             note = it.note
                         )
                     }
@@ -170,7 +172,7 @@ class TrxViewModel(
                             description = it.description,
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
-                            category = it.category!!,
+                            category = it.category,
                             note = it.note
                         )
                     }

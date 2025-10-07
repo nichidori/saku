@@ -15,7 +15,7 @@ interface TrxRepository {
         description: String,
         sourceAccount: Account,
         targetAccount: Account?,
-        category: Category,
+        category: Category?,
         note: String
     )
 
@@ -29,7 +29,7 @@ interface TrxRepository {
         description: String,
         sourceAccount: Account,
         targetAccount: Account?,
-        category: Category,
+        category: Category?,
         note: String
     )
 

@@ -35,7 +35,7 @@ class DefaultTrxRepository(
         description: String,
         sourceAccount: Account,
         targetAccount: Account?,
-        category: Category,
+        category: Category?,
         note: String
     ) {
         val newId = UUID.randomUUID().toString()
@@ -46,7 +46,7 @@ class DefaultTrxRepository(
                 amount = amount,
                 description = description,
                 sourceAccount = sourceAccount,
-                category = category,
+                category = category ?: error("Category cannot be null"),
                 note = note,
                 createdAt = Clock.System.now(),
                 updatedAt = null
@@ -57,7 +57,7 @@ class DefaultTrxRepository(
                 amount = amount,
                 description = description,
                 sourceAccount = sourceAccount,
-                category = category,
+                category = category ?: error("Category cannot be null"),
                 note = note,
                 createdAt = Clock.System.now(),
                 updatedAt = null
@@ -160,7 +160,7 @@ class DefaultTrxRepository(
         description: String,
         sourceAccount: Account,
         targetAccount: Account?,
-        category: Category,
+        category: Category?,
         note: String
     ) {
         db.useWriterConnection {
@@ -225,7 +225,7 @@ class DefaultTrxRepository(
                         amount = amount,
                         description = description,
                         sourceAccount = sourceAccount,
-                        category = category,
+                        category = category ?: error("Category cannot be null"),
                         note = note,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
@@ -236,7 +236,7 @@ class DefaultTrxRepository(
                         amount = amount,
                         description = description,
                         sourceAccount = sourceAccount,
-                        category = category,
+                        category = category ?: error("Category cannot be null"),
                         note = note,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime

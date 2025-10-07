@@ -38,7 +38,7 @@ data class TrxEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: String,
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "amount") val amount: Long,
-    @ColumnInfo(name = "category_id") val categoryId: String,
+    @ColumnInfo(name = "category_id") val categoryId: String?,
     @ColumnInfo(name = "source_account_id") val sourceAccountId: String,
     @ColumnInfo(name = "target_account_id") val targetAccountId: String?,
     @ColumnInfo(name = "transaction_at") val transactionAt: Long,

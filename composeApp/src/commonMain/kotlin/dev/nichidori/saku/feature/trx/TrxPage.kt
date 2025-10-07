@@ -3,6 +3,7 @@ package dev.nichidori.saku.feature.trx
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -85,6 +86,7 @@ fun TrxPage(
                     status.error.toString(),
                     duration = ToastDuration.Long
                 )
+
                 else -> {}
             }
         }
@@ -98,6 +100,7 @@ fun TrxPage(
                     status.error.toString(),
                     duration = ToastDuration.Long
                 )
+
                 else -> {}
             }
         }
@@ -182,6 +185,7 @@ fun TrxPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 showAmountInput -> {
                     NumberKeyboard(
                         actionLabel = "Next",
@@ -203,6 +207,7 @@ fun TrxPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 showSourceAccountInput -> {
                     AccountSelector(
                         accounts = uiState.accountOptions,
@@ -215,6 +220,7 @@ fun TrxPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 showTargetAccountInput -> {
                     AccountSelector(
                         accounts = uiState.accountOptions,
@@ -227,6 +233,7 @@ fun TrxPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 showCategoryInput -> {
                     CategorySelector(
                         categories = uiState.categoryOptions,
@@ -239,6 +246,7 @@ fun TrxPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 else -> {
                     MyButton(
                         text = "Save",
@@ -364,16 +372,18 @@ fun TrxPageContent(
                 )
             }
 
-            MyTextField(
-                value = uiState.category?.name.orEmpty(),
-                onValueChange = { },
-                label = "Category",
-                enabled = uiState.categoryOptions.isNotEmpty(),
-                readOnly = true,
-                modifier = Modifier.onFocusChanged { focusState ->
-                    showCategoryInput = focusState.isFocused
-                }
-            )
+            AnimatedVisibility(visible = uiState.type != TrxType.Transfer) {
+                MyTextField(
+                    value = uiState.category?.name.orEmpty(),
+                    onValueChange = { },
+                    label = "Category",
+                    enabled = uiState.categoryOptions.isNotEmpty(),
+                    readOnly = true,
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        showCategoryInput = focusState.isFocused
+                    }
+                )
+            }
 
             MyTextField(
                 value = uiState.note,

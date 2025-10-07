@@ -435,7 +435,7 @@ fun AppPreview() {
             description: String,
             sourceAccount: Account,
             targetAccount: Account?,
-            category: Category,
+            category: Category?,
             note: String
         ) {
         }
@@ -450,7 +450,7 @@ fun AppPreview() {
             description: String,
             sourceAccount: Account,
             targetAccount: Account?,
-            category: Category,
+            category: Category?,
             note: String
         ) {
         }
