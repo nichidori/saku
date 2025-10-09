@@ -153,7 +153,7 @@ fun HomePageContent(
                 }
             } else {
                 items(uiState.trxs) { trx ->
-                    TransactionCard(trx = trx, onClick = onTrxClick)
+                    TrxCard(trx = trx, onClick = onTrxClick)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -462,7 +462,7 @@ fun AccountCardPreview() {
 }
 
 @Composable
-fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
@@ -472,7 +472,10 @@ fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Mo
             .clip(MyDefaultShape)
             .clickable { onClick(trx.id) },
     ) {
-        Row(modifier = Modifier.padding(12.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(12.dp)
+        ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -482,9 +485,23 @@ fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Mo
                     )
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(trx.description, style = MaterialTheme.typography.titleMedium)
-                Text(trx.sourceAccount.name, style = MaterialTheme.typography.labelSmall)
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
+            ) {
+                val accountInfo = when (trx) {
+                    is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
+                    else -> trx.sourceAccount.name
+                }
+                val primaryText = trx.description.ifBlank { accountInfo }
+                val secondaryText = if (trx.description.isBlank()) null else accountInfo
+                Text(
+                    text = primaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                secondaryText?.let {
+                    Text(text = it, style = MaterialTheme.typography.labelSmall)
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(trx.amount.toRupiah(), style = MaterialTheme.typography.titleMedium)
@@ -509,7 +526,7 @@ fun TransactionCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Mo
 
 @Preview
 @Composable
-fun TransactionCardPreview() {
+fun TrxCardPreview() {
     val sampleAccount = Account(
         id = "1",
         name = "Cash",
@@ -534,7 +551,7 @@ fun TransactionCardPreview() {
         createdAt = Clock.System.now(),
         updatedAt = null
     )
-    TransactionCard(trx = trx, onClick = {})
+    TrxCard(trx = trx, onClick = {})
 }
 
 @Preview

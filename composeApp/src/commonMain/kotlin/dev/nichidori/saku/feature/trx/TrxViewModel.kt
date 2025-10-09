@@ -46,7 +46,6 @@ data class TrxUiState(
     val amountFormatted = amount?.toRupiah().orEmpty()
     val canSave = time != null
             && amount != null
-            && description.isNotBlank()
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
             && (if (type != TrxType.Transfer) category != null else true)
@@ -140,7 +139,6 @@ class TrxViewModel(
         viewModelScope.launch {
             try {
                 if (uiState.value.time == null) throw Exception("Time cannot be empty")
-                if (uiState.value.description.isBlank()) throw Exception("Name cannot be empty")
                 if (uiState.value.amount == null) throw Exception("Amount cannot be empty")
                 if (uiState.value.sourceAccount == null) throw Exception("Source account cannot be empty")
                 if (uiState.value.type == TrxType.Transfer) {
