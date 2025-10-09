@@ -20,7 +20,7 @@ import dev.nichidori.saku.domain.repo.CategoryRepository
 data class CategoryUiState(
     val isLoading: Boolean = false,
     val name: String = "",
-    val type: TrxType = TrxType.Income,
+    val type: TrxType = TrxType.Expense,
     val parent: Category? = null,
     val parentsOfType: Map<TrxType, List<Category>> = emptyMap(),
     val children: List<Category> = emptyList(),
