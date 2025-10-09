@@ -144,28 +144,30 @@ fun CategoryPageContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topEnd = CornerSize(0.dp),
-                        bottomEnd = CornerSize(0.dp)
-                    ),
-                    selected = uiState.type == TrxType.Income,
-                    onClick = { onTypeChange(TrxType.Income) },
-                    icon = {},
-                ) {
-                    Text("Income", style = MaterialTheme.typography.labelMedium)
-                }
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topStart = CornerSize(0.dp),
-                        bottomStart = CornerSize(0.dp)
-                    ),
-                    selected = uiState.type == TrxType.Expense,
-                    onClick = { onTypeChange(TrxType.Expense) },
-                    icon = {},
-                ) {
-                    Text("Expense", style = MaterialTheme.typography.labelMedium)
+            if (uiState.canChooseType) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    SegmentedButton(
+                        shape = MyDefaultShape.copy(
+                            topEnd = CornerSize(0.dp),
+                            bottomEnd = CornerSize(0.dp)
+                        ),
+                        selected = uiState.type == TrxType.Income,
+                        onClick = { onTypeChange(TrxType.Income) },
+                        icon = {},
+                    ) {
+                        Text("Income", style = MaterialTheme.typography.labelMedium)
+                    }
+                    SegmentedButton(
+                        shape = MyDefaultShape.copy(
+                            topStart = CornerSize(0.dp),
+                            bottomStart = CornerSize(0.dp)
+                        ),
+                        selected = uiState.type == TrxType.Expense,
+                        onClick = { onTypeChange(TrxType.Expense) },
+                        icon = {},
+                    ) {
+                        Text("Expense", style = MaterialTheme.typography.labelMedium)
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))

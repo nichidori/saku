@@ -21,6 +21,7 @@ data class CategoryUiState(
     val isLoading: Boolean = false,
     val name: String = "",
     val type: TrxType = TrxType.Expense,
+    val canChooseType: Boolean = true,
     val parent: Category? = null,
     val parentsOfType: Map<TrxType, List<Category>> = emptyMap(),
     val children: List<Category> = emptyList(),
@@ -41,7 +42,9 @@ class CategoryViewModel(
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update {
+                it.copy(isLoading = true, canChooseType = id == null)
+            }
             val category = id?.let { categoryRepository.getCategoryById(id) }
             val children = category?.let {
                 categoryRepository.getSubcategories(it.id)
