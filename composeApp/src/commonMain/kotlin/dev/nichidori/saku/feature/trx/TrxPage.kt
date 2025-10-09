@@ -3,19 +3,20 @@ package dev.nichidori.saku.feature.trx
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -23,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,21 +38,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import dev.nichidori.saku.core.composable.AccountSelector
 import dev.nichidori.saku.core.composable.CategorySelector
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyButton
 import dev.nichidori.saku.core.composable.MyDateTimePicker
+import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyTextField
 import dev.nichidori.saku.core.composable.NumberKeyboard
 import dev.nichidori.saku.core.model.Status
@@ -64,6 +61,11 @@ import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -273,18 +275,28 @@ fun TrxPageContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            SingleChoiceSegmentedButtonRow {
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 types.forEachIndexed { i, type ->
                     SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = i,
-                            count = types.size
-                        ),
+                        shape = when (i) {
+                            0 -> MyDefaultShape.copy(
+                                bottomEnd = CornerSize(0.dp),
+                                topEnd = CornerSize(0.dp)
+                            )
+
+                            types.lastIndex -> MyDefaultShape.copy(
+                                bottomStart = CornerSize(0.dp),
+                                topStart = CornerSize(0.dp)
+                            )
+
+                            else -> RectangleShape
+                        },
                         selected = type == uiState.type,
                         onClick = {
                             onTypeChange(type)
                             showTargetAccountInput = false
                         },
+                        icon = {}
                     ) {
                         Text(
                             when (type) {

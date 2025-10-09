@@ -8,17 +8,18 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.CategorySelector
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyButton
+import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyTextField
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -65,6 +67,7 @@ fun CategoryPage(
                     status.error.toString(),
                     duration = ToastDuration.Long
                 )
+
                 else -> {}
             }
         }
@@ -72,7 +75,6 @@ fun CategoryPage(
 
     CategoryPageContent(
         uiState = uiState,
-        types = viewModel.types,
         onUp = onUp,
         onTypeChange = viewModel::onTypeChange,
         onNameChange = viewModel::onNameChange,
@@ -85,7 +87,6 @@ fun CategoryPage(
 @Composable
 fun CategoryPageContent(
     uiState: CategoryUiState,
-    types: List<TrxType>,
     onUp: () -> Unit,
     onTypeChange: (TrxType) -> Unit,
     onNameChange: (String) -> Unit,
@@ -116,6 +117,7 @@ fun CategoryPageContent(
                             .padding(bottom = bottomPadding)
                     )
                 }
+
                 else -> {
                     MyButton(
                         text = "Save",
@@ -142,24 +144,28 @@ fun CategoryPageContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            SingleChoiceSegmentedButtonRow {
-                types.forEachIndexed { i, type ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = i,
-                            count = types.size
-                        ),
-                        selected = type == uiState.type,
-                        onClick = { onTypeChange(type) },
-                    ) {
-                        Text(
-                            when (type) {
-                                TrxType.Income -> "Income"
-                                TrxType.Expense -> "Expense"
-                                TrxType.Transfer -> "Transfer"
-                            }
-                        )
-                    }
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topEnd = CornerSize(0.dp),
+                        bottomEnd = CornerSize(0.dp)
+                    ),
+                    selected = uiState.type == TrxType.Income,
+                    onClick = { onTypeChange(TrxType.Income) },
+                    icon = {},
+                ) {
+                    Text("Income", style = MaterialTheme.typography.labelMedium)
+                }
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topStart = CornerSize(0.dp),
+                        bottomStart = CornerSize(0.dp)
+                    ),
+                    selected = uiState.type == TrxType.Expense,
+                    onClick = { onTypeChange(TrxType.Expense) },
+                    icon = {},
+                ) {
+                    Text("Expense", style = MaterialTheme.typography.labelMedium)
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -229,10 +235,8 @@ fun CategoryPageContentPreview() {
             )
         )
     )
-    val types = listOf(TrxType.Income, TrxType.Expense, TrxType.Transfer)
     CategoryPageContent(
         uiState = uiState,
-        types = types,
         onUp = {},
         onTypeChange = {},
         onNameChange = {},
