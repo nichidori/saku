@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 data class CategoryListUiState(
     val isLoading: Boolean = false,
-    val categoriesByParent: Map<Category, List<Category>> = emptyMap(),
+    val incomesByParent: Map<Category, List<Category>> = emptyMap(),
+    val expensesByParent: Map<Category, List<Category>> = emptyMap(),
 )
 
 class CategoryListViewModel(
@@ -29,12 +31,20 @@ class CategoryListViewModel(
                     it.copy(isLoading = true)
                 }
                 val categories = categoryRepository.getAllCategories()
-                val parents = categories.filter { it.parent == null }
-                val categoriesByParent = parents.associateWith { parent ->
-                    categories.filter { it.parent?.id == parent.id }
-                }
+                val (parents, children) = categories.partition { it.parent == null }
+                val childrenByParentId = children.groupBy { it.parent?.id }
+                val incomesByParent = parents
+                    .filter { it.type == TrxType.Income }
+                    .associateWith { childrenByParentId[it.id].orEmpty() }
+                val expensesByParent = parents
+                    .filter { it.type == TrxType.Expense }
+                    .associateWith { childrenByParentId[it.id].orEmpty() }
                 _uiState.update {
-                    it.copy(categoriesByParent = categoriesByParent, isLoading = false)
+                    it.copy(
+                        incomesByParent = incomesByParent,
+                        expensesByParent = expensesByParent,
+                        isLoading = false
+                    )
                 }
             } catch (e: Exception) {
                 this@CategoryListViewModel.log(e)

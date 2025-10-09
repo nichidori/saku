@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,15 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -32,8 +39,8 @@ import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.TrxType
 
-// TODO: Use Pager for TrxType
 @Composable
 fun CategoryListPage(
     viewModel: CategoryListViewModel,
@@ -82,29 +89,64 @@ fun CategoryListContent(
         },
         modifier = modifier,
     ) { contentPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier.padding(contentPadding),
-        ) {
-            uiState.categoriesByParent.forEach { (parent, children) ->
-                item {
-                    CategoryCard(
-                        category = parent,
-                        onClick = onCategoryClick,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                    )
+        var selectedType by remember { mutableStateOf(TrxType.Expense) }
+
+        Column(modifier = Modifier.padding(contentPadding)) {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topEnd = CornerSize(0.dp),
+                        bottomEnd = CornerSize(0.dp)
+                    ),
+                    selected = selectedType == TrxType.Income,
+                    onClick = { selectedType = TrxType.Income },
+                    icon = {},
+                ) {
+                    Text("Income", style = MaterialTheme.typography.labelMedium)
                 }
-                itemsIndexed(children) { i, child ->
-                    Row {
-                        ChildNodeIndicator(
-                            isLast = i == children.lastIndex,
-                            modifier = Modifier.size(height = 64.dp, width = 48.dp)
-                        )
+                SegmentedButton(
+                    shape = MyDefaultShape.copy(
+                        topStart = CornerSize(0.dp),
+                        bottomStart = CornerSize(0.dp)
+                    ),
+                    selected = selectedType == TrxType.Expense,
+                    onClick = { selectedType = TrxType.Expense },
+                    icon = {},
+                ) {
+                    Text("Expense", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                val categoriesByParent = if (selectedType == TrxType.Income) {
+                    uiState.incomesByParent
+                } else {
+                    uiState.expensesByParent
+                }
+                categoriesByParent.forEach { (parent, children) ->
+                    item {
                         CategoryCard(
-                            category = child,
+                            category = parent,
                             onClick = onCategoryClick,
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                         )
+                    }
+                    itemsIndexed(children) { i, child ->
+                        Row {
+                            ChildNodeIndicator(
+                                isLast = i == children.lastIndex,
+                                modifier = Modifier.size(height = 64.dp, width = 48.dp)
+                            )
+                            CategoryCard(
+                                category = child,
+                                onClick = onCategoryClick,
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                            )
+                        }
                     }
                 }
             }
