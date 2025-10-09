@@ -141,6 +141,9 @@ fun App(
                             CategoryListViewModel(categoryRepository)
                         },
                         onUp = { rootNavController.popBackStack() },
+                        onNewCategoryClick = {
+                            rootNavController.navigate(Route.Category(id = null))
+                        },
                         onCategoryClick = { id ->
                             rootNavController.navigate(Route.Category(id))
                         }

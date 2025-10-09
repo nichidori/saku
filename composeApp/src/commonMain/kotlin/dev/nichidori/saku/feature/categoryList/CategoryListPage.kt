@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,14 +27,18 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.domain.model.Category
 
+// TODO: Use Pager for TrxType
 @Composable
 fun CategoryListPage(
     viewModel: CategoryListViewModel,
     onUp: () -> Unit,
+    onNewCategoryClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -45,6 +51,7 @@ fun CategoryListPage(
     CategoryListContent(
         uiState = uiState,
         onUp = onUp,
+        onNewCategoryClick = onNewCategoryClick,
         onCategoryClick = onCategoryClick,
         modifier = modifier
     )
@@ -54,12 +61,24 @@ fun CategoryListPage(
 fun CategoryListContent(
     uiState: CategoryListUiState,
     onUp: () -> Unit,
+    onNewCategoryClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         topBar = {
             MyAppBar(title = "Categories", onUp = onUp)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNewCategoryClick,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Lucide.Plus,
+                    contentDescription = "Add category"
+                )
+            }
         },
         modifier = modifier,
     ) { contentPadding ->
