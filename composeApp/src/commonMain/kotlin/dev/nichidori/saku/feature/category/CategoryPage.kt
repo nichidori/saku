@@ -169,8 +169,8 @@ fun CategoryPageContent(
                         Text("Expense", style = MaterialTheme.typography.labelMedium)
                     }
                 }
+                Spacer(modifier = Modifier.height(24.dp))
             }
-            Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
                 value = uiState.name,
