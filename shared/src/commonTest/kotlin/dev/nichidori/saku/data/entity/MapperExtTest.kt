@@ -5,8 +5,11 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
-import kotlin.test.*
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 
 class MapperExtTest {
@@ -153,14 +156,6 @@ class MapperExtTest {
 
     @Test
     fun toDomainAndBack_withTransferTransaction_shouldPreserveData() {
-        val category = Category(
-            id = "cat",
-            name = "Internal Transfer",
-            type = TrxType.Transfer,
-            parent = null,
-            createdAt = Clock.System.now(),
-            updatedAt = null
-        )
         val source = Account(
             id = "acc1",
             name = "Wallet",
@@ -184,7 +179,7 @@ class MapperExtTest {
             id = "trx2",
             description = "Move to Bank",
             amount = 2000L,
-            categoryId = category.id,
+            categoryId = null,
             sourceAccountId = source.id,
             targetAccountId = target.id,
             transactionAt = 1_000_000L,
@@ -194,7 +189,7 @@ class MapperExtTest {
             type = TrxTypeEntity.Transfer
         )
 
-        val domain = entity.toDomain(category, source, target)
+        val domain = entity.toDomain(null, source, target)
         val roundTrip = domain.toEntity()
 
         assertEquals(entity, roundTrip)
@@ -337,7 +332,7 @@ class MapperExtTest {
         assertEquals("trx-expense", domain.id)
         assertEquals("Dinner", domain.description)
         assertEquals(50000L, domain.amount)
-        assertEquals("Food & Dining", domain.category.name)
+        assertEquals("Food & Dining", domain.category?.name)
         assertEquals("Wallet", domain.sourceAccount.name)
         assertEquals("Friday night dinner", domain.note)
         assertEquals(1_000_001L, domain.createdAt.toEpochMilliseconds())
@@ -360,14 +355,7 @@ class MapperExtTest {
                 updatedAt = null,
                 type = TrxTypeEntity.Transfer
             ),
-            category = CategoryEntity(
-                id = "cat-transfer",
-                name = "Transfer",
-                type = TrxTypeEntity.Transfer,
-                parentId = null,
-                createdAt = 900_000L,
-                updatedAt = null
-            ),
+            category = null,
             sourceAccount = AccountEntity(
                 id = "acc-wallet",
                 name = "Wallet",
@@ -396,7 +384,6 @@ class MapperExtTest {
         assertEquals(100_000L, domain.amount)
         assertEquals("Wallet", domain.sourceAccount.name)
         assertEquals("Bank", domain.targetAccount.name)
-        assertEquals("Transfer", domain.category.name)
         assertEquals("Monthly transfer", domain.note)
         assertEquals(1_000_101L, domain.createdAt.toEpochMilliseconds())
         assertNull(domain.updatedAt)

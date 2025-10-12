@@ -62,9 +62,9 @@ fun AccountType.toEntity(): AccountTypeEntity = when (this) {
 }
 
 fun TrxEntity.toDomain(
-    category: Category,
+    category: Category?,
     sourceAccount: Account,
-    targetAccount: Account? = null
+    targetAccount: Account? = null,
 ): Trx = when (type) {
     TrxTypeEntity.Income -> Trx.Income(
         id = id,
@@ -109,7 +109,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         id = id,
         description = description,
         amount = amount,
-        categoryId = category.id,
+        categoryId = category?.id,
         sourceAccountId = sourceAccount.id,
         targetAccountId = null,
         transactionAt = transactionAt.toEpochMilliseconds(),
@@ -122,7 +122,7 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         id = id,
         description = description,
         amount = amount,
-        categoryId = category.id,
+        categoryId = category?.id,
         sourceAccountId = sourceAccount.id,
         targetAccountId = null,
         transactionAt = transactionAt.toEpochMilliseconds(),
@@ -166,7 +166,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = checkNotNull(category).toDomain(),
+            category = category?.toDomain(),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -178,7 +178,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = checkNotNull(category).toDomain(),
+            category = category?.toDomain(),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }

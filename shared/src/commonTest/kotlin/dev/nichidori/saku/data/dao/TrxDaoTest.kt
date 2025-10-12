@@ -130,7 +130,7 @@ class TrxDaoTest {
 
         assertNotNull(result)
         assertEquals(incomeTrx.id, result.trx.id)
-        assertEquals(incomeCategory.id, result.category.id)
+        assertEquals(incomeCategory.id, result.category?.id)
         assertEquals(sourceAccount.id, result.sourceAccount.id)
         assertNull(result.targetAccount)
     }
@@ -146,7 +146,7 @@ class TrxDaoTest {
 
         assertNotNull(result)
         assertEquals(transferTrx.id, result.trx.id)
-        assertEquals(transferCategory.id, result.category.id)
+        assertEquals(transferCategory.id, result.category?.id)
         assertEquals(sourceAccount.id, result.sourceAccount.id)
         assertEquals(targetAccount.id, result.targetAccount?.id)
     }

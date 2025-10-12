@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -36,6 +39,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.CategorySelector
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyButton
@@ -55,6 +60,7 @@ fun CategoryPage(
     viewModel: CategoryViewModel,
     onUp: () -> Unit,
     onSaveSuccess: () -> Unit,
+    onDeleteSuccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -73,6 +79,20 @@ fun CategoryPage(
         }
     }
 
+    uiState.deleteStatus.let { status ->
+        LaunchedEffect(status) {
+            when (status) {
+                is Success<*> -> onDeleteSuccess()
+                is Status.Failure<*> -> showToast(
+                    status.error.toString(),
+                    duration = ToastDuration.Long
+                )
+
+                else -> {}
+            }
+        }
+    }
+
     CategoryPageContent(
         uiState = uiState,
         onUp = onUp,
@@ -80,6 +100,7 @@ fun CategoryPage(
         onNameChange = viewModel::onNameChange,
         onParentChange = viewModel::onParentChange,
         onSaveClick = viewModel::saveCategory,
+        onDeleteClick = viewModel::deleteCategory,
         modifier = modifier
     )
 }
@@ -92,6 +113,7 @@ fun CategoryPageContent(
     onNameChange: (String) -> Unit,
     onParentChange: (Category?) -> Unit,
     onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showParentInput by remember { mutableStateOf(false) }
@@ -99,7 +121,24 @@ fun CategoryPageContent(
 
     Scaffold(
         topBar = {
-            MyAppBar(title = "Category", onUp = onUp)
+            MyAppBar(
+                title = "Category",
+                onUp = onUp,
+                action = {
+                    if (uiState.canDelete) {
+                        IconButton(
+                            content = {
+                                Icon(
+                                    imageVector = Lucide.Trash,
+                                    contentDescription = "Delete category",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            onClick = onDeleteClick,
+                        )
+                    }
+                }
+            )
         },
         bottomBar = {
             val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
@@ -243,6 +282,7 @@ fun CategoryPageContentPreview() {
         onTypeChange = {},
         onNameChange = {},
         onParentChange = {},
-        onSaveClick = {}
+        onSaveClick = {},
+        onDeleteClick = {}
     )
 }

@@ -2,11 +2,6 @@ package dev.nichidori.saku.feature.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Initial
@@ -16,6 +11,11 @@ import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.CategoryRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class CategoryUiState(
     val isLoading: Boolean = false,
@@ -25,7 +25,9 @@ data class CategoryUiState(
     val parent: Category? = null,
     val parentsOfType: Map<TrxType, List<Category>> = emptyMap(),
     val children: List<Category> = emptyList(),
+    val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
+    val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
     val canSave = name.isNotBlank()
     val parentOptions = parentsOfType[type].orEmpty()
@@ -43,7 +45,11 @@ class CategoryViewModel(
     init {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = true, canChooseType = id == null)
+                it.copy(
+                    isLoading = true,
+                    canChooseType = id == null,
+                    canDelete = id != null
+                )
             }
             val category = id?.let { categoryRepository.getCategoryById(id) }
             val children = category?.let {
@@ -104,6 +110,25 @@ class CategoryViewModel(
             } catch (e: Exception) {
                 this@CategoryViewModel.log(e)
                 _uiState.update { it.copy(saveStatus = Failure(e)) }
+            }
+        }
+    }
+
+    fun deleteCategory() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(deleteStatus = Loading)
+                }
+                categoryRepository.deleteCategory(id!!)
+                _uiState.update {
+                    it.copy(deleteStatus = Success(Unit))
+                }
+            } catch (e: Exception) {
+                this@CategoryViewModel.log(e)
+                _uiState.update {
+                    it.copy(deleteStatus = Failure(e))
+                }
             }
         }
     }
