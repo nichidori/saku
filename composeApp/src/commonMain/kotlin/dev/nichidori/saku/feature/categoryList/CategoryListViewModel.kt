@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 data class CategoryListUiState(
     val isLoading: Boolean = false,
+    val selectedType: TrxType = TrxType.Expense,
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
 )
@@ -52,6 +53,12 @@ class CategoryListViewModel(
                     it.copy(isLoading = false)
                 }
             }
+        }
+    }
+
+    fun onSelectedTypeChange(type: TrxType) {
+        _uiState.update {
+            it.copy(selectedType = type)
         }
     }
 }

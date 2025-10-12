@@ -24,9 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -58,6 +55,7 @@ fun CategoryListPage(
     CategoryListContent(
         uiState = uiState,
         onUp = onUp,
+        onSelectedTypeChange = viewModel::onSelectedTypeChange,
         onNewCategoryClick = onNewCategoryClick,
         onCategoryClick = onCategoryClick,
         modifier = modifier
@@ -68,6 +66,7 @@ fun CategoryListPage(
 fun CategoryListContent(
     uiState: CategoryListUiState,
     onUp: () -> Unit,
+    onSelectedTypeChange: (TrxType) -> Unit,
     onNewCategoryClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -89,8 +88,6 @@ fun CategoryListContent(
         },
         modifier = modifier,
     ) { contentPadding ->
-        var selectedType by remember { mutableStateOf(TrxType.Expense) }
-
         Column(modifier = Modifier.padding(contentPadding)) {
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
@@ -100,8 +97,8 @@ fun CategoryListContent(
                         topEnd = CornerSize(0.dp),
                         bottomEnd = CornerSize(0.dp)
                     ),
-                    selected = selectedType == TrxType.Income,
-                    onClick = { selectedType = TrxType.Income },
+                    selected = uiState.selectedType == TrxType.Income,
+                    onClick = { onSelectedTypeChange(TrxType.Income) },
                     icon = {},
                 ) {
                     Text("Income", style = MaterialTheme.typography.labelMedium)
@@ -111,8 +108,8 @@ fun CategoryListContent(
                         topStart = CornerSize(0.dp),
                         bottomStart = CornerSize(0.dp)
                     ),
-                    selected = selectedType == TrxType.Expense,
-                    onClick = { selectedType = TrxType.Expense },
+                    selected = uiState.selectedType == TrxType.Expense,
+                    onClick = { onSelectedTypeChange(TrxType.Expense) },
                     icon = {},
                 ) {
                     Text("Expense", style = MaterialTheme.typography.labelMedium)
@@ -122,7 +119,7 @@ fun CategoryListContent(
                 contentPadding = PaddingValues(16.dp),
                 modifier = Modifier.weight(1f),
             ) {
-                val categoriesByParent = if (selectedType == TrxType.Income) {
+                val categoriesByParent = if (uiState.selectedType == TrxType.Income) {
                     uiState.incomesByParent
                 } else {
                     uiState.expensesByParent
