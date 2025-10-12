@@ -30,7 +30,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ListX
 import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
@@ -62,7 +62,7 @@ fun StatisticPage(
     onMonthChange: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
     val base = YearMonth(1970, 1)
     val pagerState = rememberPagerState(

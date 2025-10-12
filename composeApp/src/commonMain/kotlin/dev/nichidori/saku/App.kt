@@ -167,7 +167,8 @@ fun App(
                             CategoryViewModel(categoryRepository, category.id)
                         },
                         onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() }
+                        onSaveSuccess = { rootNavController.popBackStack() },
+                        onDeleteSuccess = { rootNavController.popBackStack() }
                     )
                 }
                 composable<Route.Trx> { backStackEntry ->

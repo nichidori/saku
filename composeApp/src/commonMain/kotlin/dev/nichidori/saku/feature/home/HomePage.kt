@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -45,6 +44,7 @@ import com.composables.icons.lucide.ListX
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Account
@@ -72,7 +72,7 @@ fun HomePage(
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
     val base = YearMonth(1970, 1)
     val pagerState = rememberPagerState(

@@ -22,7 +22,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +34,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
 
@@ -46,7 +46,7 @@ fun CategoryListPage(
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
     LaunchedEffect(Unit) {
         viewModel.load()
