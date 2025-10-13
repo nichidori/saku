@@ -192,6 +192,7 @@ fun AccountType.label(): String {
     }
 }
 
+// TODO: Show selected account
 @Composable
 fun AccountSelector(
     accounts: List<Account>,
@@ -283,6 +284,7 @@ fun AccountSelectorPreview() {
     AccountSelector(accounts = accounts, onSelected = {})
 }
 
+// TODO: Show selected category
 @Composable
 fun CategorySelector(
     categories: List<Category>,

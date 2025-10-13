@@ -2,11 +2,6 @@ package dev.nichidori.saku.feature.trx
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Initial
@@ -21,8 +16,11 @@ import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlin.collections.orEmpty
-import kotlin.text.orEmpty
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -37,12 +35,17 @@ data class TrxUiState(
     val category: Category? = null,
     val note: String = "",
     val accountOptions: List<Account> = listOf(),
-    val categoryMap: Map<TrxType, List<Category>> = emptyMap(),
+    val incomesByParent: Map<Category, List<Category>> = emptyMap(),
+    val expensesByParent: Map<Category, List<Category>> = emptyMap(),
     val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
     val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
-    val categoryOptions = categoryMap[type].orEmpty()
+    val categoriesByParent = when (type) {
+        TrxType.Income -> incomesByParent
+        TrxType.Expense -> expensesByParent
+        else -> emptyMap()
+    }
     val amountFormatted = amount?.toRupiah().orEmpty()
     val canSave = time != null
             && amount != null
@@ -69,10 +72,14 @@ class TrxViewModel(
             }
             val accounts = accountRepository.getAllAccounts()
             val categories = categoryRepository.getAllCategories()
-            val categoriesMap = mutableMapOf<TrxType, List<Category>>()
-            for (type in types) {
-                categoriesMap[type] = categories.filter { it.type == type }
-            }
+            val (parents, children) = categories.partition { it.parent == null }
+            val childrenByParentId = children.groupBy { it.parent?.id }
+            val incomesByParent = parents
+                .filter { it.type == TrxType.Income }
+                .associateWith { childrenByParentId[it.id].orEmpty() }
+            val expensesByParent = parents
+                .filter { it.type == TrxType.Expense }
+                .associateWith { childrenByParentId[it.id].orEmpty() }
             val trx = id?.let { trxRepository.getTrxById(id) }
             _uiState.update {
                 with(trx) {
@@ -91,7 +98,8 @@ class TrxViewModel(
                         targetAccount = (this as? Trx.Transfer)?.targetAccount ?: it.targetAccount,
                         category = this?.category ?: it.category,
                         accountOptions = accounts,
-                        categoryMap = categoriesMap,
+                        incomesByParent = incomesByParent,
+                        expensesByParent = expensesByParent,
                         canDelete = this != null
                     )
                 }

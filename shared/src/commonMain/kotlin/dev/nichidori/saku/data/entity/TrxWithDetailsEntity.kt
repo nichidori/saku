@@ -8,9 +8,10 @@ data class TrxWithDetailsEntity(
 
     @Relation(
         parentColumn = "category_id",
-        entityColumn = "id"
+        entityColumn = "id",
+        entity = CategoryEntity::class
     )
-    val category: CategoryEntity?,
+    val categoryWithParent: CategoryWithParentEntity?,
 
     @Relation(
         parentColumn = "source_account_id",

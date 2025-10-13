@@ -117,13 +117,13 @@ class MapperExtTest {
     @Test
     fun toDomainAndBack_withExpenseTransaction_shouldPreserveData() {
         val category = Category(
-                id = "cat",
-                name = "Groceries",
-                type = TrxType.Expense,
-                parent = null,
-                createdAt = Clock.System.now(),
-                updatedAt = null
-            )
+            id = "cat",
+            name = "Groceries",
+            type = TrxType.Expense,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
         val account = Account(
             id = "acc",
             name = "Cash Wallet",
@@ -236,13 +236,16 @@ class MapperExtTest {
 
     @Test
     fun toDomain_withIncomeTrxWithDetailsEntity_shouldReturnCorrectDomainModel() {
-        val category = CategoryEntity(
-            id = "cat-1",
-            name = "Salary",
-            type = TrxTypeEntity.Income,
-            parentId = null,
-            createdAt = 1_000L,
-            updatedAt = 2_000L
+        val categoryWithParent = CategoryWithParentEntity(
+            category = CategoryEntity(
+                id = "cat-1",
+                name = "Salary",
+                type = TrxTypeEntity.Income,
+                parentId = null,
+                createdAt = 1_000L,
+                updatedAt = 2_000L
+            ),
+            parent = null
         )
 
         val sourceAccount = AccountEntity(
@@ -259,7 +262,7 @@ class MapperExtTest {
             id = "trx-1",
             description = "Monthly Salary",
             amount = 10_000_000L,
-            categoryId = category.id,
+            categoryId = categoryWithParent.category.id,
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = 1_650_000_000L,
@@ -271,7 +274,7 @@ class MapperExtTest {
 
         val trxWithDetails = TrxWithDetailsEntity(
             trx = trxEntity,
-            category = category,
+            categoryWithParent = categoryWithParent,
             sourceAccount = sourceAccount,
             targetAccount = null
         )
@@ -287,7 +290,7 @@ class MapperExtTest {
         assertEquals(trxEntity.createdAt, domain.createdAt.toEpochMilliseconds())
         assertEquals(trxEntity.updatedAt, domain.updatedAt?.toEpochMilliseconds())
         assertEquals(sourceAccount.toDomain(), domain.sourceAccount)
-        assertEquals(category.toDomain(), domain.category)
+        assertEquals(categoryWithParent.category.toDomain(), domain.category)
     }
 
     @Test
@@ -306,13 +309,16 @@ class MapperExtTest {
                 updatedAt = 1_000_002L,
                 type = TrxTypeEntity.Expense
             ),
-            category = CategoryEntity(
-                id = "cat-expense",
-                name = "Food & Dining",
-                type = TrxTypeEntity.Expense,
-                parentId = null,
-                createdAt = 900_000L,
-                updatedAt = 900_001L
+            categoryWithParent = CategoryWithParentEntity(
+                category = CategoryEntity(
+                    id = "cat-expense",
+                    name = "Food & Dining",
+                    type = TrxTypeEntity.Expense,
+                    parentId = null,
+                    createdAt = 900_000L,
+                    updatedAt = 900_001L
+                ),
+                parent = null,
             ),
             sourceAccount = AccountEntity(
                 id = "acc-wallet",
@@ -355,7 +361,7 @@ class MapperExtTest {
                 updatedAt = null,
                 type = TrxTypeEntity.Transfer
             ),
-            category = null,
+            categoryWithParent = null,
             sourceAccount = AccountEntity(
                 id = "acc-wallet",
                 name = "Wallet",

@@ -166,7 +166,9 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = category?.toDomain(),
+            category = categoryWithParent?.category?.toDomain(
+                parent = categoryWithParent.parent?.toDomain()
+            ),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -178,7 +180,9 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             amount = trx.amount,
             sourceAccount = sourceAccount.toDomain(),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
-            category = category?.toDomain(),
+            category = categoryWithParent?.category?.toDomain(
+                parent = categoryWithParent.parent?.toDomain()
+            ),
             note = trx.note,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
