@@ -17,7 +17,6 @@ import kotlinx.datetime.YearMonth
 
 data class HomeUiState(
     val isLoading: Boolean = false,
-    val currentMonth: YearMonth? = null,
     val netWorth: Long = 0,
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
@@ -38,7 +37,7 @@ class HomeViewModel(
     fun load(month: YearMonth) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = true, currentMonth = month, trxs = listOf())
+                it.copy(isLoading = true, trxs = listOf())
             }
             val accounts = accountRepository.getAllAccounts()
             val netWorth = accountRepository.getTotalBalance()

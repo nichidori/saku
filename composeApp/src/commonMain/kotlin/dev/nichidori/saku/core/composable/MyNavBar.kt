@@ -36,14 +36,16 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChartPie
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.ReceiptText
 
 @Composable
 fun MyNavBar(
     onHomeClick: () -> Unit,
+    onTrxClick: () -> Unit,
+    onStatisticClick: () -> Unit,
     onAddClick: () -> Unit,
     onAddLongPress: () -> Unit,
-    onStatisticClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -67,6 +69,26 @@ fun MyNavBar(
                 .size(48.dp)
                 .clip(MyDefaultShape)
                 .clickable { onHomeClick() }
+                .padding(12.dp)
+        )
+        Spacer(modifier = Modifier.width(32.dp))
+        Icon(
+            imageVector = Lucide.ReceiptText,
+            contentDescription = "Transaction",
+            modifier = Modifier
+                .size(48.dp)
+                .clip(MyDefaultShape)
+                .clickable { onTrxClick() }
+                .padding(12.dp)
+        )
+        Spacer(modifier = Modifier.width(32.dp))
+        Icon(
+            imageVector = Lucide.ChartPie,
+            contentDescription = "Statistic",
+            modifier = Modifier
+                .size(48.dp)
+                .clip(MyDefaultShape)
+                .clickable { onStatisticClick() }
                 .padding(12.dp)
         )
         Spacer(modifier = Modifier.width(32.dp))
@@ -115,17 +137,7 @@ fun MyNavBar(
                 },
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = Lucide.Plus, contentDescription = "Add")
+            Icon(imageVector = Lucide.Pencil, contentDescription = "Add")
         }
-        Spacer(modifier = Modifier.width(32.dp))
-        Icon(
-            imageVector = Lucide.ChartPie,
-            contentDescription = "Statistic",
-            modifier = Modifier
-                .size(48.dp)
-                .clip(MyDefaultShape)
-                .clickable { onStatisticClick() }
-                .padding(12.dp)
-        )
     }
 }

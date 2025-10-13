@@ -73,6 +73,8 @@ import dev.nichidori.saku.feature.statistic.StatisticPage
 import dev.nichidori.saku.feature.statistic.StatisticViewModel
 import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
+import dev.nichidori.saku.feature.trxList.TrxListPage
+import dev.nichidori.saku.feature.trxList.TrxListViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -88,6 +90,7 @@ import kotlin.time.Instant
     @Serializable data object Home : Route
     @Serializable data object Statistic : Route
     @Serializable data object CategoryList : Route
+    @Serializable data object TrxList : Route
     @Serializable data class Account(val id: String?) : Route
     @Serializable data class Category(val id: String?) : Route
     @Serializable data class Trx(val id: String?) : Route
@@ -245,13 +248,20 @@ fun MainContainer(
         bottomBar = {
             MyNavBar(
                 onHomeClick = {
-                    innerNavController.popBackStack(Route.Home, inclusive = false)
+                    innerNavController.navigate(Route.Home) {
+                        popUpTo(Route.Home) {
+                            inclusive = true
+                        }
+                    }
                 },
-                onAddClick = {
-                    rootNavController.navigate(Route.Trx(id = null))
-                },
-                onAddLongPress = {
-                    showInputOption = true
+                onTrxClick = {
+                    val currentDestination = innerNavController.currentBackStackEntry?.destination
+                    if (currentDestination?.hierarchy?.none { it.hasRoute<Route.TrxList>() } == true) {
+                        innerNavController.navigate(Route.TrxList) {
+                            popUpTo(Route.Home) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
                 },
                 onStatisticClick = {
                     val currentDestination = innerNavController.currentBackStackEntry?.destination
@@ -261,25 +271,19 @@ fun MainContainer(
                             launchSingleTop = true
                         }
                     }
-                }
+                },
+                onAddClick = {
+                    rootNavController.navigate(Route.Trx(id = null))
+                },
+                onAddLongPress = {
+                    showInputOption = true
+                },
             )
         }
     ) { contentPadding ->
         NavHost(
             innerNavController,
             startDestination = Route.Home,
-            enterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
-            },
-            exitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start)
-            },
-            popEnterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End)
-            },
-            popExitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
-            },
             modifier = Modifier.padding(contentPadding)
         ) {
             composable<Route.Home> {
@@ -296,6 +300,17 @@ fun MainContainer(
                     },
                     onNewAccountClick = {
                         rootNavController.navigate(Route.Account(id = null))
+                    }
+                )
+            }
+            composable<Route.TrxList> {
+                TrxListPage(
+                    initialMonth = selectedMonth,
+                    viewModel = viewModel {
+                        TrxListViewModel(trxRepository)
+                    },
+                    onMonthChange = { month ->
+                        selectedMonth = month
                     },
                     onTrxClick = { id ->
                         rootNavController.navigate(Route.Trx(id))

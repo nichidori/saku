@@ -15,10 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
@@ -37,26 +34,19 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ListX
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
-import dev.nichidori.saku.core.util.format
-import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
 import kotlinx.datetime.YearMonth
-import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.plus
 import kotlinx.datetime.until
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -69,7 +59,6 @@ fun HomePage(
     onMonthChange: (YearMonth) -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
-    onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
@@ -95,7 +84,6 @@ fun HomePage(
             uiState = uiState,
             onAccountClick = onAccountClick,
             onNewAccountClick = onNewAccountClick,
-            onTrxClick = onTrxClick,
             modifier = modifier
         )
     }
@@ -106,7 +94,6 @@ fun HomePageContent(
     uiState: HomeUiState,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
-    onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -126,36 +113,6 @@ fun HomePageContent(
                     onAccountClick = onAccountClick,
                     onNewAccountClick = onNewAccountClick,
                 )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-            item {
-                Text("Recent Activities", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            if (uiState.trxs.isEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Icon(
-                        imageVector = Lucide.ListX,
-                        contentDescription = "No data",
-                        tint = Color.LightGray,
-                        modifier = Modifier.fillMaxWidth().size(60.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "No transaction yet",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            } else {
-                items(uiState.trxs) { trx ->
-                    TrxCard(trx = trx, onClick = onTrxClick)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
             }
         }
     }
@@ -314,7 +271,6 @@ fun HomePageContentPreview() {
     )
     val uiState = HomeUiState(
         isLoading = false,
-        currentMonth = YearMonth(2023, Month.AUGUST),
         netWorth = 10000000,
         netWorthTrend = listOf(1f, 1.2f, 1.1f, 1.3f),
         accounts = listOf(
@@ -350,7 +306,7 @@ fun HomePageContentPreview() {
             )
         )
     )
-    HomePageContent(uiState = uiState, onAccountClick = {}, onNewAccountClick = {}, onTrxClick = {})
+    HomePageContent(uiState = uiState, onAccountClick = {}, onNewAccountClick = {})
 }
 
 @Preview
@@ -459,99 +415,6 @@ fun AccountCardPreview() {
         updatedAt = null
     )
     AccountCard(account = account, onClick = {})
-}
-
-@Composable
-fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
-            .clip(MyDefaultShape)
-            .clickable { onClick(trx.id) },
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MyDefaultShape
-                    )
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f)
-            ) {
-                val accountInfo = when (trx) {
-                    is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
-                    else -> trx.sourceAccount.name
-                }
-                val primaryText = trx.description.ifBlank { accountInfo }
-                val secondaryText = if (trx.description.isBlank()) null else accountInfo
-                Text(
-                    text = primaryText,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                secondaryText?.let {
-                    Text(text = it, style = MaterialTheme.typography.labelSmall)
-                }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(trx.amount.toRupiah(), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    trx.transactionAt.format(LocalDateTime.Format {
-                        day()
-                        chars(" ")
-                        monthName(MonthNames.ENGLISH_ABBREVIATED)
-                        chars(" ")
-                        year()
-                        chars(" • ")
-                        hour()
-                        chars(":")
-                        minute()
-                    }),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun TrxCardPreview() {
-    val sampleAccount = Account(
-        id = "1",
-        name = "Cash",
-        initialAmount = 100000,
-        currentAmount = 150000,
-        type = AccountType.Cash,
-        createdAt = Clock.System.now(),
-        updatedAt = null
-    )
-    val trx = Trx.Expense(
-        id = "trx123",
-        description = "Lunch at Warteg",
-        amount = 25000,
-        category = Category(
-            id = "cat1", name = "Food", type = TrxType.Expense,
-            createdAt = Clock.System.now(),
-            updatedAt = null
-        ),
-        sourceAccount = sampleAccount,
-        transactionAt = Clock.System.now(),
-        note = "Nasi, ayam, es teh",
-        createdAt = Clock.System.now(),
-        updatedAt = null
-    )
-    TrxCard(trx = trx, onClick = {})
 }
 
 @Preview
