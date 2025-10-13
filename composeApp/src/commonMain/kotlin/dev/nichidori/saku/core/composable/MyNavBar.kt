@@ -57,7 +57,7 @@ fun MyNavBar(
         modifier = modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.surfaceContainer)
-            .padding(horizontal = 48.dp, vertical = 12.dp)
+            .padding(horizontal = 32.dp, vertical = 12.dp)
             .padding(
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             ),
@@ -71,7 +71,7 @@ fun MyNavBar(
                 .clickable { onHomeClick() }
                 .padding(12.dp)
         )
-        Spacer(modifier = Modifier.width(32.dp))
+        Spacer(modifier = Modifier.width(24.dp))
         Icon(
             imageVector = Lucide.ReceiptText,
             contentDescription = "Transaction",
@@ -81,7 +81,7 @@ fun MyNavBar(
                 .clickable { onTrxClick() }
                 .padding(12.dp)
         )
-        Spacer(modifier = Modifier.width(32.dp))
+        Spacer(modifier = Modifier.width(24.dp))
         Icon(
             imageVector = Lucide.ChartPie,
             contentDescription = "Statistic",
@@ -91,7 +91,7 @@ fun MyNavBar(
                 .clickable { onStatisticClick() }
                 .padding(12.dp)
         )
-        Spacer(modifier = Modifier.width(32.dp))
+        Spacer(modifier = Modifier.width(24.dp))
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -125,6 +125,7 @@ fun MyNavBar(
                                         interactionSource.tryEmit(enter)
                                     }
                                 }
+
                                 PointerEventType.Exit -> {
                                     hoverInteraction?.let {
                                         interactionSource.tryEmit(HoverInteraction.Exit(it))
