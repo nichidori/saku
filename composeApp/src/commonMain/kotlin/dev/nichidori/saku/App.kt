@@ -1,6 +1,8 @@
 package dev.nichidori.saku
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -295,6 +297,10 @@ fun MainContainer(
         NavHost(
             innerNavController,
             startDestination = Route.Home,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             modifier = Modifier.padding(contentPadding)
         ) {
             composable<Route.Home> {
