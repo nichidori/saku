@@ -45,6 +45,7 @@ import kotlinx.datetime.YearMonth
 import kotlinx.datetime.format
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
 import kotlinx.datetime.plus
 import kotlinx.datetime.until
 
@@ -126,7 +127,7 @@ fun TrxListContent(
                                 LocalDate.Format {
                                     dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
                                     chars(", ")
-                                    day()
+                                    day(padding = Padding.NONE)
                                     chars(" ")
                                     monthName(MonthNames.ENGLISH_ABBREVIATED)
                                 }
@@ -160,8 +161,19 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     shape = MyDefaultShape
                 )
-        )
-        Spacer(modifier = Modifier.width(12.dp))
+                .wrapContentSize()
+        ) {
+            Text(
+                when (trx) {
+                    is Trx.Transfer -> "Tr"
+                    else -> trx.category?.name?.take(2) ?: ""
+                },
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
@@ -181,7 +193,15 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             }
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text(trx.amount.toRupiah(), style = MaterialTheme.typography.titleSmall)
+            Text(
+                trx.amount.toRupiah(),
+                style = MaterialTheme.typography.titleSmall,
+                color = when (trx) {
+                    is Trx.Income -> MaterialTheme.colorScheme.primary
+                    is Trx.Expense -> MaterialTheme.colorScheme.error
+                    is Trx.Transfer -> MaterialTheme.colorScheme.onBackground
+                }
+            )
             Text(
                 trx.transactionAt.format(LocalDateTime.Format {
                     hour()
