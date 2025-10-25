@@ -11,11 +11,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
+import kotlinx.datetime.toLocalDateTime
 
 data class TrxListUiState(
     val isLoading: Boolean = false,
-    val trxs: List<Trx> = emptyList(),
+    val trxsByDate: Map<LocalDate, List<Trx>> = emptyMap(),
 )
 
 class TrxListViewModel(
@@ -30,12 +33,12 @@ class TrxListViewModel(
                 _uiState.update {
                     it.copy(isLoading = true)
                 }
-                val trxs = trxRepository.getFilteredTrxs(TrxFilter(
-                    month = month
-                ))
+                val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
                 _uiState.update {
                     it.copy(
-                        trxs = trxs,
+                        trxsByDate = trxs.groupBy { trx ->
+                            trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
+                        },
                         isLoading = false
                     )
                 }
