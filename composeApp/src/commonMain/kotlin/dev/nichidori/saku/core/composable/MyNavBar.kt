@@ -39,8 +39,11 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.ReceiptText
 
+enum class NavBarDestination { Home, Trx, Statistic }
+
 @Composable
 fun MyNavBar(
+    selectedDestination: NavBarDestination?,
     onHomeClick: () -> Unit,
     onTrxClick: () -> Unit,
     onStatisticClick: () -> Unit,
@@ -65,6 +68,11 @@ fun MyNavBar(
         Icon(
             imageVector = Lucide.House,
             contentDescription = "Home",
+            tint = if (selectedDestination == NavBarDestination.Home) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
             modifier = Modifier
                 .size(48.dp)
                 .clip(MyDefaultShape)
@@ -75,6 +83,11 @@ fun MyNavBar(
         Icon(
             imageVector = Lucide.ReceiptText,
             contentDescription = "Transaction",
+            tint = if (selectedDestination == NavBarDestination.Trx) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
             modifier = Modifier
                 .size(48.dp)
                 .clip(MyDefaultShape)
@@ -85,6 +98,11 @@ fun MyNavBar(
         Icon(
             imageVector = Lucide.ChartPie,
             contentDescription = "Statistic",
+            tint = if (selectedDestination == NavBarDestination.Statistic) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
             modifier = Modifier
                 .size(48.dp)
                 .clip(MyDefaultShape)

@@ -46,12 +46,14 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
+import dev.nichidori.saku.core.composable.NavBarDestination
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
@@ -246,7 +248,16 @@ fun MainContainer(
             }
         },
         bottomBar = {
+            val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
+
             MyNavBar(
+                selectedDestination = when {
+                    currentDestination?.hierarchy?.any { it.hasRoute<Route.Home>() } == true -> NavBarDestination.Home
+                    currentDestination?.hierarchy?.any { it.hasRoute<Route.TrxList>() } == true -> NavBarDestination.Trx
+                    currentDestination?.hierarchy?.any { it.hasRoute<Route.Statistic>() } == true -> NavBarDestination.Statistic
+                    else -> null
+                },
                 onHomeClick = {
                     innerNavController.navigate(Route.Home) {
                         popUpTo(Route.Home) {
