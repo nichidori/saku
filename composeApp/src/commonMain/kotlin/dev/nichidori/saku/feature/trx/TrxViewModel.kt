@@ -97,6 +97,7 @@ class TrxViewModel(
                         sourceAccount = this?.sourceAccount ?: it.sourceAccount,
                         targetAccount = (this as? Trx.Transfer)?.targetAccount ?: it.targetAccount,
                         category = this?.category ?: it.category,
+                        note = this?.note ?: it.note,
                         accountOptions = accounts,
                         incomesByParent = incomesByParent,
                         expensesByParent = expensesByParent,
