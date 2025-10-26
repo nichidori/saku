@@ -56,6 +56,7 @@ import com.composables.icons.lucide.Menu
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
 import dev.nichidori.saku.core.composable.NavBarDestination
+import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
@@ -109,7 +110,7 @@ fun App(
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
 
-    MaterialTheme {
+    MyTheme {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
