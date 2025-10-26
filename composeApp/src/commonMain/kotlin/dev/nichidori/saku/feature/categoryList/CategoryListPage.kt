@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +34,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
@@ -114,40 +116,49 @@ fun CategoryListContent(
                     Text("Expense", style = MaterialTheme.typography.labelMedium)
                 }
             }
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.weight(1f),
-            ) {
-                val categoriesByParent = if (uiState.selectedType == TrxType.Income) {
-                    uiState.incomesByParent
-                } else {
-                    uiState.expensesByParent
-                }
-                categoriesByParent.onEachIndexed { i, (parent, children) ->
-                    item {
-                        CategoryCard(
-                            category = parent,
-                            onClick = onCategoryClick,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = if (i != 0) 16.dp else 0.dp)
-                        )
-                    }
-                    itemsIndexed(children) { i, child ->
-                        Row {
-                            ChildNodeIndicator(
-                                isLast = i == children.lastIndex,
-                                yOffset = 8f,
-                                modifier = Modifier.size(height = (48 + 16).dp, width = 48.dp)
-                            )
+            val categoriesByParent = if (uiState.selectedType == TrxType.Income) {
+                uiState.incomesByParent
+            } else {
+                uiState.expensesByParent
+            }
+            if (categoriesByParent.isNotEmpty()) {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    modifier = Modifier.weight(1f),
+                ) {
+
+                    categoriesByParent.onEachIndexed { i, (parent, children) ->
+                        item {
                             CategoryCard(
-                                category = child,
+                                category = parent,
                                 onClick = onCategoryClick,
-                                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = if (i != 0) 16.dp else 0.dp)
                             )
+                        }
+                        itemsIndexed(children) { i, child ->
+                            Row {
+                                ChildNodeIndicator(
+                                    isLast = i == children.lastIndex,
+                                    yOffset = 8f,
+                                    modifier = Modifier.size(height = (48 + 16).dp, width = 48.dp)
+                                )
+                                CategoryCard(
+                                    category = child,
+                                    onClick = onCategoryClick,
+                                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                )
+                            }
                         }
                     }
                 }
+            } else {
+                MyNoData(
+                    message = "No categories yet",
+                    contentDescription = "No categories",
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

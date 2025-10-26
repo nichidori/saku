@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,13 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ListX
-import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -90,28 +85,7 @@ fun TrxListContent(
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (uiState.trxsByDate.isEmpty()) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.fillMaxSize().wrapContentSize()
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Icon(
-                imageVector = Lucide.ListX,
-                contentDescription = "No data",
-                tint = Color.LightGray,
-                modifier = Modifier.size(60.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "No transaction yet",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = Color.Gray,
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    } else {
+    if (uiState.trxsByDate.isNotEmpty()) {
         LazyColumn(
             modifier = modifier.fillMaxSize()
         ) {
@@ -143,6 +117,12 @@ fun TrxListContent(
                 }
             }
         }
+    } else {
+        MyNoData(
+            message = "No transactions yet",
+            contentDescription = "No transactions",
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

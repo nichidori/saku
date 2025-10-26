@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
@@ -168,27 +169,35 @@ fun AccountSection(
                 )
             }
         }
-        accounts.chunked(2).forEachIndexed { i, row ->
-            if (i > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .height(IntrinsicSize.Min)
-            ) {
-                row.forEach { account ->
-                    AccountCard(
-                        account = account,
-                        onClick = onAccountClick,
-                        modifier = Modifier.weight(1f)
-                    )
+        if (accounts.isNotEmpty()) {
+            accounts.chunked(2).forEachIndexed { i, row ->
+                if (i > 0) {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                if (row.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .height(IntrinsicSize.Min)
+                ) {
+                    row.forEach { account ->
+                        AccountCard(
+                            account = account,
+                            onClick = onAccountClick,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (row.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
+        } else {
+            MyNoData(
+                message = "No accounts yet",
+                contentDescription = "No accounts",
+                modifier = Modifier.height(200.dp).fillMaxWidth()
+            )
         }
     }
 }
