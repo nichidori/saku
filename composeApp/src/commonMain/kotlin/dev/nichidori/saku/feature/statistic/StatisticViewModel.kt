@@ -35,19 +35,21 @@ class StatisticViewModel(
                 _uiState.update {
                     it.copy(isLoading = true)
                 }
-                val incomes = trxRepository
+                val incomesOfCategory = trxRepository
                     .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Income))
-                    .associateBy({ it.category }, { it.amount })
-                val expenses = trxRepository
+                    .groupBy({ it.category }, { it.amount })
+                    .mapValues { it.value.sum() }
+                val expensesOfCategory = trxRepository
                     .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Expense))
-                    .associateBy({ it.category }, { it.amount })
+                    .groupBy({ it.category }, { it.amount })
+                    .mapValues { it.value.sum() }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        incomesOfCategory = incomes
-                            .toSortedMap(compareByDescending { c -> incomes[c] }),
-                        expensesOfCategory = expenses
-                            .toSortedMap(compareByDescending { c -> expenses[c] }),
+                        incomesOfCategory = incomesOfCategory
+                            .toSortedMap(compareByDescending { c -> incomesOfCategory[c] }),
+                        expensesOfCategory = expensesOfCategory
+                            .toSortedMap(compareByDescending { c -> expensesOfCategory[c] }),
                     )
                 }
             } catch (e: Exception) {
