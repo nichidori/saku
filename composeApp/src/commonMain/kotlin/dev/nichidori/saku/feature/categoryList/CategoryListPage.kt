@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
@@ -124,24 +123,27 @@ fun CategoryListContent(
                 } else {
                     uiState.expensesByParent
                 }
-                categoriesByParent.forEach { (parent, children) ->
+                categoriesByParent.onEachIndexed { i, (parent, children) ->
                     item {
                         CategoryCard(
                             category = parent,
                             onClick = onCategoryClick,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = if (i != 0) 16.dp else 0.dp)
                         )
                     }
                     itemsIndexed(children) { i, child ->
                         Row {
                             ChildNodeIndicator(
                                 isLast = i == children.lastIndex,
-                                modifier = Modifier.size(height = 64.dp, width = 48.dp)
+                                yOffset = 8f,
+                                modifier = Modifier.size(height = (48 + 16).dp, width = 48.dp)
                             )
                             CategoryCard(
                                 category = child,
                                 onClick = onCategoryClick,
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                             )
                         }
                     }
@@ -170,35 +172,32 @@ fun CategoryCard(category: Category, onClick: (String) -> Unit, modifier: Modifi
 @Composable
 fun ChildNodeIndicator(
     modifier: Modifier = Modifier,
-    isLast: Boolean = false
+    isLast: Boolean = false,
+    yOffset: Float = 0f,
 ) {
-    val stroke = Stroke(
-        width = 2f,
-        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f),
-        cap = StrokeCap.Round
-    )
+    val stroke = Stroke(width = 1f, cap = StrokeCap.Round)
     val color = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {
         drawLine(
             color = color,
             start = Offset(x = size.width / 2, y = 0f),
-            end = Offset(x = size.width / 2, y = size.height / 2),
+            end = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
             strokeWidth = stroke.width,
             cap = stroke.cap,
             pathEffect = stroke.pathEffect
         )
         drawLine(
             color = color,
-            start = Offset(x = size.width / 2, y = size.height / 2),
-            end = Offset(x = size.width, y = size.height / 2),
+            start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
+            end = Offset(x = size.width, y = (size.height / 2) + yOffset),
             strokeWidth = stroke.width,
             cap = stroke.cap,
             pathEffect = stroke.pathEffect
         )
         if (!isLast) drawLine(
             color = color,
-            start = Offset(x = size.width / 2, y = size.height / 2),
+            start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
             end = Offset(x = size.width / 2, y = size.height),
             strokeWidth = stroke.width,
             cap = stroke.cap,
