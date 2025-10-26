@@ -165,8 +165,10 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         ) {
             Text(
                 when (trx) {
-                    is Trx.Transfer -> "Tr"
-                    else -> trx.category?.name?.take(2) ?: ""
+                    is Trx.Transfer -> "T"
+                    else -> trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
+                        it.firstOrNull()?.toString() ?: ""
+                    } ?: ""
                 },
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
