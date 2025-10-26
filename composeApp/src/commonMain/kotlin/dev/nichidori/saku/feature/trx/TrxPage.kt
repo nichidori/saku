@@ -293,7 +293,12 @@ fun TrxPageContent(
                                     Text(
                                         parent.name,
                                         textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.labelMedium
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color =  if (parent == selectedParent) {
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.onBackground
+                                        }
                                     )
                                 }
                             }

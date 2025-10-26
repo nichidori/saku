@@ -71,7 +71,7 @@ fun MyNavBar(
             tint = if (selectedDestination == NavBarDestination.Home) {
                 MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.onSurface
+                MaterialTheme.colorScheme.secondary
             },
             modifier = Modifier
                 .size(48.dp)
@@ -86,7 +86,7 @@ fun MyNavBar(
             tint = if (selectedDestination == NavBarDestination.Trx) {
                 MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.onSurface
+                MaterialTheme.colorScheme.secondary
             },
             modifier = Modifier
                 .size(48.dp)
@@ -101,7 +101,7 @@ fun MyNavBar(
             tint = if (selectedDestination == NavBarDestination.Statistic) {
                 MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.onSurface
+                MaterialTheme.colorScheme.secondary
             },
             modifier = Modifier
                 .size(48.dp)
@@ -114,7 +114,7 @@ fun MyNavBar(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = MyDefaultShape
                 )
                 .clip(MyDefaultShape)
@@ -156,7 +156,11 @@ fun MyNavBar(
                 },
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = Lucide.Pencil, contentDescription = "Add")
+            Icon(
+                imageVector = Lucide.Pencil,
+                contentDescription = "Add",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }

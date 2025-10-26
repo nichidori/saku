@@ -71,7 +71,8 @@ fun NumberKeyboard(
             KeyboardKey(
                 label = "Delete",
                 onClick = onDeleteClick,
-                color = MaterialTheme.colorScheme.tertiaryContainer,
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                foregroundColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
             )
             KeyboardKey(
@@ -82,7 +83,8 @@ fun NumberKeyboard(
             KeyboardKey(
                 label = actionLabel,
                 onClick = onActionClick,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                foregroundColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -103,14 +105,15 @@ fun NumberKeyboardPreview() {
 fun KeyboardKey(
     label: String,
     onClick: () -> Unit,
-    color: Color? = null,
+    backgroundColor: Color? = null,
+    foregroundColor: Color? = null,
     modifier: Modifier = Modifier
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = color ?: MaterialTheme.colorScheme.surface,
+                color = backgroundColor ?: MaterialTheme.colorScheme.surface,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
@@ -122,7 +125,8 @@ fun KeyboardKey(
         Text(
             label,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            color = foregroundColor ?: MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -155,7 +159,7 @@ fun AccountTypeSelector(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = MaterialTheme.colorScheme.background,
                         shape = MyDefaultShape
                     )
                     .clip(MyDefaultShape)
@@ -166,7 +170,8 @@ fun AccountTypeSelector(
                 Text(
                     type.label(),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -217,7 +222,7 @@ fun AccountSelector(
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = MaterialTheme.colorScheme.background,
                                 shape = MyDefaultShape
                             )
                             .clip(MyDefaultShape)
@@ -228,7 +233,8 @@ fun AccountSelector(
                         Text(
                             account.name,
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -309,7 +315,7 @@ fun CategorySelector(
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = MaterialTheme.colorScheme.background,
                                 shape = MyDefaultShape
                             )
                             .clip(MyDefaultShape)
@@ -320,7 +326,8 @@ fun CategorySelector(
                         Text(
                             category.name,
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }

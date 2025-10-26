@@ -408,7 +408,7 @@ fun InputOption(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.background,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
@@ -419,7 +419,8 @@ fun InputOption(
         Text(
             label,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
