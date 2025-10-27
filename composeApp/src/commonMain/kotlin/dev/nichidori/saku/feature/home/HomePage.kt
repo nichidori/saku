@@ -28,6 +28,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
@@ -160,6 +161,7 @@ fun AccountSection(
             Text(
                 "Account",
                 style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onNewAccountClick) {

@@ -4,17 +4,17 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.Font
-import saku.composeapp.generated.resources.Poppins
 import saku.composeapp.generated.resources.Res
+import saku.composeapp.generated.resources.Rubik
 
 
 val bodyFontFamily: FontFamily
     @Composable
-    get() = FontFamily(Font(Res.font.Poppins))
+    get() = FontFamily(Font(Res.font.Rubik))
 
 val displayFontFamily: FontFamily
     @Composable
-    get() = FontFamily(Font(Res.font.Poppins))
+    get() = FontFamily(Font(Res.font.Rubik))
 
 val baseline = Typography()
 
