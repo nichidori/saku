@@ -90,6 +90,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+// TODO: Pass object from list to detail
 @Serializable sealed interface Route {
     @Serializable data object Main : Route
     @Serializable data object Home : Route
@@ -262,9 +263,12 @@ fun MainContainer(
                     else -> null
                 },
                 onHomeClick = {
-                    innerNavController.navigate(Route.Home) {
-                        popUpTo(Route.Home) {
-                            inclusive = true
+                    val currentDestination = innerNavController.currentBackStackEntry?.destination
+                    if (currentDestination?.hierarchy?.none { it.hasRoute<Route.Home>() } == true) {
+                        innerNavController.navigate(Route.Home) {
+                            popUpTo(Route.Home) {
+                                inclusive = true
+                            }
                         }
                     }
                 },
