@@ -2,6 +2,12 @@ package dev.nichidori.saku.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.model.Status
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Initial
+import dev.nichidori.saku.core.model.Status.Loading
+import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Trx
@@ -16,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
 
 data class HomeUiState(
-    val isLoading: Boolean = false,
+    val loadStatus: Status<YearMonth, Exception> = Initial,
     val netWorth: Long = 0,
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
@@ -36,19 +42,26 @@ class HomeViewModel(
 
     fun load(month: YearMonth) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, trxs = listOf())
-            }
-            val accounts = accountRepository.getAllAccounts()
-            val netWorth = accountRepository.getTotalBalance()
-            val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
-            _uiState.update {
-                it.copy(
-                    netWorth = netWorth,
-                    accounts = accounts,
-                    trxs = trxs,
-                    isLoading = false
-                )
+            try {
+                _uiState.update {
+                    it.copy(loadStatus = Loading, trxs = listOf())
+                }
+                val accounts = accountRepository.getAllAccounts()
+                val netWorth = accountRepository.getTotalBalance()
+                val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
+                _uiState.update {
+                    it.copy(
+                        loadStatus = Success(month),
+                        netWorth = netWorth,
+                        accounts = accounts,
+                        trxs = trxs,
+                    )
+                }
+            } catch (e: Exception) {
+                this@HomeViewModel.log(e)
+                _uiState.update {
+                    it.copy(loadStatus = Failure(e))
+                }
             }
         }
     }

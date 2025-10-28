@@ -34,7 +34,10 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
+import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
@@ -103,11 +106,15 @@ fun HomePageContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             item {
-                AccountSection(
-                    accounts = uiState.accounts,
-                    onAccountClick = onAccountClick,
-                    onNewAccountClick = onNewAccountClick,
-                )
+                when (uiState.loadStatus) {
+                    is Success<*>, is Failure<*> -> AccountSection(
+                        accounts = uiState.accounts,
+                        onAccountClick = onAccountClick,
+                        onNewAccountClick = onNewAccountClick,
+                    )
+
+                    else -> Unit
+                }
             }
         }
     }
@@ -252,7 +259,7 @@ fun HomePageContentPreview() {
         updatedAt = null
     )
     val uiState = HomeUiState(
-        isLoading = false,
+        loadStatus = Success(Clock.System.now().toYearMonth()),
         netWorth = 10000000,
         netWorthTrend = listOf(1f, 1.2f, 1.1f, 1.3f),
         accounts = listOf(

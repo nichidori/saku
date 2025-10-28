@@ -118,22 +118,24 @@ fun TrxPage(
         }
     }
 
-    TrxPageContent(
-        uiState = uiState,
-        types = viewModel.types,
-        onUp = onUp,
-        onTypeChange = viewModel::onTypeChange,
-        onTimeChange = viewModel::onTimeChange,
-        onAmountChange = viewModel::onAmountChange,
-        onDescriptionChange = viewModel::onDescriptionChange,
-        onSourceAccountChange = viewModel::onSourceAccountChange,
-        onTargetAccountChange = viewModel::onTargetAccountChange,
-        onCategoryChange = viewModel::onCategoryChange,
-        onNoteChange = viewModel::onNoteChange,
-        onSaveClick = viewModel::saveTrx,
-        onDeleteClick = viewModel::deleteTrx,
-        modifier = modifier
-    )
+    if (!uiState.isLoading) {
+        TrxPageContent(
+            uiState = uiState,
+            types = viewModel.types,
+            onUp = onUp,
+            onTypeChange = viewModel::onTypeChange,
+            onTimeChange = viewModel::onTimeChange,
+            onAmountChange = viewModel::onAmountChange,
+            onDescriptionChange = viewModel::onDescriptionChange,
+            onSourceAccountChange = viewModel::onSourceAccountChange,
+            onTargetAccountChange = viewModel::onTargetAccountChange,
+            onCategoryChange = viewModel::onCategoryChange,
+            onNoteChange = viewModel::onNoteChange,
+            onSaveClick = viewModel::saveTrx,
+            onDeleteClick = viewModel::deleteTrx,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable

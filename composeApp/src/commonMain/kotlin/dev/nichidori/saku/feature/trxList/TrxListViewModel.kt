@@ -2,6 +2,11 @@ package dev.nichidori.saku.feature.trxList
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.model.Status
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Initial
+import dev.nichidori.saku.core.model.Status.Loading
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
@@ -17,7 +22,7 @@ import kotlinx.datetime.YearMonth
 import kotlinx.datetime.toLocalDateTime
 
 data class TrxListUiState(
-    val isLoading: Boolean = false,
+    val loadStatus: Status<YearMonth, Exception> = Initial,
     val trxsByDate: Map<LocalDate, List<Trx>> = emptyMap(),
 )
 
@@ -31,21 +36,21 @@ class TrxListViewModel(
         viewModelScope.launch {
             try {
                 _uiState.update {
-                    it.copy(isLoading = true)
+                    it.copy(loadStatus = Loading)
                 }
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
                 _uiState.update {
                     it.copy(
+                        loadStatus = Success(month),
                         trxsByDate = trxs.groupBy { trx ->
                             trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
                         },
-                        isLoading = false
                     )
                 }
             } catch (e: Exception) {
                 this@TrxListViewModel.log(e)
                 _uiState.update {
-                    it.copy(isLoading = false)
+                    it.copy(loadStatus = Failure(e))
                 }
             }
         }

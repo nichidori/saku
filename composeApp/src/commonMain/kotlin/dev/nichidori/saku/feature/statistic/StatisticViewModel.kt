@@ -2,6 +2,8 @@ package dev.nichidori.saku.feature.statistic
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.model.Status
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxFilter
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
 
 data class StatisticUiState(
-    val isLoading: Boolean = false,
+    val loadStatus: Status<YearMonth, Exception> = Initial,
     val incomesOfCategory: Map<Category, Long> = emptyMap(),
     val expensesOfCategory: Map<Category, Long> = emptyMap(),
 ) {
@@ -33,7 +35,7 @@ class StatisticViewModel(
         viewModelScope.launch {
             try {
                 _uiState.update {
-                    it.copy(isLoading = true)
+                    it.copy(loadStatus = Loading)
                 }
                 val incomesOfCategory = trxRepository
                     .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Income))
@@ -45,7 +47,7 @@ class StatisticViewModel(
                     .mapValues { it.value.sum() }
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        loadStatus = Success(month),
                         incomesOfCategory = incomesOfCategory
                             .toSortedMap(compareByDescending { c -> incomesOfCategory[c] }),
                         expensesOfCategory = expensesOfCategory
@@ -55,7 +57,7 @@ class StatisticViewModel(
             } catch (e: Exception) {
                 this@StatisticViewModel.log(e)
                 _uiState.update {
-                    it.copy(isLoading = false)
+                    it.copy(loadStatus = Failure(e))
                 }
             }
         }

@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -71,11 +73,17 @@ fun TrxListPage(
     HorizontalPager(
         state = pagerState
     ) {
-        TrxListContent(
-            uiState = uiState,
-            onTrxClick = onTrxClick,
-            modifier = modifier
-        )
+        when (uiState.loadStatus) {
+            is Success<*>, is Failure<*> -> {
+                TrxListContent(
+                    uiState = uiState,
+                    onTrxClick = onTrxClick,
+                    modifier = modifier
+                )
+            }
+
+            else -> Unit
+        }
     }
 }
 

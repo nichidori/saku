@@ -39,6 +39,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
@@ -141,31 +143,37 @@ fun StatisticPageContent(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier.weight(1f)
             ) {
-                val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
-                    Pair(uiState.incomesOfCategory, uiState.totalIncome)
-                } else {
-                    Pair(uiState.expensesOfCategory, uiState.totalExpense)
-                }
-                if (trxsOfCategory.isNotEmpty()) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(trxsOfCategory.entries.toList()) { (category, amount) ->
-                            CategoryItem(
-                                category = category,
-                                amount = amount,
-                                maxAmount = maxAmount
+                when (uiState.loadStatus) {
+                    is Success<*>, is Failure<*> -> {
+                        val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
+                            Pair(uiState.incomesOfCategory, uiState.totalIncome)
+                        } else {
+                            Pair(uiState.expensesOfCategory, uiState.totalExpense)
+                        }
+                        if (trxsOfCategory.isNotEmpty()) {
+                            LazyColumn(
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(trxsOfCategory.entries.toList()) { (category, amount) ->
+                                    CategoryItem(
+                                        category = category,
+                                        amount = amount,
+                                        maxAmount = maxAmount
+                                    )
+                                }
+                            }
+                        } else {
+                            MyNoData(
+                                message = "No transactions yet",
+                                contentDescription = "No transactions",
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
-                } else {
-                    MyNoData(
-                        message = "No transactions yet",
-                        contentDescription = "No transactions",
-                        modifier = Modifier.fillMaxSize()
-                    )
+
+                    else -> Unit
                 }
             }
         }

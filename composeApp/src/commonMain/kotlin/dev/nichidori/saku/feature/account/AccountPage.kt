@@ -85,17 +85,19 @@ fun AccountPage(
         }
     }
 
-    AccountPageContent(
-        uiState = uiState,
-        typeOptions = viewModel.typeOptions,
-        onUp = onUp,
-        onNameChange = viewModel::onNameChange,
-        onBalanceChange = viewModel::onBalanceChange,
-        onTypeChange = viewModel::onTypeChange,
-        onSaveClick = viewModel::saveAccount,
-        onDeleteClick = viewModel::deleteAccount,
-        modifier = modifier
-    )
+    if (!uiState.isLoading) {
+        AccountPageContent(
+            uiState = uiState,
+            typeOptions = viewModel.typeOptions,
+            onUp = onUp,
+            onNameChange = viewModel::onNameChange,
+            onBalanceChange = viewModel::onBalanceChange,
+            onTypeChange = viewModel::onTypeChange,
+            onSaveClick = viewModel::saveAccount,
+            onDeleteClick = viewModel::deleteAccount,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable

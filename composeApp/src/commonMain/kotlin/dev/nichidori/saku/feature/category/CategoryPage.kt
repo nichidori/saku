@@ -93,16 +93,18 @@ fun CategoryPage(
         }
     }
 
-    CategoryPageContent(
-        uiState = uiState,
-        onUp = onUp,
-        onTypeChange = viewModel::onTypeChange,
-        onNameChange = viewModel::onNameChange,
-        onParentChange = viewModel::onParentChange,
-        onSaveClick = viewModel::saveCategory,
-        onDeleteClick = viewModel::deleteCategory,
-        modifier = modifier
-    )
+    if (!uiState.isLoading) {
+        CategoryPageContent(
+            uiState = uiState,
+            onUp = onUp,
+            onTypeChange = viewModel::onTypeChange,
+            onNameChange = viewModel::onNameChange,
+            onParentChange = viewModel::onParentChange,
+            onSaveClick = viewModel::saveCategory,
+            onDeleteClick = viewModel::deleteCategory,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable

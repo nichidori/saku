@@ -90,7 +90,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-// TODO: Pass object from list to detail
 @Serializable sealed interface Route {
     @Serializable data object Main : Route
     @Serializable data object Home : Route
