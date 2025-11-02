@@ -116,7 +116,7 @@ fun TrxListContent(
                             ),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 8.dp)
+                            modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 4.dp)
                         )
                     }
                 }
@@ -140,7 +140,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .clickable { onClick(trx.id) }
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp),
     ) {
         Box(
             modifier = Modifier
