@@ -27,11 +27,12 @@ data class HomeUiState(
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
     val trxs: List<Trx> = emptyList(),
+    val showBalance: Boolean = false,
 ) {
-    val netWorthFormatted = netWorth.toRupiah()
+    val netWorthFormatted = if (showBalance) netWorth.toRupiah() else "****"
 }
 
-fun Account.balanceFormatted() = currentAmount.toRupiah()
+fun Account.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah() else "****"
 
 class HomeViewModel(
     private val accountRepository: AccountRepository,
@@ -63,6 +64,12 @@ class HomeViewModel(
                     it.copy(loadStatus = Failure(e))
                 }
             }
+        }
+    }
+
+    fun onBalanceToggle() {
+        _uiState.update {
+            it.copy(showBalance = !it.showBalance)
         }
     }
 }

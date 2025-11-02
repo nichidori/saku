@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyDefaultShape
@@ -82,6 +84,7 @@ fun HomePage(
             uiState = uiState,
             onAccountClick = onAccountClick,
             onNewAccountClick = onNewAccountClick,
+            onBalanceToggle = viewModel::onBalanceToggle,
             modifier = modifier
         )
     }
@@ -92,6 +95,7 @@ fun HomePageContent(
     uiState: HomeUiState,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
+    onBalanceToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -102,13 +106,25 @@ fun HomePageContent(
             modifier = Modifier.consumeWindowInsets(contentPadding)
         ) {
             item {
-                TrendCard(title = "Net Worth", value = uiState.netWorthFormatted)
+                TrendCard(
+                    title = "Net Worth",
+                    value = uiState.netWorthFormatted,
+                    action = {
+                        IconButton(onClick = onBalanceToggle) {
+                            Icon(
+                                imageVector = if (uiState.showBalance) Lucide.EyeOff else Lucide.Eye,
+                                contentDescription = "Toggle balance visibility"
+                            )
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
             item {
                 when (uiState.loadStatus) {
                     is Success<*>, is Failure<*> -> AccountSection(
                         accounts = uiState.accounts,
+                        showBalance = uiState.showBalance,
                         onAccountClick = onAccountClick,
                         onNewAccountClick = onNewAccountClick,
                     )
@@ -121,7 +137,12 @@ fun HomePageContent(
 }
 
 @Composable
-fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
+fun TrendCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    action: @Composable () -> Unit = {}
+) {
     Box(
         modifier = modifier
             .padding(horizontal = 16.dp)
@@ -132,8 +153,13 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
             .fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(title, style = MaterialTheme.typography.labelSmall)
-            Text(value, style = MaterialTheme.typography.titleMedium)
+            Row {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.labelSmall)
+                    Text(value, style = MaterialTheme.typography.titleMedium)
+                }
+                action()
+            }
 
             // TODO: Draw line chart here
 //            Spacer(modifier = Modifier.height(16.dp))
@@ -154,6 +180,7 @@ fun TrendCard(title: String, value: String, modifier: Modifier = Modifier) {
 @Composable
 fun AccountSection(
     accounts: List<Account>,
+    showBalance: Boolean,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -192,6 +219,7 @@ fun AccountSection(
                     row.forEach { account ->
                         AccountCard(
                             account = account,
+                            showBalance = showBalance,
                             onClick = onAccountClick,
                             modifier = Modifier.weight(1f)
                         )
@@ -212,7 +240,12 @@ fun AccountSection(
 }
 
 @Composable
-fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
+fun AccountCard(
+    account: Account,
+    showBalance: Boolean,
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .background(
@@ -224,7 +257,10 @@ fun AccountCard(account: Account, onClick: (String) -> Unit, modifier: Modifier 
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(account.name, style = MaterialTheme.typography.labelSmall)
-            Text(account.balanceFormatted(), style = MaterialTheme.typography.titleMedium)
+            Text(
+                account.balanceFormatted(show = showBalance),
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
@@ -295,7 +331,12 @@ fun HomePageContentPreview() {
             )
         )
     )
-    HomePageContent(uiState = uiState, onAccountClick = {}, onNewAccountClick = {})
+    HomePageContent(
+        uiState = uiState,
+        onAccountClick = {},
+        onNewAccountClick = {},
+        onBalanceToggle = {}
+    )
 }
 
 @Preview
@@ -345,7 +386,11 @@ fun AccountSectionPreview() {
             updatedAt = null
         ),
     )
-    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
+    AccountSection(
+        accounts = accounts,
+        showBalance = true,
+        onAccountClick = {},
+        onNewAccountClick = {})
 }
 
 @Preview
@@ -362,7 +407,11 @@ fun AccountSectionSinglePreview() {
             updatedAt = null
         )
     )
-    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
+    AccountSection(
+        accounts = accounts,
+        showBalance = true,
+        onAccountClick = {},
+        onNewAccountClick = {})
 }
 
 @Preview
@@ -388,7 +437,11 @@ fun AccountSectionDoublePreview() {
             updatedAt = null
         )
     )
-    AccountSection(accounts = accounts, onAccountClick = {}, onNewAccountClick = {})
+    AccountSection(
+        accounts = accounts,
+        showBalance = true,
+        onAccountClick = {},
+        onNewAccountClick = {})
 }
 
 @Preview
@@ -403,5 +456,5 @@ fun AccountCardPreview() {
         createdAt = Clock.System.now(),
         updatedAt = null
     )
-    AccountCard(account = account, onClick = {})
+    AccountCard(account = account, showBalance = true, onClick = {})
 }
