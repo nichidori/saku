@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CornerSize
@@ -26,11 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
@@ -129,11 +132,11 @@ fun CategoryListContent(
                     contentPadding = PaddingValues(16.dp),
                     modifier = Modifier.weight(1f),
                 ) {
-
                     categoriesByParent.onEachIndexed { i, (parent, children) ->
                         item {
                             CategoryCard(
                                 category = parent,
+                                isParent = true,
                                 onClick = onCategoryClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -149,6 +152,7 @@ fun CategoryListContent(
                                 )
                                 CategoryCard(
                                     category = child,
+                                    isParent = false,
                                     onClick = onCategoryClick,
                                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                                 )
@@ -168,18 +172,48 @@ fun CategoryListContent(
 }
 
 @Composable
-fun CategoryCard(category: Category, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    Box(
+fun CategoryCard(
+    category: Category,
+    isParent: Boolean,
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = if (isParent) MaterialTheme.colorScheme.surfaceContainerHighest
+                else MaterialTheme.colorScheme.surfaceContainer,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
             .clickable { onClick(category.id) }
-            .padding(16.dp),
+            .padding(8.dp)
     ) {
-        Text(category.name, style = MaterialTheme.typography.labelMedium)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(
+                    color =MaterialTheme.colorScheme.surfaceContainerLowest,
+                    shape = MyDefaultShape
+                )
+                .wrapContentSize()
+        ) {
+            Text(
+                category.name.split(' ').take(2).joinToString("") {
+                    it.firstOrNull()?.toString() ?: ""
+                },
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            category.name,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -189,8 +223,8 @@ fun ChildNodeIndicator(
     isLast: Boolean = false,
     yOffset: Float = 0f,
 ) {
-    val stroke = Stroke(width = 1f, cap = StrokeCap.Round)
-    val color = MaterialTheme.colorScheme.primary
+    val stroke = Stroke(width = 1.5f, cap = StrokeCap.Round)
+    val color = MaterialTheme.colorScheme.outline
 
     Canvas(modifier = modifier) {
         drawLine(
