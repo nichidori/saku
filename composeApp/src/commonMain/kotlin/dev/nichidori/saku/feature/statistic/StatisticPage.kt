@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -36,6 +40,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
@@ -199,32 +204,54 @@ fun CategoryItem(
         fraction = target
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                shape = MyDefaultShape
-            )
-            .clip(shape = MyDefaultShape)
-    ) {
-        if (animatedFraction > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedFraction)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        shape = MyDefaultShape
-                    )
+    Row {
+        Box(
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(40.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = MyDefaultShape
+                )
+                .wrapContentSize()
+        ) {
+            Text(
+                category.name.split(' ').take(2).joinToString("") {
+                    it.firstOrNull()?.toString() ?: ""
+                },
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
-        Column(
-            modifier = Modifier.padding(top = 16.dp).padding(horizontal = 16.dp)
+        Spacer(modifier = Modifier.width(16.dp))
+        Box(
+            modifier = modifier
+                .weight(1f)
+                .height(72.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    shape = MyDefaultShape
+                )
+                .clip(shape = MyDefaultShape)
         ) {
-            Text(category.name, style = MaterialTheme.typography.labelSmall)
-            Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
+            if (animatedFraction > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedFraction)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            shape = MyDefaultShape
+                        )
+                )
+            }
+            Column(
+                modifier = Modifier.padding(top = 12.dp).padding(horizontal = 12.dp)
+            ) {
+                Text(category.name, style = MaterialTheme.typography.labelSmall)
+                Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }
