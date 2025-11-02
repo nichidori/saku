@@ -195,16 +195,16 @@ fun CategoryItem(
     )
 
     LaunchedEffect(target) {
-        delay(200)
+        delay(100)
         fraction = target
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(80.dp)
             .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shape = MyDefaultShape
             )
             .clip(shape = MyDefaultShape)
@@ -215,7 +215,7 @@ fun CategoryItem(
                     .fillMaxHeight()
                     .fillMaxWidth(animatedFraction)
                     .background(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         shape = MyDefaultShape
                     )
             )
