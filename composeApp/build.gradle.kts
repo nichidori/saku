@@ -102,6 +102,18 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Saku Dev")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "Saku")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
