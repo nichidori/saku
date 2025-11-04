@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,7 +51,6 @@ import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
-import kotlinx.coroutines.delay
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.plus
@@ -150,6 +150,10 @@ fun StatisticPageContent(
             ) {
                 when (uiState.loadStatus) {
                     is Success<*>, is Failure<*> -> {
+                        val animatedCategories = remember(uiState.loadStatus, selectedType) {
+                            mutableStateMapOf<String, Boolean>()
+                        }
+
                         val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
                             Pair(uiState.incomesOfCategory, uiState.totalIncome)
                         } else {
@@ -169,7 +173,11 @@ fun StatisticPageContent(
                                     CategoryItem(
                                         category = category,
                                         amount = amount,
-                                        maxAmount = maxAmount
+                                        maxAmount = maxAmount,
+                                        hasAnimated = animatedCategories[category.id] == true,
+                                        onAnimationComplete = {
+                                            animatedCategories[category.id] = true
+                                        }
                                     )
                                 }
                             }
@@ -194,18 +202,25 @@ fun CategoryItem(
     category: Category,
     amount: Long,
     maxAmount: Long,
+    hasAnimated: Boolean,
+    onAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var fraction by remember { mutableFloatStateOf(0f) }
     val target = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
+    var animationTarget by remember { mutableFloatStateOf(if (hasAnimated) target else 0f) }
+
     val animatedFraction by animateFloatAsState(
-        targetValue = fraction,
+        targetValue = animationTarget,
         animationSpec = tween(durationMillis = 500)
     )
 
-    LaunchedEffect(target) {
-        delay(100)
-        fraction = target
+    LaunchedEffect(target, hasAnimated) {
+        if (!hasAnimated) {
+            animationTarget = target
+            onAnimationComplete()
+        } else {
+            animationTarget = target
+        }
     }
 
     Row {
