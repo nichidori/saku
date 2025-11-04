@@ -102,7 +102,9 @@ fun TrxListContent(
                 item {
                     Column {
                         if (index > 0) {
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         }
                         Text(
                             date.format(
@@ -116,7 +118,11 @@ fun TrxListContent(
                             ),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(
+                                start = 20.dp,
+                                top = if (index > 0) 12.dp else 0.dp,
+                                bottom = 8.dp
+                            )
                         )
                     }
                 }
