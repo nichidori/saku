@@ -45,6 +45,7 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.plus
 import kotlinx.datetime.until
+import kotlin.math.absoluteValue
 
 @Composable
 fun TrxListPage(
@@ -93,12 +94,12 @@ fun TrxListContent(
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (uiState.trxsByDate.isNotEmpty()) {
+    if (uiState.trxRecordsByDate.isNotEmpty()) {
         LazyColumn(
             modifier = modifier.fillMaxSize()
         ) {
-            for ((index, entry) in uiState.trxsByDate.entries.withIndex()) {
-                val (date, trxs) = entry
+            for ((index, entry) in uiState.trxRecordsByDate.entries.withIndex()) {
+                val (date, record) = entry
                 item {
                     Column {
                         if (index > 0) {
@@ -106,27 +107,41 @@ fun TrxListContent(
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
-                        Text(
-                            date.format(
-                                LocalDate.Format {
-                                    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
-                                    chars(", ")
-                                    day(padding = Padding.NONE)
-                                    chars(" ")
-                                    monthName(MonthNames.ENGLISH_ABBREVIATED)
-                                }
-                            ),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(
-                                start = 20.dp,
-                                top = if (index > 0) 12.dp else 0.dp,
-                                bottom = 8.dp
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                date.format(
+                                    LocalDate.Format {
+                                        dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+                                        chars(", ")
+                                        day(padding = Padding.NONE)
+                                        chars(" ")
+                                        monthName(MonthNames.ENGLISH_ABBREVIATED)
+                                    }
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(
+                                    start = 20.dp,
+                                    top = if (index > 0) 12.dp else 0.dp,
+                                    bottom = 8.dp
+                                )
                             )
-                        )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                record.totalAmount.absoluteValue.toRupiah(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (record.totalAmount < 0) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(
+                                    end = 20.dp,
+                                    top = if (index > 0) 12.dp else 0.dp,
+                                    bottom = 8.dp
+                                )
+                            )
+                        }
                     }
                 }
-                items(trxs) { trx ->
+                items(record.trxs) { trx ->
                     TrxCard(trx = trx, onClick = onTrxClick)
                 }
             }
