@@ -189,7 +189,11 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 style = MaterialTheme.typography.titleSmall
             )
             secondaryText?.let {
-                Text(text = it, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline,
+                )
             }
         }
         Column(horizontalAlignment = Alignment.End) {
@@ -208,7 +212,8 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                     chars(":")
                     minute()
                 }),
-                style = MaterialTheme.typography.labelSmall
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
             )
         }
     }
