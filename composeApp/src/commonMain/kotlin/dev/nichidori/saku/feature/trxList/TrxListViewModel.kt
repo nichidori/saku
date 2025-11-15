@@ -3,10 +3,7 @@ package dev.nichidori.saku.feature.trxList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Initial
-import dev.nichidori.saku.core.model.Status.Loading
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter

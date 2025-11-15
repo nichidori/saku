@@ -2,16 +2,7 @@ package dev.nichidori.saku.feature.trxList
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -29,22 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Trx
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.format
+import kotlinx.datetime.*
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
-import kotlinx.datetime.plus
-import kotlinx.datetime.until
 import kotlin.math.absoluteValue
 
 @Composable
@@ -74,17 +58,11 @@ fun TrxListPage(
     HorizontalPager(
         state = pagerState
     ) {
-        when (uiState.loadStatus) {
-            is Success<*>, is Failure<*> -> {
-                TrxListContent(
-                    uiState = uiState,
-                    onTrxClick = onTrxClick,
-                    modifier = modifier
-                )
-            }
-
-            else -> Unit
-        }
+        TrxListContent(
+            uiState = uiState,
+            onTrxClick = onTrxClick,
+            modifier = modifier
+        )
     }
 }
 
@@ -94,7 +72,7 @@ fun TrxListContent(
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (uiState.trxRecordsByDate.isNotEmpty()) {
+    if (uiState.trxRecordsByDate.isNotEmpty() || uiState.loadStatus !is Loading) {
         LazyColumn(
             modifier = modifier.fillMaxSize()
         ) {
