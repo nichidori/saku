@@ -38,19 +38,22 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-@Suppress("ModifierParameter")
+val defaultInputHeight = 280.dp
+
 @Composable
 fun NumberKeyboard(
     onValueClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
     onActionClick: () -> Unit,
+    modifier: Modifier = Modifier,
     actionLabel: String = "Done",
     spacing: Dp = 8.dp,
-    modifier: Modifier = Modifier
+    height: Dp = defaultInputHeight
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
+            .requiredHeightIn(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(16.dp)
@@ -165,10 +168,12 @@ fun AccountTypeSelector(
     types: List<AccountType>,
     onSelected: (AccountType) -> Unit,
     modifier: Modifier = Modifier,
+    height: Dp = defaultInputHeight,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
+            .requiredHeightIn(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(16.dp)
@@ -223,10 +228,12 @@ fun AccountSelector(
     accounts: List<Account>,
     onSelected: (Account) -> Unit,
     modifier: Modifier = Modifier,
+    height: Dp = defaultInputHeight,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
+            .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
@@ -316,10 +323,12 @@ fun CategorySelector(
     categories: List<Category>,
     onSelected: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    height: Dp = defaultInputHeight,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
+            .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
@@ -395,7 +404,8 @@ fun CategorySelectorPreview() {
 fun MyDateTimePicker(
     startDateTime: LocalDateTime,
     onDateTimePicked: (LocalDateTime) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    height: Dp = defaultInputHeight,
 ) {
     WheelDateTimePicker(
         startDateTime = startDateTime,
@@ -413,6 +423,7 @@ fun MyDateTimePicker(
         timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
         onSnappedDateTime = onDateTimePicked,
         modifier = modifier
+            .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .padding(16.dp)
             .fillMaxWidth()
