@@ -21,7 +21,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.toLocalDateTime
 
-data class DailyTrxRecord(val trxs: List<Trx>, val totalAmount: Long)
+data class DailyTrxRecord(
+    val trxs: List<Trx>,
+    val totalIncome: Long,
+    val totalExpense: Long,
+)
 
 data class TrxListUiState(
     val loadStatus: Status<YearMonth, Exception> = Initial,
@@ -49,9 +53,12 @@ class TrxListViewModel(
                         }.mapValues { (_, dailyTrxs) ->
                             DailyTrxRecord(
                                 trxs = dailyTrxs,
-                                totalAmount = dailyTrxs.sumOf { trx ->
-                                   if (trx is Trx.Expense) -trx.amount else trx.amount
-                                }
+                                totalIncome = dailyTrxs
+                                    .filter { trx -> trx is Trx.Income }
+                                    .sumOf { trx -> trx.amount },
+                                totalExpense = dailyTrxs
+                                    .filter { trx -> trx is Trx.Expense }
+                                    .sumOf { trx -> trx.amount },
                             )
                         }
                     )
