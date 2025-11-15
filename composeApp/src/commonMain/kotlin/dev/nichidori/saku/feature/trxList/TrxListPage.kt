@@ -20,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
-import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -72,7 +71,13 @@ fun TrxListContent(
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (uiState.trxRecordsByDate.isNotEmpty() || uiState.loadStatus !is Loading) {
+    if (uiState.trxRecordsByDate.isEmpty() && uiState.loadStatus.isCompleted) {
+        MyNoData(
+            message = "No transactions yet",
+            contentDescription = "No transactions",
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
         LazyColumn(
             modifier = modifier.fillMaxSize()
         ) {
@@ -135,12 +140,6 @@ fun TrxListContent(
                 }
             }
         }
-    } else {
-        MyNoData(
-            message = "No transactions yet",
-            contentDescription = "No transactions",
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }
 
