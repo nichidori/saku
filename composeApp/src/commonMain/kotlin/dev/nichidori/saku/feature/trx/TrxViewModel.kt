@@ -109,39 +109,44 @@ class TrxViewModel(
     }
 
     fun onTypeChange(newValue: TrxType) {
-        _uiState.value = _uiState.value.copy(
-            type = newValue,
-            category = null,
-            targetAccount = null
-        )
+        _uiState.update {
+            it.copy(
+                type = newValue,
+                category = null,
+                targetAccount = null
+            )
+        }
     }
 
     fun onTimeChange(newValue: Instant) {
-        _uiState.value = _uiState.value.copy(time = newValue)
+        _uiState.update { it.copy(time = newValue) }
     }
 
-    fun onAmountChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(amount = newValue.toLongOrNull())
+    fun onAmountChange(change: (String) -> String) {
+        _uiState.update { currState ->
+            val current = currState.amount?.toString().orEmpty()
+            currState.copy(amount = change(current).toLongOrNull())
+        }
     }
 
     fun onDescriptionChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(description = newValue)
+        _uiState.update { it.copy(description = newValue) }
     }
 
     fun onSourceAccountChange(newValue: Account) {
-        _uiState.value = _uiState.value.copy(sourceAccount = newValue)
+        _uiState.update { it.copy(sourceAccount = newValue) }
     }
 
     fun onTargetAccountChange(newValue: Account) {
-        _uiState.value = _uiState.value.copy(targetAccount = newValue)
+        _uiState.update { it.copy(targetAccount = newValue) }
     }
 
     fun onCategoryChange(newValue: Category) {
-        _uiState.value = _uiState.value.copy(category = newValue)
+        _uiState.update { it.copy(category = newValue) }
     }
 
     fun onNoteChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(note = newValue)
+        _uiState.update { it.copy(note = newValue) }
     }
 
     fun saveTrx() {

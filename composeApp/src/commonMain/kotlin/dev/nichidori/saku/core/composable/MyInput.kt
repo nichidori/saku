@@ -3,17 +3,16 @@ package dev.nichidori.saku.core.composable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,13 +26,14 @@ import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
 import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
 import dev.darkokoa.datetimewheelpicker.core.format.timeFormatter
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.coroutines.delay
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -105,10 +105,26 @@ fun NumberKeyboardPreview() {
 fun KeyboardKey(
     label: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     backgroundColor: Color? = null,
     foregroundColor: Color? = null,
-    modifier: Modifier = Modifier
+    initialDelay: Long = 500L,
+    repeatDelay: Long = 100L,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+
+    LaunchedEffect(pressed, initialDelay, repeatDelay) {
+        if (pressed) {
+            onClick()
+            delay(initialDelay)
+            while (true) {
+                onClick()
+                delay(repeatDelay)
+            }
+        }
+    }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -118,7 +134,11 @@ fun KeyboardKey(
             )
             .clip(MyDefaultShape)
             .focusProperties { canFocus = false }
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = {}
+            )
             .height(56.dp)
             .padding(16.dp)
     ) {
