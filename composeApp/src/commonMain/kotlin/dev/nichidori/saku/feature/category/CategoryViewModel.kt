@@ -76,15 +76,15 @@ class CategoryViewModel(
     }
 
     fun onNameChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(name = newValue)
+        _uiState.update { it.copy(name = newValue) }
     }
 
     fun onTypeChange(newValue: TrxType) {
-        _uiState.value = _uiState.value.copy(type = newValue, parent = null)
+        _uiState.update { it.copy(type = newValue, parent = null) }
     }
 
     fun onParentChange(newValue: Category?) {
-        _uiState.value = _uiState.value.copy(parent = newValue)
+        _uiState.update { it.copy(parent = newValue) }
     }
 
     fun saveCategory() {

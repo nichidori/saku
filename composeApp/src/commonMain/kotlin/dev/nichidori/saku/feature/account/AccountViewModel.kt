@@ -60,25 +60,25 @@ class AccountViewModel(
     }
 
     fun onNameChange(newValue: String) {
-        _uiState.value = _uiState.value.copy(name = newValue)
+        _uiState.update { it.copy(name = newValue) }
     }
 
     fun onBalanceChange(newValue: String) {
         if (newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(balance = newValue.toLongOrNull())
+            _uiState.update { it.copy(balance = newValue.toLongOrNull()) }
         }
     }
 
     fun onTypeChange(newValue: AccountType) {
-        _uiState.value = _uiState.value.copy(type = newValue)
+        _uiState.update { it.copy(type = newValue) }
     }
 
     fun saveAccount() {
         viewModelScope.launch {
             try {
-                if (uiState.value.name.isBlank()) throw  Exception("Name cannot be empty")
-                if (uiState.value.balance == null) throw  Exception("Balance cannot be empty")
-                if (uiState.value.type == null) throw  Exception("Type cannot be empty")
+                if (uiState.value.name.isBlank()) throw Exception("Name cannot be empty")
+                if (uiState.value.balance == null) throw Exception("Balance cannot be empty")
+                if (uiState.value.type == null) throw Exception("Type cannot be empty")
                 _uiState.update {
                     it.copy(saveStatus = Loading)
                 }
