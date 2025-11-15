@@ -194,7 +194,7 @@ fun TrxPageContent(
                         accounts = uiState.accountOptions,
                         onSelected = {
                             onSourceAccountChange(it)
-                            focusManager.clearFocus()
+                            focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
@@ -207,7 +207,7 @@ fun TrxPageContent(
                         accounts = uiState.accountOptions,
                         onSelected = {
                             onTargetAccountChange(it)
-                            focusManager.clearFocus()
+                            focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
@@ -252,7 +252,7 @@ fun TrxPageContent(
                                             if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
                                                 selectedParent = parent
                                                 onCategoryChange(parent)
-                                                focusManager.clearFocus()
+                                                focusManager.moveFocus(FocusDirection.Next)
                                             } else {
                                                 selectedParent = parent
                                             }
@@ -276,7 +276,7 @@ fun TrxPageContent(
                             categories = categories,
                             onSelected = {
                                 onCategoryChange(it)
-                                focusManager.clearFocus()
+                                focusManager.moveFocus(FocusDirection.Next)
                             },
                             modifier = Modifier
                                 .background(color = MaterialTheme.colorScheme.surfaceContainer)

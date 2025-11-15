@@ -1,50 +1,23 @@
 package dev.nichidori.saku.feature.category
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
-import dev.nichidori.saku.core.composable.CategorySelector
-import dev.nichidori.saku.core.composable.MyAppBar
-import dev.nichidori.saku.core.composable.MyButton
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyTextField
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
@@ -151,7 +124,7 @@ fun CategoryPageContent(
                         categories = uiState.parentOptions,
                         onSelected = {
                             onParentChange(it)
-                            focusManager.clearFocus()
+                            focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
