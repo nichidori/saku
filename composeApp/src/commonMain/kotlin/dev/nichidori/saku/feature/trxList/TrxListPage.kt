@@ -110,7 +110,7 @@ fun TrxListContent(
                                 )
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            Text(
+                            if (record.totalIncome.absoluteValue > 0) Text(
                                 record.totalIncome.absoluteValue.toRupiah(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.outline,
@@ -120,17 +120,19 @@ fun TrxListContent(
                                         bottom = 8.dp
                                     )
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                record.totalExpense.absoluteValue.toRupiah(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier
-                                    .padding(
-                                        top = if (index > 0) 12.dp else 0.dp,
-                                        bottom = 8.dp
-                                    )
-                            )
+                            if (record.totalExpense.absoluteValue > 0) {
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    record.totalExpense.absoluteValue.toRupiah(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier
+                                        .padding(
+                                            top = if (index > 0) 12.dp else 0.dp,
+                                            bottom = 8.dp
+                                        )
+                                )
+                            }
                             Spacer(modifier = Modifier.width(20.dp))
                         }
                     }
