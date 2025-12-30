@@ -2,29 +2,12 @@ package dev.nichidori.saku.feature.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,54 +23,31 @@ import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.AccountType
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxType
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.plus
-import kotlinx.datetime.until
+import dev.nichidori.saku.domain.model.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 
 @Composable
 fun HomePage(
-    initialMonth: YearMonth,
     viewModel: HomeViewModel,
-    onMonthChange: (YearMonth) -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
-    val base = YearMonth(1970, 1)
-    val pagerState = rememberPagerState(
-        initialPage = base.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
-        pageCount = { Int.MAX_VALUE }
+    LaunchedEffect(Unit) {
+        val month = Clock.System.now().toYearMonth()
+        viewModel.load(month = month)
+    }
+
+    HomePageContent(
+        uiState = uiState,
+        onAccountClick = onAccountClick,
+        onNewAccountClick = onNewAccountClick,
+        onBalanceToggle = viewModel::onBalanceToggle,
+        modifier = modifier
     )
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            val month = base.plus(page, unit = DateTimeUnit.MONTH)
-            viewModel.load(month = month)
-            onMonthChange(month)
-        }
-    }
-
-    HorizontalPager(
-        state = pagerState,
-    ) {
-        HomePageContent(
-            uiState = uiState,
-            onAccountClick = onAccountClick,
-            onNewAccountClick = onNewAccountClick,
-            onBalanceToggle = viewModel::onBalanceToggle,
-            modifier = modifier
-        )
-    }
 }
 
 @Composable

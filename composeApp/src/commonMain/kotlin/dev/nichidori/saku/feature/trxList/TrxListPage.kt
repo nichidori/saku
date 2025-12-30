@@ -19,17 +19,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
+import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Trx
 import kotlinx.datetime.*
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlin.math.absoluteValue
+import kotlin.time.Clock
 
+// TODO: Add filter by Account
+// TODO: Add filter by Category
 @Composable
 fun TrxListPage(
     initialMonth: YearMonth,
@@ -40,28 +45,43 @@ fun TrxListPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
-    val base = YearMonth(1970, 1)
+    val earliestMonth = YearMonth(2025, 1)
+    val currentMonth = Clock.System.now().toYearMonth()
     val pagerState = rememberPagerState(
-        initialPage = base.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
-        pageCount = { Int.MAX_VALUE }
+        initialPage = earliestMonth.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
+        pageCount = { earliestMonth.until(currentMonth, unit = DateTimeUnit.MONTH).toInt() + 1 }
     )
+
+    LaunchedEffect(initialMonth) {
+        val page = earliestMonth.until(initialMonth, unit = DateTimeUnit.MONTH).toInt()
+        pagerState.scrollToPage(page)
+    }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            val month = base.plus(page, unit = DateTimeUnit.MONTH)
+            val month = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
             viewModel.load(month = month)
             onMonthChange(month)
         }
     }
 
-    HorizontalPager(
-        state = pagerState
-    ) {
-        TrxListContent(
-            uiState = uiState,
-            onTrxClick = onTrxClick,
-            modifier = modifier
+    Column(modifier = modifier) {
+        MyMonthChipRow(
+            selectedMonth = initialMonth,
+            earliestMonth = earliestMonth,
+            latestMonth = currentMonth,
+            onMonthSelect = onMonthChange
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f)
+        ) {
+            TrxListContent(
+                uiState = uiState,
+                onTrxClick = onTrxClick,
+            )
+        }
     }
 }
 

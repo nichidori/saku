@@ -3,58 +3,35 @@ package dev.nichidori.saku.feature.statistic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
+import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.plus
 import kotlinx.datetime.until
+import kotlin.time.Clock
 
 @Composable
 fun StatisticPage(
@@ -65,32 +42,58 @@ fun StatisticPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
-    val base = YearMonth(1970, 1)
+    val earliestMonth = YearMonth(2025, 1)
+    val currentMonth = Clock.System.now().toYearMonth()
+    val totalPageCount = remember(earliestMonth, currentMonth) {
+        earliestMonth.until(currentMonth, unit = DateTimeUnit.MONTH).toInt() + 1
+    }
+
     val pagerState = rememberPagerState(
-        initialPage = base.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
-        pageCount = { Int.MAX_VALUE }
+        initialPage = earliestMonth.until(initialMonth, unit = DateTimeUnit.MONTH).toInt(),
+        pageCount = { totalPageCount }
     )
+
+    LaunchedEffect(initialMonth) {
+        val page = earliestMonth.until(initialMonth, unit = DateTimeUnit.MONTH).toInt()
+        if (pagerState.currentPage != page) {
+            pagerState.scrollToPage(page)
+        } else {
+            viewModel.load(month = initialMonth)
+        }
+    }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            val month = base.plus(page, unit = DateTimeUnit.MONTH)
+            val month = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
             viewModel.load(month = month)
             onMonthChange(month)
         }
     }
 
-    StatisticPageContent(
-        uiState = uiState,
-        pagerState = pagerState,
-        modifier = modifier
-    )
+    Column(modifier = modifier) {
+        MyMonthChipRow(
+            selectedMonth = initialMonth,
+            earliestMonth = earliestMonth,
+            latestMonth = currentMonth,
+            onMonthSelect = onMonthChange
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        StatisticPageContent(
+            uiState = uiState,
+            pagerState = pagerState,
+            initialMonth = initialMonth,
+            earliestMonth = earliestMonth,
+            modifier = Modifier.weight(1f)
+        )
+    }
 }
-
 
 @Composable
 fun StatisticPageContent(
     uiState: StatisticUiState,
     pagerState: PagerState,
+    initialMonth: YearMonth,
+    earliestMonth: YearMonth,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -142,55 +145,58 @@ fun StatisticPageContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             HorizontalPager(
                 state = pagerState,
                 verticalAlignment = Alignment.Top,
+                beyondViewportPageCount = 0,
                 modifier = Modifier.weight(1f)
-            ) {
-                when (uiState.loadStatus) {
-                    is Success<*>, is Failure<*> -> {
-                        val animatedCategories = remember(uiState.loadStatus, selectedType) {
-                            mutableStateMapOf<String, Boolean>()
-                        }
-
-                        val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
-                            Pair(uiState.incomesOfCategory, uiState.totalIncome)
-                        } else {
-                            Pair(uiState.expensesOfCategory, uiState.totalExpense)
-                        }
-                        if (trxsOfCategory.isNotEmpty()) {
-                            LazyColumn(
-                                contentPadding = PaddingValues(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    bottom = 16.dp
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(trxsOfCategory.entries.toList()) { (category, amount) ->
-                                    CategoryItem(
-                                        category = category,
-                                        amount = amount,
-                                        maxAmount = maxAmount,
-                                        hasAnimated = animatedCategories[category.id] == true,
-                                        onAnimationComplete = {
-                                            animatedCategories[category.id] = true
-                                        }
-                                    )
-                                }
+            ) { page ->
+                val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
+                if (pageMonth == initialMonth) {
+                    when (uiState.loadStatus) {
+                        is Success<*>, is Failure<*> -> {
+                            val animatedCategories = remember(uiState.loadStatus, selectedType) {
+                                mutableStateMapOf<String, Boolean>()
                             }
-                        } else {
-                            MyNoData(
-                                message = "No transactions yet",
-                                contentDescription = "No transactions",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
 
-                    else -> Unit
+                            val (trxsOfCategory, maxAmount) = if (selectedType == TrxType.Income) {
+                                Pair(uiState.incomesOfCategory, uiState.totalIncome)
+                            } else {
+                                Pair(uiState.expensesOfCategory, uiState.totalExpense)
+                            }
+                            if (trxsOfCategory.isNotEmpty()) {
+                                LazyColumn(
+                                    contentPadding = PaddingValues(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 16.dp
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(trxsOfCategory.entries.toList(), key = { it.key.id }) { (category, amount) ->
+                                        CategoryItem(
+                                            category = category,
+                                            amount = amount,
+                                            maxAmount = maxAmount,
+                                            hasAnimated = animatedCategories[category.id] == true,
+                                            onAnimationComplete = {
+                                                animatedCategories[category.id] = true
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                MyNoData(
+                                    message = "No transactions yet",
+                                    contentDescription = "No transactions",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                        else -> Unit
+                    }
                 }
             }
         }
@@ -223,7 +229,7 @@ fun CategoryItem(
         }
     }
 
-    Row {
+    Row(modifier = modifier) {
         Box(
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -245,7 +251,7 @@ fun CategoryItem(
         }
         Spacer(modifier = Modifier.width(16.dp))
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .weight(1f)
                 .height(72.dp)
                 .background(

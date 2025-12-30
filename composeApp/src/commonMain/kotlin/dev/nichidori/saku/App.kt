@@ -6,34 +6,9 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,11 +33,7 @@ import dev.nichidori.saku.core.composable.MyNavBar
 import dev.nichidori.saku.core.composable.NavBarDestination
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxFilter
-import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
@@ -80,11 +51,6 @@ import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
 import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format
-import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
@@ -211,7 +177,8 @@ fun MainContainer(
     val sheetState = rememberModalBottomSheetState()
     var showInputOption by remember { mutableStateOf(false) }
     var selectedMonth by remember { mutableStateOf(Clock.System.now().toYearMonth()) }
-    val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
+    val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
         topBar = {
@@ -223,19 +190,11 @@ fun MainContainer(
                 )
             ) {
                 Text(
-                    LocalDate(
-                        year = selectedMonth.year,
-                        month = selectedMonth.month.ordinal + 1,
-                        day = 1
-                    ).format(
-                        LocalDate.Format {
-                            monthName(MonthNames.ENGLISH_FULL)
-                            if (selectedMonth.year != currentYear) {
-                                chars(" ")
-                                year()
-                            }
-                        }
-                    ),
+                    when {
+                        currentDestination?.hierarchy?.any { it.hasRoute<Route.TrxList>() } == true -> "Transactions"
+                        currentDestination?.hierarchy?.any { it.hasRoute<Route.Statistic>() } == true -> "Statistic"
+                        else -> "Saku"
+                    },
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.weight(1f).padding(16.dp)
                 )
@@ -251,9 +210,6 @@ fun MainContainer(
             }
         },
         bottomBar = {
-            val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination
-
             MyNavBar(
                 selectedDestination = when {
                     currentDestination?.hierarchy?.any { it.hasRoute<Route.Home>() } == true -> NavBarDestination.Home
@@ -309,12 +265,8 @@ fun MainContainer(
         ) {
             composable<Route.Home> {
                 HomePage(
-                    initialMonth = selectedMonth,
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository)
-                    },
-                    onMonthChange = { month ->
-                        selectedMonth = month
                     },
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))
@@ -435,7 +387,7 @@ fun AppPreview() {
         override suspend fun addAccount(
             name: String,
             initialAmount: Long,
-            type: dev.nichidori.saku.domain.model.AccountType
+            type: AccountType
         ) {
         }
 
@@ -445,7 +397,7 @@ fun AppPreview() {
             id: String,
             name: String,
             initialAmount: Long,
-            type: dev.nichidori.saku.domain.model.AccountType
+            type: AccountType
         ) {
         }
 
