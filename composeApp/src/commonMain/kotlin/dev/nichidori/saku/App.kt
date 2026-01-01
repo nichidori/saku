@@ -26,8 +26,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Menu
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
 import dev.nichidori.saku.core.composable.NavBarDestination
@@ -181,34 +179,6 @@ fun MainContainer(
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
-        topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(
-                    top = WindowInsets.statusBars.asPaddingValues()
-                        .calculateTopPadding()
-                )
-            ) {
-                Text(
-                    when {
-                        currentDestination?.hierarchy?.any { it.hasRoute<Route.TrxList>() } == true -> "Transactions"
-                        currentDestination?.hierarchy?.any { it.hasRoute<Route.Statistic>() } == true -> "Statistic"
-                        else -> "Saku"
-                    },
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.weight(1f).padding(16.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                IconButton(
-                    onClick = {
-                        rootNavController.navigate(Route.CategoryList)
-                    }
-                ) {
-                    Icon(imageVector = Lucide.Menu, contentDescription = "Menu")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-        },
         bottomBar = {
             MyNavBar(
                 selectedDestination = when {
@@ -267,6 +237,9 @@ fun MainContainer(
                 HomePage(
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository)
+                    },
+                    onCategoryClick = {
+                        rootNavController.navigate(Route.CategoryList)
                     },
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))

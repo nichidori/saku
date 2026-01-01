@@ -13,10 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.Eye
-import com.composables.icons.lucide.EyeOff
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
@@ -30,6 +27,7 @@ import kotlin.time.Clock
 @Composable
 fun HomePage(
     viewModel: HomeViewModel,
+    onCategoryClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -43,6 +41,7 @@ fun HomePage(
 
     HomePageContent(
         uiState = uiState,
+        onCategoryClick = onCategoryClick,
         onAccountClick = onAccountClick,
         onNewAccountClick = onNewAccountClick,
         onBalanceToggle = viewModel::onBalanceToggle,
@@ -53,17 +52,38 @@ fun HomePage(
 @Composable
 fun HomePageContent(
     uiState: HomeUiState,
+    onCategoryClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     onBalanceToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        modifier = modifier
+        topBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 8.dp)
+                    .height(60.dp)
+            ) {
+                Text(
+                    "Saku",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                IconButton(
+                    onClick = onCategoryClick
+                ) {
+                    Icon(imageVector = Lucide.Menu, contentDescription = "Open category list")
+                }
+            }
+        },
+        modifier = modifier,
     ) { contentPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(bottom = 16.dp),
-            modifier = Modifier.consumeWindowInsets(contentPadding)
+            contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
+            modifier = Modifier.padding(contentPadding)
         ) {
             item {
                 TrendCard(
@@ -293,6 +313,7 @@ fun HomePageContentPreview() {
     )
     HomePageContent(
         uiState = uiState,
+        onCategoryClick = {},
         onAccountClick = {},
         onNewAccountClick = {},
         onBalanceToggle = {}

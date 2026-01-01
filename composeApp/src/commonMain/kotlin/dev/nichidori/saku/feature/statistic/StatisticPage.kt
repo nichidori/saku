@@ -70,21 +70,39 @@ fun StatisticPage(
         }
     }
 
-    Column(modifier = modifier) {
-        MyMonthChipRow(
-            selectedMonth = initialMonth,
-            earliestMonth = earliestMonth,
-            latestMonth = currentMonth,
-            onMonthSelect = onMonthChange
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        StatisticPageContent(
-            uiState = uiState,
-            pagerState = pagerState,
-            initialMonth = initialMonth,
-            earliestMonth = earliestMonth,
-            modifier = Modifier.weight(1f)
-        )
+    Scaffold(
+        topBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 8.dp)
+                    .height(60.dp)
+            ) {
+                Text(
+                    "Statistic",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        },
+        modifier = modifier,
+    ) { contentPadding ->
+        Column(modifier = Modifier.padding(contentPadding)) {
+            MyMonthChipRow(
+                selectedMonth = initialMonth,
+                earliestMonth = earliestMonth,
+                latestMonth = currentMonth,
+                onMonthSelect = onMonthChange
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            StatisticPageContent(
+                uiState = uiState,
+                pagerState = pagerState,
+                initialMonth = initialMonth,
+                earliestMonth = earliestMonth,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -195,6 +213,7 @@ fun StatisticPageContent(
                                 )
                             }
                         }
+
                         else -> Unit
                     }
                 }

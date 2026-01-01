@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +34,7 @@ import kotlinx.datetime.format.Padding
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 
+// TODO: Fix other page is composed in Pager
 // TODO: Add filter by Account
 // TODO: Add filter by Category
 @Composable
@@ -65,22 +67,46 @@ fun TrxListPage(
         }
     }
 
-    Column(modifier = modifier) {
-        MyMonthChipRow(
-            selectedMonth = initialMonth,
-            earliestMonth = earliestMonth,
-            latestMonth = currentMonth,
-            onMonthSelect = onMonthChange
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) {
-            TrxListContent(
-                uiState = uiState,
-                onTrxClick = onTrxClick,
+    Scaffold(
+        topBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier =  Modifier
+                    .padding(start = 16.dp, end = 8.dp)
+                    .height(60.dp)
+            ) {
+                Text(
+                    "Transactions",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+//                IconButton(
+//                    onClick = { }
+//                ) {
+//                    Icon(imageVector = Lucide.Filter, contentDescription = "Filter transactions")
+//                }
+            }
+        },
+        modifier = modifier,
+    ) { contentPadding ->
+        Column(modifier = Modifier.padding(contentPadding)) {
+            MyMonthChipRow(
+                selectedMonth = initialMonth,
+                earliestMonth = earliestMonth,
+                latestMonth = currentMonth,
+                onMonthSelect = onMonthChange
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) {
+                TrxListContent(
+                    uiState = uiState,
+                    onTrxClick = onTrxClick,
+                )
+            }
         }
     }
 }
