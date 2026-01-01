@@ -252,7 +252,7 @@ fun TrxPageContent(
                                             if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
                                                 selectedParent = parent
                                                 onCategoryChange(parent)
-                                                focusManager.moveFocus(FocusDirection.Next)
+                                                focusManager.clearFocus()
                                             } else {
                                                 selectedParent = parent
                                             }
@@ -276,7 +276,7 @@ fun TrxPageContent(
                             categories = categories,
                             onSelected = {
                                 onCategoryChange(it)
-                                focusManager.moveFocus(FocusDirection.Next)
+                                focusManager.clearFocus()
                             },
                             modifier = Modifier
                                 .background(color = MaterialTheme.colorScheme.surfaceContainer)
