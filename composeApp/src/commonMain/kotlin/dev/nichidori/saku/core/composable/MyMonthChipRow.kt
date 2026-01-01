@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
@@ -22,7 +23,8 @@ fun MyMonthChipRow(
     selectedMonth: YearMonth,
     earliestMonth: YearMonth,
     latestMonth: YearMonth,
-    onMonthSelect: (YearMonth) -> Unit
+    onMonthSelect: (YearMonth) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val months = remember(earliestMonth, latestMonth) {
         val list = mutableListOf<YearMonth>()
@@ -72,7 +74,7 @@ fun MyMonthChipRow(
         reverseLayout = true,
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .graphicsLayer {
                 alpha = if (isInitialized) 1f else 0f
@@ -81,8 +83,9 @@ fun MyMonthChipRow(
         items(months) { month ->
             FilterChip(
                 selected = month == selectedMonth,
-                enabled = month != selectedMonth,
-                onClick = { onMonthSelect(month) },
+                onClick = {
+                    if (month != selectedMonth) onMonthSelect(month)
+                },
                 label = {
                     Text(
                         LocalDate(
@@ -100,7 +103,8 @@ fun MyMonthChipRow(
                                     year()
                                 }
                             }
-                        )
+                        ),
+                        fontWeight = FontWeight.Bold
                     )
                 }
             )
