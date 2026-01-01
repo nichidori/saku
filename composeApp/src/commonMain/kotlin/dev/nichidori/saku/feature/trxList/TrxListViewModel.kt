@@ -25,9 +25,13 @@ data class DailyTrxRecord(
 )
 
 data class TrxListUiState(
-    val loadStatus: Status<YearMonth, Exception> = Initial,
-    val trxRecordsByDate: Map<LocalDate, DailyTrxRecord> = emptyMap(),
-)
+    val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap()
+) {
+    data class MonthlyState(
+        val loadStatus: Status<Unit, Exception> = Initial,
+        val trxRecordsByDate: Map<LocalDate, DailyTrxRecord> = emptyMap(),
+    )
+}
 
 class TrxListViewModel(
     private val trxRepository: TrxRepository,
@@ -38,34 +42,43 @@ class TrxListViewModel(
     fun load(month: YearMonth) {
         viewModelScope.launch {
             try {
-                _uiState.update {
+                updateMonthlyState(month) {
                     it.copy(loadStatus = Loading)
                 }
+
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
-                _uiState.update {
+
+                val trxRecordsByDate = trxs.groupBy { trx ->
+                    trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
+                }.mapValues { (_, dailyTrxs) ->
+                    DailyTrxRecord(
+                        trxs = dailyTrxs,
+                        totalIncome = dailyTrxs.filterIsInstance<Trx.Income>().sumOf { it.amount },
+                        totalExpense = dailyTrxs.filterIsInstance<Trx.Expense>().sumOf { it.amount },
+                    )
+                }
+
+                updateMonthlyState(month) {
                     it.copy(
-                        loadStatus = Success(month),
-                        trxRecordsByDate = trxs.groupBy { trx ->
-                            trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
-                        }.mapValues { (_, dailyTrxs) ->
-                            DailyTrxRecord(
-                                trxs = dailyTrxs,
-                                totalIncome = dailyTrxs
-                                    .filter { trx -> trx is Trx.Income }
-                                    .sumOf { trx -> trx.amount },
-                                totalExpense = dailyTrxs
-                                    .filter { trx -> trx is Trx.Expense }
-                                    .sumOf { trx -> trx.amount },
-                            )
-                        }
+                        loadStatus = Success(Unit),
+                        trxRecordsByDate = trxRecordsByDate
                     )
                 }
             } catch (e: Exception) {
                 this@TrxListViewModel.log(e)
-                _uiState.update {
+                updateMonthlyState(month) {
                     it.copy(loadStatus = Failure(e))
                 }
             }
+        }
+    }
+
+    private fun updateMonthlyState(month: YearMonth, transform: (TrxListUiState.MonthlyState) -> TrxListUiState.MonthlyState) {
+        _uiState.update { currentState ->
+            val currentMonthState = currentState.stateByMonth[month] ?: TrxListUiState.MonthlyState()
+            currentState.copy(
+                stateByMonth = currentState.stateByMonth + (month to transform(currentMonthState))
+            )
         }
     }
 }

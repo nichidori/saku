@@ -56,7 +56,9 @@ fun TrxListPage(
 
     LaunchedEffect(initialMonth) {
         val page = earliestMonth.until(initialMonth, unit = DateTimeUnit.MONTH).toInt()
-        pagerState.scrollToPage(page)
+        if (pagerState.currentPage != page) {
+            pagerState.scrollToPage(page)
+        }
     }
 
     LaunchedEffect(pagerState) {
@@ -101,9 +103,10 @@ fun TrxListPage(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
-            ) {
+            ) { page ->
+                val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
                 TrxListContent(
-                    uiState = uiState,
+                    uiState = uiState.stateByMonth[pageMonth] ?: TrxListUiState.MonthlyState(),
                     onTrxClick = onTrxClick,
                 )
             }
@@ -113,7 +116,7 @@ fun TrxListPage(
 
 @Composable
 fun TrxListContent(
-    uiState: TrxListUiState,
+    uiState: TrxListUiState.MonthlyState,
     onTrxClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {

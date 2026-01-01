@@ -98,7 +98,7 @@ fun StatisticPage(
             StatisticPageContent(
                 uiState = uiState,
                 pagerState = pagerState,
-                initialMonth = initialMonth,
+                selectedMonth = initialMonth,
                 earliestMonth = earliestMonth,
                 modifier = Modifier.weight(1f)
             )
@@ -110,7 +110,7 @@ fun StatisticPage(
 fun StatisticPageContent(
     uiState: StatisticUiState,
     pagerState: PagerState,
-    initialMonth: YearMonth,
+    selectedMonth: YearMonth,
     earliestMonth: YearMonth,
     modifier: Modifier = Modifier
 ) {
@@ -171,7 +171,7 @@ fun StatisticPageContent(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
-                if (pageMonth == initialMonth) {
+                if (pageMonth == selectedMonth) {
                     when (uiState.loadStatus) {
                         is Success<*>, is Failure<*> -> {
                             val animatedCategories = remember(uiState.loadStatus, selectedType) {
