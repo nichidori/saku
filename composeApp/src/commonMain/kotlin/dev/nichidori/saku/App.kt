@@ -104,6 +104,7 @@ fun App(
                     MainContainer(
                         rootNavController = rootNavController,
                         accountRepository = accountRepository,
+                        categoryRepository = categoryRepository,
                         trxRepository = trxRepository
                     )
                 }
@@ -169,6 +170,7 @@ fun App(
 fun MainContainer(
     rootNavController: NavHostController,
     accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
 ) {
     val innerNavController = rememberNavController()
@@ -253,7 +255,7 @@ fun MainContainer(
                 TrxListPage(
                     initialMonth = selectedMonth,
                     viewModel = viewModel {
-                        TrxListViewModel(trxRepository)
+                        TrxListViewModel(accountRepository, categoryRepository, trxRepository)
                     },
                     onMonthChange = { month ->
                         selectedMonth = month

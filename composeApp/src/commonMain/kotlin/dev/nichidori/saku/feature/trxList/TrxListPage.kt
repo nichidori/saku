@@ -7,21 +7,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Filter
+import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.composable.label
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -34,9 +33,7 @@ import kotlinx.datetime.format.Padding
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 
-// TODO: Fix other page is composed in Pager
-// TODO: Add filter by Account
-// TODO: Add filter by Category
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrxListPage(
     initialMonth: YearMonth,
@@ -46,6 +43,8 @@ fun TrxListPage(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showFilterOption by remember { mutableStateOf(false) }
 
     val earliestMonth = YearMonth(2025, 1)
     val currentMonth = Clock.System.now().toYearMonth()
@@ -64,8 +63,151 @@ fun TrxListPage(
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             val month = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
-            viewModel.load(month = month)
+            viewModel.loadTrxs(month = month)
             onMonthChange(month)
+        }
+    }
+
+    if (showFilterOption) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterOption = false },
+            sheetState = sheetState,
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+        ) {
+            var selectedAccounts by remember { mutableStateOf(uiState.filterAccounts) }
+            var selectedAccountTypes by remember { mutableStateOf(uiState.filterAccountTypes) }
+            var selectedCategories by remember { mutableStateOf(uiState.filterCategories) }
+
+            Column(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp
+                )
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Filter",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    TextButton(
+                        onClick = {
+                            selectedAccounts = emptySet()
+                            selectedAccountTypes = emptySet()
+                            selectedCategories = emptySet()
+                        }
+                    ) {
+                        Text("Reset")
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Account
+                Text(
+                    "Account",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    uiState.accounts.forEach {
+                        val selected = selectedAccounts.contains(it)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                selectedAccounts = if (selected) {
+                                    selectedAccounts - it
+                                } else {
+                                    selectedAccounts + it
+                                }
+                            },
+                            label = {
+                                Text(it.name)
+                            },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Account type
+                Text(
+                    "Account Type",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    uiState.accountTypes.forEach {
+                        val selected = selectedAccountTypes.contains(it)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                selectedAccountTypes = if (selected) {
+                                    selectedAccountTypes - it
+                                } else {
+                                    selectedAccountTypes + it
+                                }
+                            },
+                            label = {
+                                Text(it.label())
+                            },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Category
+                Text(
+                    "Category",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    uiState.categories.forEach {
+                        val selected = selectedCategories.contains(it)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                selectedCategories = if (selected) {
+                                    selectedCategories - it
+                                } else {
+                                    selectedCategories + it
+                                }
+                            },
+                            label = {
+                                Text(it.name)
+                            },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        viewModel.applyFilters(
+                            accounts = selectedAccounts,
+                            accountTypes = selectedAccountTypes,
+                            categories = selectedCategories
+                        )
+                        showFilterOption = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Save")
+                }
+            }
         }
     }
 
@@ -73,7 +215,7 @@ fun TrxListPage(
         topBar = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier =  Modifier
+                modifier = Modifier
                     .padding(start = 16.dp, end = 8.dp)
                     .height(60.dp)
             ) {
@@ -83,11 +225,32 @@ fun TrxListPage(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-//                IconButton(
-//                    onClick = { }
-//                ) {
-//                    Icon(imageVector = Lucide.Filter, contentDescription = "Filter transactions")
-//                }
+                IconButton(
+                    onClick = {
+                        showFilterOption = true
+                        viewModel.loadAccounts()
+                        viewModel.loadCategories()
+                    }
+                ) {
+                    Box(modifier = Modifier.padding(2.dp)) {
+                        Icon(
+                            imageVector = Lucide.Filter,
+                            contentDescription = "Filter transactions"
+                        )
+
+                        if (uiState.hasFilter) {
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 4.dp, y = (-4).dp)
+                                    .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                    .padding(2.dp)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            )
+                        }
+                    }
+                }
             }
         },
         modifier = modifier,
