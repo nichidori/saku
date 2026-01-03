@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,6 +75,10 @@ fun TrxListPage(
             onDismissRequest = { showFilterOption = false },
             sheetState = sheetState,
             shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            modifier = Modifier.padding(
+                top = WindowInsets.statusBars.asPaddingValues()
+                    .calculateTopPadding()
+            )
         ) {
             var selectedAccounts by remember { mutableStateOf(uiState.filterAccounts) }
             var selectedAccountTypes by remember { mutableStateOf(uiState.filterAccountTypes) }
@@ -104,95 +110,98 @@ fun TrxListPage(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Account
-                Text(
-                    "Account",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    modifier = modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    uiState.accounts.forEach {
-                        val selected = selectedAccounts.contains(it)
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                selectedAccounts = if (selected) {
-                                    selectedAccounts - it
-                                } else {
-                                    selectedAccounts + it
-                                }
-                            },
-                            label = {
-                                Text(it.name)
-                            },
-                        )
+                Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    // Account
+                    Text(
+                        "Account",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        uiState.accounts.forEach {
+                            val selected = selectedAccounts.contains(it)
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    selectedAccounts = if (selected) {
+                                        selectedAccounts - it
+                                    } else {
+                                        selectedAccounts + it
+                                    }
+                                },
+                                label = {
+                                    Text(it.name)
+                                },
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Account type
+                    Text(
+                        "Account Type",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        uiState.accountTypes.forEach {
+                            val selected = selectedAccountTypes.contains(it)
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    selectedAccountTypes = if (selected) {
+                                        selectedAccountTypes - it
+                                    } else {
+                                        selectedAccountTypes + it
+                                    }
+                                },
+                                label = {
+                                    Text(it.label())
+                                },
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Category
+                    Text(
+                        "Category",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        uiState.categories.forEach {
+                            val selected = selectedCategories.contains(it)
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    selectedCategories = if (selected) {
+                                        selectedCategories - it
+                                    } else {
+                                        selectedCategories + it
+                                    }
+                                },
+                                label = {
+                                    Text(it.name)
+                                },
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Account type
-                Text(
-                    "Account Type",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    modifier = modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    uiState.accountTypes.forEach {
-                        val selected = selectedAccountTypes.contains(it)
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                selectedAccountTypes = if (selected) {
-                                    selectedAccountTypes - it
-                                } else {
-                                    selectedAccountTypes + it
-                                }
-                            },
-                            label = {
-                                Text(it.label())
-                            },
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Category
-                Text(
-                    "Category",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    modifier = modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    uiState.categories.forEach {
-                        val selected = selectedCategories.contains(it)
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                selectedCategories = if (selected) {
-                                    selectedCategories - it
-                                } else {
-                                    selectedCategories + it
-                                }
-                            },
-                            label = {
-                                Text(it.name)
-                            },
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = {
