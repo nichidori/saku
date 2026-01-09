@@ -233,7 +233,7 @@ fun MainContainer(
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None },
-            modifier = Modifier.padding(contentPadding)
+            modifier = Modifier.padding(contentPadding).consumeWindowInsets(contentPadding)
         ) {
             composable<Route.Home> {
                 HomePage(
