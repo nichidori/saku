@@ -38,6 +38,10 @@ class DefaultTrxRepository(
         category: Category?,
         note: String
     ) {
+        if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
+            IllegalArgumentException("Target account cannot be the same as source account")
+        }
+
         val newId = UUID.randomUUID().toString()
         val trx = when (type) {
             TrxType.Income -> Trx.Income(
@@ -163,6 +167,10 @@ class DefaultTrxRepository(
         category: Category?,
         note: String
     ) {
+        if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
+            IllegalArgumentException("Target account cannot be the same as source account")
+        }
+
         db.useWriterConnection {
             it.immediateTransaction {
                 val existing = trxDao.getByIdWithDetails(id)?.toDomain()

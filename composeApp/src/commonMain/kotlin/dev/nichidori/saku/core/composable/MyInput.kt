@@ -222,12 +222,13 @@ fun AccountType.label(): String {
     }
 }
 
-// TODO: Show selected account
 @Composable
 fun AccountSelector(
     accounts: List<Account>,
     onSelected: (Account) -> Unit,
     modifier: Modifier = Modifier,
+    selectedWhen: (Account) -> Boolean = { false },
+    enabledWhen: (Account) -> Boolean = { true },
     height: Dp = defaultInputHeight,
 ) {
     Column(
@@ -244,24 +245,35 @@ fun AccountSelector(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 rowAccounts.forEach { account ->
+                    val selected = remember(selectedWhen, account) { selectedWhen(account) }
+                    val enabled = remember(enabledWhen, account) { enabledWhen(account) }
+
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.background,
+                                color = when {
+                                    selected -> MaterialTheme.colorScheme.primaryContainer
+                                    enabled -> MaterialTheme.colorScheme.background
+                                    else -> MaterialTheme.colorScheme.surfaceContainer
+                                },
                                 shape = MyDefaultShape
                             )
                             .clip(MyDefaultShape)
                             .focusProperties { canFocus = false }
-                            .clickable { onSelected(account) }
+                            .clickable(enabled = enabled) { onSelected(account) }
                             .height(48.dp)
                     ) {
                         Text(
                             account.name,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = when {
+                                selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                enabled -> MaterialTheme.colorScheme.onBackground
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                         )
                     }
                 }

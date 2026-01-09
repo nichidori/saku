@@ -196,6 +196,8 @@ fun TrxPageContent(
                             onSourceAccountChange(it)
                             focusManager.moveFocus(FocusDirection.Next)
                         },
+                        selectedWhen = { it == uiState.sourceAccount },
+                        enabledWhen = { it != uiState.targetAccount },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
@@ -209,6 +211,8 @@ fun TrxPageContent(
                             onTargetAccountChange(it)
                             focusManager.moveFocus(FocusDirection.Next)
                         },
+                        selectedWhen = { it == uiState.targetAccount },
+                        enabledWhen = { it != uiState.sourceAccount },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)

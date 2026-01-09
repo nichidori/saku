@@ -157,6 +157,7 @@ class TrxViewModel(
                 if (uiState.value.sourceAccount == null) throw Exception("Source account cannot be empty")
                 if (uiState.value.type == TrxType.Transfer) {
                     if (uiState.value.targetAccount == null) throw Exception("Target account cannot be empty")
+                    if (uiState.value.targetAccount == uiState.value.sourceAccount) throw Exception("Target account cannot be same as source account")
                 } else {
                     if (uiState.value.category == null) throw Exception("Category cannot be empty")
                 }
