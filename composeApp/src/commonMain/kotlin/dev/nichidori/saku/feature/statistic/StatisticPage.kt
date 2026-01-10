@@ -5,7 +5,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -39,6 +41,7 @@ fun StatisticPage(
     viewModel: StatisticViewModel,
     onMonthChange: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
+    monthChipsListState: LazyListState = rememberLazyListState(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
@@ -92,7 +95,8 @@ fun StatisticPage(
                 selectedMonth = initialMonth,
                 earliestMonth = earliestMonth,
                 latestMonth = currentMonth,
-                onMonthSelect = onMonthChange
+                onMonthSelect = onMonthChange,
+                listState = monthChipsListState
             )
             Spacer(modifier = Modifier.height(8.dp))
             StatisticPageContent(
