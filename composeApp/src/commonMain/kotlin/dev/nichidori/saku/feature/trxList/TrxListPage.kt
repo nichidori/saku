@@ -83,9 +83,9 @@ fun TrxListPage(
                     .calculateTopPadding()
             )
         ) {
-            var selectedAccounts by remember { mutableStateOf(uiState.filterAccounts) }
+            var selectedAccountIds by remember { mutableStateOf(uiState.filterAccountIds) }
             var selectedAccountTypes by remember { mutableStateOf(uiState.filterAccountTypes) }
-            var selectedCategories by remember { mutableStateOf(uiState.filterCategories) }
+            var selectedCategoryIds by remember { mutableStateOf(uiState.filterCategoryIds) }
 
             Column(
                 modifier = Modifier.padding(
@@ -103,9 +103,9 @@ fun TrxListPage(
                     Spacer(modifier = Modifier.width(16.dp))
                     TextButton(
                         onClick = {
-                            selectedAccounts = emptySet()
+                            selectedAccountIds = emptySet()
                             selectedAccountTypes = emptySet()
-                            selectedCategories = emptySet()
+                            selectedCategoryIds = emptySet()
                         }
                     ) {
                         Text("Reset")
@@ -126,14 +126,14 @@ fun TrxListPage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         uiState.accounts.forEach {
-                            val selected = selectedAccounts.contains(it)
+                            val selected = selectedAccountIds.contains(it.id)
                             FilterChip(
                                 selected = selected,
                                 onClick = {
-                                    selectedAccounts = if (selected) {
-                                        selectedAccounts - it
+                                    selectedAccountIds = if (selected) {
+                                        selectedAccountIds - it.id
                                     } else {
-                                        selectedAccounts + it
+                                        selectedAccountIds + it.id
                                     }
                                 },
                                 label = {
@@ -186,14 +186,14 @@ fun TrxListPage(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         uiState.categories.forEach {
-                            val selected = selectedCategories.contains(it)
+                            val selected = selectedCategoryIds.contains(it.id)
                             FilterChip(
                                 selected = selected,
                                 onClick = {
-                                    selectedCategories = if (selected) {
-                                        selectedCategories - it
+                                    selectedCategoryIds = if (selected) {
+                                        selectedCategoryIds - it.id
                                     } else {
-                                        selectedCategories + it
+                                        selectedCategoryIds + it.id
                                     }
                                 },
                                 label = {
@@ -209,9 +209,9 @@ fun TrxListPage(
                 Button(
                     onClick = {
                         viewModel.applyFilters(
-                            accounts = selectedAccounts,
+                            accountIds = selectedAccountIds,
                             accountTypes = selectedAccountTypes,
-                            categories = selectedCategories
+                            categoryIds = selectedCategoryIds
                         )
                         showFilterOption = false
                     },

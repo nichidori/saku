@@ -33,14 +33,14 @@ data class TrxListUiState(
     val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
-    val filterAccounts: Set<Account> = emptySet(),
+    val filterAccountIds: Set<String> = emptySet(),
     val filterAccountTypes: Set<AccountType> = emptySet(),
-    val filterCategories: Set<Category> = emptySet(),
+    val filterCategoryIds: Set<String> = emptySet(),
 ) {
     val accountTypes: Set<AccountType> = AccountType.entries.toSet()
-    val hasFilter: Boolean = filterAccounts.isNotEmpty()
+    val hasFilter: Boolean = filterAccountIds.isNotEmpty()
             || filterAccountTypes.isNotEmpty()
-            || filterCategories.isNotEmpty()
+            || filterCategoryIds.isNotEmpty()
 
     data class MonthlyState(
         val loadStatus: Status<Unit, Exception> = Initial,
@@ -74,9 +74,9 @@ class TrxListViewModel(
                 _uiState.update { currentState ->
                     val filteredRecords = filterAndGroupTransactions(
                         trxs = trxs,
-                        accounts = currentState.filterAccounts,
+                        accountIds = currentState.filterAccountIds,
                         accountTypes = currentState.filterAccountTypes,
-                        categories = currentState.filterCategories,
+                        categoryIds = currentState.filterCategoryIds,
                     )
 
                     val currentMonthlyState = currentState.stateByMonth[month] ?: TrxListUiState.MonthlyState()
@@ -126,24 +126,24 @@ class TrxListViewModel(
     }
 
     fun applyFilters(
-        accounts: Set<Account>,
-        categories: Set<Category>,
+        accountIds: Set<String>,
+        categoryIds: Set<String>,
         accountTypes: Set<AccountType>
     ) {
         _uiState.update {
             val newState = it.copy(
-                filterAccounts = accounts,
+                filterAccountIds = accountIds,
                 filterAccountTypes = accountTypes,
-                filterCategories = categories,
+                filterCategoryIds = categoryIds,
             )
 
             // Re-process every month currently in the state using the new filters
             val stateByMonth = newState.stateByMonth.mapValues { (_, monthlyState) ->
                 filterAndGroupTransactions(
                     trxs = monthlyState.rawTrxs,
-                    accounts = accounts,
+                    accountIds = accountIds,
                     accountTypes = accountTypes,
-                    categories = categories,
+                    categoryIds = categoryIds,
                 ).let { filteredRecords ->
                     monthlyState.copy(trxRecordsByDate = filteredRecords)
                 }
@@ -155,16 +155,16 @@ class TrxListViewModel(
 
     private fun filterAndGroupTransactions(
         trxs: List<Trx>,
-        accounts: Set<Account>,
+        accountIds: Set<String>,
         accountTypes: Set<AccountType>,
-        categories: Set<Category>,
+        categoryIds: Set<String>,
     ): Map<LocalDate, DailyTrxRecord> {
         return trxs.filter { trx ->
-            val matchAccount = accounts.isEmpty()
-                    || accounts.contains(trx.sourceAccount)
-                    || (trx as? Trx.Transfer)?.let { accounts.contains(it.targetAccount) } ?: false
-            val matchCategory = categories.isEmpty()
-                    || categories.contains(trx.category)
+            val matchAccount = accountIds.isEmpty()
+                    || accountIds.contains(trx.sourceAccount.id)
+                    || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
+            val matchCategory = categoryIds.isEmpty()
+                    || trx.category?.let { categoryIds.contains(it.id) } ?: false
             val matchType = accountTypes.isEmpty()
                     || accountTypes.contains(trx.sourceAccount.type)
                     || (trx as? Trx.Transfer)?.let { accountTypes.contains(it.targetAccount.type) } ?: false
