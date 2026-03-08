@@ -220,7 +220,7 @@ fun TrxPageContent(
                 }
 
                 showCategoryInput -> {
-                    var selectedParent by remember(uiState.category) {
+                    var selectedParent by remember(uiState.category, uiState.type) {
                         mutableStateOf(uiState.categoriesByParent.keys.firstOrNull {
                             it.id == uiState.category?.id || it.id == uiState.category?.parent?.id
                         })
