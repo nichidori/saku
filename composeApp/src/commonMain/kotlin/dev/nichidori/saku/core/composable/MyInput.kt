@@ -6,9 +6,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,26 @@ import kotlin.time.Instant
 val defaultInputHeight = 280.dp
 
 @Composable
+private fun CloseRow() {
+    val focusManager = LocalFocusManager.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        IconButton(
+            onClick = { focusManager.clearFocus() },
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Lucide.X,
+                contentDescription = "Close",
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun NumberKeyboard(
     onValueClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
@@ -56,8 +77,9 @@ fun NumberKeyboard(
             .requiredHeightIn(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
+        CloseRow()
         for (i in 1..3) {
             Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
                 for (j in 1..3) {
@@ -176,8 +198,9 @@ fun AccountTypeSelector(
             .requiredHeightIn(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
+        CloseRow()
         for (type in types) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -236,9 +259,10 @@ fun AccountSelector(
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(16.dp)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
     ) {
+        CloseRow()
         accounts.chunked(2).forEach { rowAccounts ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -342,9 +366,10 @@ fun CategorySelector(
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(16.dp)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
     ) {
+        CloseRow()
         categories.chunked(2).forEach { rowCategories ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -419,27 +444,33 @@ fun MyDateTimePicker(
     modifier: Modifier = Modifier,
     height: Dp = defaultInputHeight,
 ) {
-    WheelDateTimePicker(
-        startDateTime = startDateTime,
-        maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
-            LocalDateTime(
-                year = it.year,
-                month = 12,
-                day = 31,
-                hour = 23,
-                minute = 59,
-                second = 59
-            )
-        },
-        dateFormatter = dateFormatter(),
-        timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
-        onSnappedDateTime = onDateTimePicked,
+    Column(
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(16.dp)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
-    )
+    ) {
+        CloseRow()
+        Spacer(modifier = Modifier.height(16.dp))
+        WheelDateTimePicker(
+            startDateTime = startDateTime,
+            maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                LocalDateTime(
+                    year = it.year,
+                    month = 12,
+                    day = 31,
+                    hour = 23,
+                    minute = 59,
+                    second = 59
+                )
+            },
+            dateFormatter = dateFormatter(),
+            timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
+            onSnappedDateTime = onDateTimePicked,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Preview
