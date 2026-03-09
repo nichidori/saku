@@ -54,7 +54,7 @@ private fun CloseRow(
         content()
         IconButton(
             onClick = { focusManager.clearFocus() },
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.padding(vertical = 4.dp).size(32.dp)
         ) {
             Icon(
                 imageVector = Lucide.X,
