@@ -42,12 +42,16 @@ import kotlin.time.Instant
 val defaultInputHeight = 280.dp
 
 @Composable
-private fun CloseRow() {
+private fun CloseRow(
+    content: @Composable RowScope.() -> Unit = {}
+) {
     val focusManager = LocalFocusManager.current
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        content()
         IconButton(
             onClick = { focusManager.clearFocus() },
             modifier = Modifier.size(32.dp)
@@ -360,6 +364,7 @@ fun CategorySelector(
     onSelected: (Category) -> Unit,
     modifier: Modifier = Modifier,
     height: Dp = defaultInputHeight,
+    header: @Composable RowScope.() -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -369,7 +374,7 @@ fun CategorySelector(
             .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
     ) {
-        CloseRow()
+        CloseRow(content = header)
         categories.chunked(2).forEach { rowCategories ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

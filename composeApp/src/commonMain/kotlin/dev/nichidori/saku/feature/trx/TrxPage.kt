@@ -229,64 +229,62 @@ fun TrxPageContent(
                         derivedStateOf { uiState.categoriesByParent[selectedParent] ?: emptyList() }
                     }
 
-                    Column {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier
-                                .pointerInput(Unit) { detectTapGestures {} }
-                                .background(color = MaterialTheme.colorScheme.surfaceContainer)
-                                .fillMaxWidth()
-                                .padding(16.dp, 16.dp, 16.dp, 0.dp)
-                        ) {
-                            items(uiState.categoriesByParent.keys.toList()) { parent ->
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .background(
-                                            color = if (parent == selectedParent) {
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.background
-                                            },
-                                            shape = MyDefaultShape
-                                        )
-                                        .clip(MyDefaultShape)
-                                        .focusProperties { canFocus = false }
-                                        .clickable {
-                                            if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
-                                                selectedParent = parent
-                                                onCategoryChange(parent)
-                                                focusManager.clearFocus()
-                                            } else {
-                                                selectedParent = parent
+                    CategorySelector(
+                        categories = categories,
+                        onSelected = {
+                            onCategoryChange(it)
+                            focusManager.clearFocus()
+                        },
+                        header = {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp)
+                            ) {
+                                items(uiState.categoriesByParent.keys.toList()) { parent ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .background(
+                                                color = if (parent == selectedParent) {
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.background
+                                                },
+                                                shape = MyDefaultShape
+                                            )
+                                            .clip(MyDefaultShape)
+                                            .focusProperties { canFocus = false }
+                                            .clickable {
+                                                if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
+                                                    selectedParent = parent
+                                                    onCategoryChange(parent)
+                                                    focusManager.clearFocus()
+                                                } else {
+                                                    selectedParent = parent
+                                                }
                                             }
-                                        }
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                ) {
-                                    Text(
-                                        parent.name,
-                                        textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color =  if (parent == selectedParent) {
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        } else {
-                                            MaterialTheme.colorScheme.onBackground
-                                        }
-                                    )
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            parent.name,
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = if (parent == selectedParent) {
+                                                MaterialTheme.colorScheme.onPrimaryContainer
+                                            } else {
+                                                MaterialTheme.colorScheme.onBackground
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        CategorySelector(
-                            categories = categories,
-                            onSelected = {
-                                onCategoryChange(it)
-                                focusManager.clearFocus()
-                            },
-                            modifier = Modifier
-                                .background(color = MaterialTheme.colorScheme.surfaceContainer)
-                                .padding(bottom = bottomPadding)
-                        )
-                    }
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
                 }
 
                 else -> {
