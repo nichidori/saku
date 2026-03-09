@@ -10,6 +10,7 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
+import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
@@ -36,11 +37,14 @@ data class TrxListUiState(
     val filterAccountIds: Set<String> = emptySet(),
     val filterAccountTypes: Set<AccountType> = emptySet(),
     val filterCategoryIds: Set<String> = emptySet(),
+    val filterTrxTypes: Set<TrxType> = emptySet(),
 ) {
     val accountTypes: Set<AccountType> = AccountType.entries.toSet()
+    val trxTypes: Set<TrxType> = TrxType.entries.toSet()
     val hasFilter: Boolean = filterAccountIds.isNotEmpty()
             || filterAccountTypes.isNotEmpty()
             || filterCategoryIds.isNotEmpty()
+            || filterTrxTypes.isNotEmpty()
 
     data class MonthlyState(
         val loadStatus: Status<Unit, Exception> = Initial,
@@ -77,6 +81,7 @@ class TrxListViewModel(
                         accountIds = currentState.filterAccountIds,
                         accountTypes = currentState.filterAccountTypes,
                         categoryIds = currentState.filterCategoryIds,
+                        trxTypes = currentState.filterTrxTypes,
                     )
 
                     val currentMonthlyState = currentState.stateByMonth[month] ?: TrxListUiState.MonthlyState()
@@ -128,13 +133,15 @@ class TrxListViewModel(
     fun applyFilters(
         accountIds: Set<String>,
         categoryIds: Set<String>,
-        accountTypes: Set<AccountType>
+        accountTypes: Set<AccountType>,
+        trxTypes: Set<TrxType>,
     ) {
         _uiState.update {
             val newState = it.copy(
                 filterAccountIds = accountIds,
                 filterAccountTypes = accountTypes,
                 filterCategoryIds = categoryIds,
+                filterTrxTypes = trxTypes,
             )
 
             // Re-process every month currently in the state using the new filters
@@ -144,6 +151,7 @@ class TrxListViewModel(
                     accountIds = accountIds,
                     accountTypes = accountTypes,
                     categoryIds = categoryIds,
+                    trxTypes = trxTypes,
                 ).let { filteredRecords ->
                     monthlyState.copy(trxRecordsByDate = filteredRecords)
                 }
@@ -158,6 +166,7 @@ class TrxListViewModel(
         accountIds: Set<String>,
         accountTypes: Set<AccountType>,
         categoryIds: Set<String>,
+        trxTypes: Set<TrxType>,
     ): Map<LocalDate, DailyTrxRecord> {
         return trxs.filter { trx ->
             val matchAccount = accountIds.isEmpty()
@@ -165,11 +174,12 @@ class TrxListViewModel(
                     || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
             val matchCategory = categoryIds.isEmpty()
                     || trx.category?.let { categoryIds.contains(it.id) } ?: false
-            val matchType = accountTypes.isEmpty()
+            val matchAccountType = accountTypes.isEmpty()
                     || accountTypes.contains(trx.sourceAccount.type)
                     || (trx as? Trx.Transfer)?.let { accountTypes.contains(it.targetAccount.type) } ?: false
+            val matchTrxType = trxTypes.isEmpty() || trxTypes.contains(trx.type)
 
-            matchAccount && matchCategory && matchType
+            matchAccount && matchCategory && matchAccountType && matchTrxType
         }.groupBy { trx ->
             trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
         }.mapValues { (_, dailyTrxs) ->

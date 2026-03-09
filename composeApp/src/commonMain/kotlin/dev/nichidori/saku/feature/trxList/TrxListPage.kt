@@ -30,6 +30,7 @@ import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.*
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
@@ -86,6 +87,7 @@ fun TrxListPage(
             var selectedAccountIds by remember { mutableStateOf(uiState.filterAccountIds) }
             var selectedAccountTypes by remember { mutableStateOf(uiState.filterAccountTypes) }
             var selectedCategoryIds by remember { mutableStateOf(uiState.filterCategoryIds) }
+            var selectedTrxTypes by remember { mutableStateOf(uiState.filterTrxTypes) }
 
             Column(
                 modifier = Modifier.padding(
@@ -106,6 +108,7 @@ fun TrxListPage(
                             selectedAccountIds = emptySet()
                             selectedAccountTypes = emptySet()
                             selectedCategoryIds = emptySet()
+                            selectedTrxTypes = emptySet()
                         }
                     ) {
                         Text("Reset")
@@ -114,6 +117,36 @@ fun TrxListPage(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    // Trx Type
+                    Text(
+                        "Transaction Type",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        uiState.trxTypes.forEach {
+                            val selected = selectedTrxTypes.contains(it)
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    selectedTrxTypes = if (selected) {
+                                        selectedTrxTypes - it
+                                    } else {
+                                        selectedTrxTypes + it
+                                    }
+                                },
+                                label = {
+                                    Text(it.label())
+                                },
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     // Account
                     Text(
                         "Account",
@@ -211,7 +244,8 @@ fun TrxListPage(
                         viewModel.applyFilters(
                             accountIds = selectedAccountIds,
                             accountTypes = selectedAccountTypes,
-                            categoryIds = selectedCategoryIds
+                            categoryIds = selectedCategoryIds,
+                            trxTypes = selectedTrxTypes
                         )
                         showFilterOption = false
                     },
@@ -442,5 +476,13 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 color = MaterialTheme.colorScheme.outline,
             )
         }
+    }
+}
+
+fun TrxType.label(): String {
+    return when (this) {
+        TrxType.Income -> "Income"
+        TrxType.Expense -> "Expense"
+        TrxType.Transfer -> "Transfer"
     }
 }
