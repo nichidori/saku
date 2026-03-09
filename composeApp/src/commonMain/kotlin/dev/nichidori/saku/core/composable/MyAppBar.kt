@@ -1,5 +1,6 @@
 package dev.nichidori.saku.core.composable
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,6 +31,7 @@ fun MyAppBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding()
