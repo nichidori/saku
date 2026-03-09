@@ -357,12 +357,13 @@ fun AccountSelectorPreview() {
     AccountSelector(accounts = accounts, onSelected = {})
 }
 
-// TODO: Show selected category
 @Composable
 fun CategorySelector(
     categories: List<Category>,
     onSelected: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    selectedWhen: (Category) -> Boolean = { false },
+    enabledWhen: (Category) -> Boolean = { true },
     height: Dp = defaultInputHeight,
     header: @Composable RowScope.() -> Unit = {},
 ) {
@@ -381,24 +382,35 @@ fun CategorySelector(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 rowCategories.forEach { category ->
+                    val selected = remember(selectedWhen, category) { selectedWhen(category) }
+                    val enabled = remember(enabledWhen, category) { enabledWhen(category) }
+
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.background,
+                                color = when {
+                                    selected -> MaterialTheme.colorScheme.primaryContainer
+                                    enabled -> MaterialTheme.colorScheme.background
+                                    else -> MaterialTheme.colorScheme.surfaceContainer
+                                },
                                 shape = MyDefaultShape
                             )
                             .clip(MyDefaultShape)
                             .focusProperties { canFocus = false }
-                            .clickable { onSelected(category) }
+                            .clickable(enabled = enabled) { onSelected(category) }
                             .height(48.dp)
                     ) {
                         Text(
                             category.name,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = when {
+                                selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                enabled -> MaterialTheme.colorScheme.onBackground
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                         )
                     }
                 }

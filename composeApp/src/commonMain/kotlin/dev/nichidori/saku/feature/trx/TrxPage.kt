@@ -235,6 +235,7 @@ fun TrxPageContent(
                             onCategoryChange(it)
                             focusManager.clearFocus()
                         },
+                        selectedWhen = { it.id == uiState.category?.id },
                         header = {
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -126,6 +126,7 @@ fun CategoryPageContent(
                             onParentChange(it)
                             focusManager.moveFocus(FocusDirection.Next)
                         },
+                        selectedWhen = { it.id == uiState.parent?.id },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
