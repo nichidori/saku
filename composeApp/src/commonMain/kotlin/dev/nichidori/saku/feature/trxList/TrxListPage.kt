@@ -218,22 +218,38 @@ fun TrxListPage(
                         modifier = modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        uiState.categories.forEach {
-                            val selected = selectedCategoryIds.contains(it.id)
+                        uiState.categories.forEach { category ->
+                            val selected = selectedCategoryIds.contains(category.id)
                             FilterChip(
-                                selected = selected,
-                                onClick = {
-                                    selectedCategoryIds = if (selected) {
-                                        selectedCategoryIds - it.id
-                                    } else {
-                                        selectedCategoryIds + it.id
-                                    }
-                                },
-                                label = {
-                                    Text(it.name)
-                                },
-                            )
-                        }
+                                    selected = selected,
+                                    onClick = {
+                                        val childrenIds = uiState.categories
+                                            .filter { it.parent?.id == category.id }
+                                            .map { it.id }
+                                        val parentId = category.parent?.id
+
+                                        selectedCategoryIds = if (selected) {
+                                            var nextSet = selectedCategoryIds - category.id
+                                            if (childrenIds.isNotEmpty()) {
+                                                nextSet = nextSet - childrenIds.toSet()
+                                            }
+                                            if (parentId != null) {
+                                                nextSet = nextSet - parentId
+                                            }
+                                            nextSet
+                                        } else {
+                                            var nextSet = selectedCategoryIds + category.id
+                                            if (childrenIds.isNotEmpty()) {
+                                                nextSet = nextSet + childrenIds.toSet()
+                                            }
+                                            nextSet
+                                        }
+                                    },
+                                    label = {
+                                        Text(category.name)
+                                    },
+                                )
+                            }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
