@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import androidx.compose.material3.*
@@ -39,7 +41,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-val defaultInputHeight = 280.dp
+val defaultInputHeight = 320.dp
 
 @Composable
 private fun CloseRow(
@@ -78,7 +80,7 @@ fun NumberKeyboard(
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
-            .requiredHeightIn(height)
+            .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
@@ -199,7 +201,7 @@ fun AccountTypeSelector(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
-            .requiredHeightIn(height)
+            .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
             .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
@@ -257,56 +259,62 @@ fun AccountSelector(
     selectedWhen: (Account) -> Boolean = { false },
     enabledWhen: (Account) -> Boolean = { true },
     height: Dp = defaultInputHeight,
+    header: @Composable RowScope.() -> Unit = {},
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
-        CloseRow()
-        accounts.chunked(2).forEach { rowAccounts ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                rowAccounts.forEach { account ->
-                    val selected = remember(selectedWhen, account) { selectedWhen(account) }
-                    val enabled = remember(enabledWhen, account) { enabledWhen(account) }
+        CloseRow(content = header)
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(accounts.chunked(2)) { rowAccounts ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowAccounts.forEach { account ->
+                        val selected = remember(selectedWhen, account) { selectedWhen(account) }
+                        val enabled = remember(enabledWhen, account) { enabledWhen(account) }
 
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(
+                                    color = when {
+                                        selected -> MaterialTheme.colorScheme.primaryContainer
+                                        enabled -> MaterialTheme.colorScheme.background
+                                        else -> MaterialTheme.colorScheme.surfaceContainer
+                                    },
+                                    shape = MyDefaultShape
+                                )
+                                .clip(MyDefaultShape)
+                                .focusProperties { canFocus = false }
+                                .clickable(enabled = enabled) { onSelected(account) }
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                account.name,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelLarge,
                                 color = when {
-                                    selected -> MaterialTheme.colorScheme.primaryContainer
-                                    enabled -> MaterialTheme.colorScheme.background
-                                    else -> MaterialTheme.colorScheme.surfaceContainer
+                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    enabled -> MaterialTheme.colorScheme.onBackground
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                shape = MyDefaultShape
                             )
-                            .clip(MyDefaultShape)
-                            .focusProperties { canFocus = false }
-                            .clickable(enabled = enabled) { onSelected(account) }
-                            .height(48.dp)
-                    ) {
-                        Text(
-                            account.name,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = when {
-                                selected -> MaterialTheme.colorScheme.onPrimaryContainer
-                                enabled -> MaterialTheme.colorScheme.onBackground
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
+                        }
                     }
-                }
-                if (rowAccounts.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    if (rowAccounts.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -368,54 +376,59 @@ fun CategorySelector(
     header: @Composable RowScope.() -> Unit = {},
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
         CloseRow(content = header)
-        categories.chunked(2).forEach { rowCategories ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                rowCategories.forEach { category ->
-                    val selected = remember(selectedWhen, category) { selectedWhen(category) }
-                    val enabled = remember(enabledWhen, category) { enabledWhen(category) }
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(categories.chunked(2)) { rowCategories ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowCategories.forEach { category ->
+                        val selected = remember(selectedWhen, category) { selectedWhen(category) }
+                        val enabled = remember(enabledWhen, category) { enabledWhen(category) }
 
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(
+                                    color = when {
+                                        selected -> MaterialTheme.colorScheme.primaryContainer
+                                        enabled -> MaterialTheme.colorScheme.background
+                                        else -> MaterialTheme.colorScheme.surfaceContainer
+                                    },
+                                    shape = MyDefaultShape
+                                )
+                                .clip(MyDefaultShape)
+                                .focusProperties { canFocus = false }
+                                .clickable(enabled = enabled) { onSelected(category) }
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                category.name,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelLarge,
                                 color = when {
-                                    selected -> MaterialTheme.colorScheme.primaryContainer
-                                    enabled -> MaterialTheme.colorScheme.background
-                                    else -> MaterialTheme.colorScheme.surfaceContainer
+                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    enabled -> MaterialTheme.colorScheme.onBackground
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                shape = MyDefaultShape
                             )
-                            .clip(MyDefaultShape)
-                            .focusProperties { canFocus = false }
-                            .clickable(enabled = enabled) { onSelected(category) }
-                            .height(48.dp)
-                    ) {
-                        Text(
-                            category.name,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = when {
-                                selected -> MaterialTheme.colorScheme.onPrimaryContainer
-                                enabled -> MaterialTheme.colorScheme.onBackground
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
+                        }
                     }
-                }
-                if (rowCategories.size < 2) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    if (rowCategories.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -465,8 +478,8 @@ fun MyDateTimePicker(
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
         CloseRow()
         Spacer(modifier = Modifier.height(16.dp))
