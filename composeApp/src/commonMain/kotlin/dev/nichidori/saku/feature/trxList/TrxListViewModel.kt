@@ -117,7 +117,7 @@ class TrxListViewModel(
     }
 
     fun loadCategories() {
-        viewModelScope.launch {d
+        viewModelScope.launch {
             try {
                 val categories = categoryRepository.getAllCategories()
                     .sortedWith(compareBy({ it.parent?.name ?: it.name }, { it.parent != null }, { it.name }))
