@@ -20,7 +20,8 @@ private val parentCategory = CategoryEntity(
     type = TrxTypeEntity.Expense,
     parentId = null,
     createdAt = System.currentTimeMillis(),
-    updatedAt = null
+    updatedAt = null,
+    icon = "ic_food"
 )
 
 private val subcategoryRestaurant = CategoryEntity(
@@ -29,7 +30,8 @@ private val subcategoryRestaurant = CategoryEntity(
     type = TrxTypeEntity.Expense,
     parentId = "cat-parent",
     createdAt = System.currentTimeMillis(),
-    updatedAt = null
+    updatedAt = null,
+    icon = "ic_restaurant"
 )
 
 private val subcategoryGrocery = CategoryEntity(
@@ -38,7 +40,8 @@ private val subcategoryGrocery = CategoryEntity(
     type = TrxTypeEntity.Expense,
     parentId = "cat-parent",
     createdAt = System.currentTimeMillis(),
-    updatedAt = null
+    updatedAt = null,
+    icon = "ic_grocery"
 )
 
 private val independentCategory = CategoryEntity(
@@ -47,7 +50,8 @@ private val independentCategory = CategoryEntity(
     type = TrxTypeEntity.Expense,
     parentId = null,
     createdAt = System.currentTimeMillis(),
-    updatedAt = null
+    updatedAt = null,
+    icon = "ic_transport"
 )
 
 class CategoryDaoTest {
@@ -78,6 +82,7 @@ class CategoryDaoTest {
         assertEquals(parentCategory.parentId, result.parentId)
         assertEquals(parentCategory.createdAt, result.createdAt)
         assertEquals(parentCategory.updatedAt, result.updatedAt)
+        assertEquals(parentCategory.icon, result.icon)
     }
 
     @Test

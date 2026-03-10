@@ -40,7 +40,8 @@ class MapperExtTest {
             type = TrxTypeEntity.Expense,
             parentId = "cat-parent",
             createdAt = 1_000L,
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_food"
         )
 
         val parent = Category(
@@ -49,7 +50,8 @@ class MapperExtTest {
             type = TrxType.Expense,
             parent = null,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_essentials"
         )
 
         val domain = entity.toDomain(parent)

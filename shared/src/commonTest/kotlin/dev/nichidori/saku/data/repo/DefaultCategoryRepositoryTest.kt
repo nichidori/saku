@@ -28,7 +28,8 @@ class DefaultCategoryRepositoryTest {
         type = TrxType.Income,
         parent = null,
         createdAt = Clock.System.now(),
-        updatedAt = null
+        updatedAt = null,
+        icon = "ic_salary"
     )
 
     private val subIncomeCategory = Category(
@@ -37,7 +38,8 @@ class DefaultCategoryRepositoryTest {
         type = TrxType.Income,
         parent = incomeCategory,
         createdAt = Clock.System.now(),
-        updatedAt = null
+        updatedAt = null,
+        icon = "ic_bonus"
     )
 
     @BeforeTest
@@ -60,11 +62,12 @@ class DefaultCategoryRepositoryTest {
         repository.addCategory(
             name = "Food",
             type = TrxType.Expense,
+            icon = "ic_food",
             parent = incomeCategory
         )
         val all = db.categoryDao().getAll()
         assertEquals(3, all.size)
-        assertTrue(all.any { it.name == "Food" && it.parentId == incomeCategory.id })
+        assertTrue(all.any { it.name == "Food" && it.parentId == incomeCategory.id && it.icon == "ic_food" })
     }
 
     @Test
@@ -74,7 +77,8 @@ class DefaultCategoryRepositoryTest {
             name = "Parent",
             type = TrxType.Expense,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_parent"
         )
         val child = Category(
             id = "child",
@@ -82,13 +86,15 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_child"
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         val exception = assertFailsWith<NoSuchElementException> {
             repository.addCategory(
                 name = child.name,
                 type = child.type,
+                icon = child.icon,
                 parent = child.parent
             )
         }
@@ -102,7 +108,8 @@ class DefaultCategoryRepositoryTest {
             name = "Parent",
             type = TrxType.Expense,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_parent"
         )
         val child = Category(
             id = "child",
@@ -110,7 +117,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_child"
         )
         val grandChild = Category(
             id = "grand",
@@ -118,7 +126,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = child,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_grand"
         )
         db.categoryDao().insert(parent.toEntity())
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
@@ -126,6 +135,7 @@ class DefaultCategoryRepositoryTest {
             repository.addCategory(
                 name = grandChild.name,
                 type = grandChild.type,
+                icon = grandChild.icon,
                 parent = grandChild.parent
             )
         }
@@ -136,6 +146,7 @@ class DefaultCategoryRepositoryTest {
     fun getCategoryById_shouldReturnCategory() = runTest {
         val result = repository.getCategoryById("cat-1")
         assertEquals("Salary", result?.name)
+        assertEquals("ic_salary", result?.icon)
     }
 
     @Test
@@ -150,6 +161,8 @@ class DefaultCategoryRepositoryTest {
         assertEquals("Bonus", result?.name)
         assertEquals(incomeCategory.id, result?.parent?.id)
         assertEquals("Salary", result?.parent?.name)
+        assertEquals("ic_bonus", result?.icon)
+        assertEquals("ic_salary", result?.parent?.icon)
     }
 
     @Test
@@ -165,6 +178,8 @@ class DefaultCategoryRepositoryTest {
         assertEquals("Bonus", sub.name)
         assertEquals(incomeCategory.id, sub.parent?.id)
         assertEquals("Salary", sub.parent?.name)
+        assertEquals("ic_bonus", sub.icon)
+        assertEquals("ic_salary", sub.parent?.icon)
     }
 
     @Test
@@ -172,6 +187,7 @@ class DefaultCategoryRepositoryTest {
         val result = repository.getRootCategories()
         assertEquals(1, result.size)
         assertEquals("Salary", result.first().name)
+        assertEquals("ic_salary", result.first().icon)
     }
 
     @Test
@@ -182,6 +198,8 @@ class DefaultCategoryRepositoryTest {
         assertEquals("Bonus", sub.name)
         assertEquals("cat-1", sub.parent?.id)
         assertEquals("Salary", sub.parent?.name)
+        assertEquals("ic_bonus", sub.icon)
+        assertEquals("ic_salary", sub.parent?.icon)
     }
 
     @Test
@@ -192,7 +210,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Income,
             parent = null,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_empty"
         )
         db.categoryDao().insert(category.toEntity())
         val result = repository.getSubcategories("cat-empty")
@@ -214,10 +233,12 @@ class DefaultCategoryRepositoryTest {
             id = incomeCategory.id,
             name = "Updated Salary",
             type = incomeCategory.type,
+            icon = "ic_updated_salary",
             parent = incomeCategory.parent
         )
         val result = db.categoryDao().getById("cat-1")!!
         assertEquals("Updated Salary", result.name)
+        assertEquals("ic_updated_salary", result.icon)
         assertTrue(result.updatedAt!! > (beforeUpdate.updatedAt ?: 0))
     }
 
@@ -228,7 +249,8 @@ class DefaultCategoryRepositoryTest {
             name = "Parent",
             type = TrxType.Expense,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_parent"
         )
         val child = Category(
             id = "child",
@@ -236,7 +258,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_child"
         )
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
         val exception = assertFailsWith<NoSuchElementException> {
@@ -244,6 +267,7 @@ class DefaultCategoryRepositoryTest {
                 id = child.id,
                 name = "new child",
                 type = child.type,
+                icon = "ic_new_child",
                 parent = child.parent
             )
         }
@@ -257,7 +281,8 @@ class DefaultCategoryRepositoryTest {
             name = "Parent",
             type = TrxType.Expense,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_parent"
         )
         val child = Category(
             id = "child",
@@ -265,7 +290,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = parent,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_child"
         )
         val grandchild = Category(
             id = "grandchild",
@@ -273,7 +299,8 @@ class DefaultCategoryRepositoryTest {
             type = TrxType.Expense,
             parent = child,
             createdAt = Clock.System.now(),
-            updatedAt = null
+            updatedAt = null,
+            icon = "ic_grandchild"
         )
         db.categoryDao().insert(parent.toEntity())
         db.categoryDao().insert(child.copy(parent = parent).toEntity())
@@ -283,6 +310,7 @@ class DefaultCategoryRepositoryTest {
                 id = grandchild.id,
                 name = grandchild.name,
                 type = grandchild.type,
+                icon = grandchild.icon,
                 parent = grandchild.parent
             )
         }
@@ -297,6 +325,7 @@ class DefaultCategoryRepositoryTest {
                 id = selfReferencing.id,
                 name = selfReferencing.name,
                 type = selfReferencing.type,
+                icon = selfReferencing.icon,
                 parent = selfReferencing
             )
         }
