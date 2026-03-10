@@ -26,5 +26,6 @@ data class CategoryEntity(
     @ColumnInfo(name = "type") val type: TrxTypeEntity,
     @ColumnInfo(name = "parent_id") val parentId: String?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long?
+    @ColumnInfo(name = "updated_at") val updatedAt: Long?,
+    @ColumnInfo(name = "icon") val icon: String? = null
 )

@@ -386,7 +386,7 @@ fun AppPreview() {
         override suspend fun getTotalBalance(): Long = 0
     }
     val categoryRepository = object : CategoryRepository {
-        override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {}
+        override suspend fun addCategory(name: String, type: TrxType, icon: String?, parent: Category?) {}
         override suspend fun getCategoryById(id: String): Category? = null
         override suspend fun getAllCategories(): List<Category> = emptyList()
         override suspend fun getRootCategories(): List<Category> = emptyList()
@@ -395,6 +395,7 @@ fun AppPreview() {
             id: String,
             name: String,
             type: TrxType,
+            icon: String?,
             parent: Category?
         ) {
         }

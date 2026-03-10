@@ -33,7 +33,8 @@ fun CategoryEntity.toDomain(parent: Category? = null): Category = Category(
     type = type.toDomain(),
     parent = parent,
     createdAt = Instant.fromEpochMilliseconds(createdAt),
-    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+    icon = icon
 )
 
 fun Category.toEntity(): CategoryEntity = CategoryEntity(
@@ -42,7 +43,8 @@ fun Category.toEntity(): CategoryEntity = CategoryEntity(
     type = type.toEntity(),
     parentId = parent?.id,
     createdAt = createdAt.toEpochMilliseconds(),
-    updatedAt = updatedAt?.toEpochMilliseconds()
+    updatedAt = updatedAt?.toEpochMilliseconds(),
+    icon = icon
 )
 
 fun AccountTypeEntity.toDomain(): AccountType = when (this) {

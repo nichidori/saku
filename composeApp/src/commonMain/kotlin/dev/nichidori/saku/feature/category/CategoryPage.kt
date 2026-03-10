@@ -1,8 +1,13 @@
 package dev.nichidori.saku.feature.category
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -18,8 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.model.IconPickerCategories
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.toCategoryIcon
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -71,6 +78,7 @@ fun CategoryPage(
             uiState = uiState,
             onUp = onUp,
             onTypeChange = viewModel::onTypeChange,
+            onIconChange = viewModel::onIconChange,
             onNameChange = viewModel::onNameChange,
             onParentChange = viewModel::onParentChange,
             onSaveClick = viewModel::saveCategory,
@@ -80,11 +88,13 @@ fun CategoryPage(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryPageContent(
     uiState: CategoryUiState,
     onUp: () -> Unit,
     onTypeChange: (TrxType) -> Unit,
+    onIconChange: (String?) -> Unit,
     onNameChange: (String) -> Unit,
     onParentChange: (Category?) -> Unit,
     onSaveClick: () -> Unit,
@@ -92,7 +102,84 @@ fun CategoryPageContent(
     modifier: Modifier = Modifier
 ) {
     var showParentInput by remember { mutableStateOf(false) }
+    var showIconPicker by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+
+    if (showIconPicker) {
+        ModalBottomSheet(
+            onDismissRequest = { showIconPicker = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    "Select Icon",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(
+                                    color = if (uiState.icon == null) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = CircleShape
+                                )
+                                .clickable {
+                                    onIconChange(null)
+                                    showIconPicker = false
+                                }
+                                .wrapContentSize()
+                        ) {
+                            Text(
+                                uiState.name.firstOrNull()?.toString() ?: "?",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (uiState.icon == null) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                    IconPickerCategories.forEach { category ->
+                        items(category.icons) { pickerIcon ->
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        color = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceContainer,
+                                        shape = CircleShape
+                                    )
+                                    .clickable {
+                                        onIconChange(pickerIcon.label)
+                                        showIconPicker = false
+                                    }
+                                    .wrapContentSize()
+                            ) {
+                                Icon(
+                                    imageVector = pickerIcon.icon,
+                                    contentDescription = pickerIcon.label,
+                                    tint = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -159,6 +246,35 @@ fun CategoryPageContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = CircleShape
+                    )
+                    .clickable { showIconPicker = true }
+                    .wrapContentSize()
+            ) {
+                val icon = uiState.icon.toCategoryIcon()
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "Category icon",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Text(
+                        uiState.name.firstOrNull()?.toString() ?: "?",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             if (uiState.canChooseType) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     SegmentedButton(
@@ -259,6 +375,7 @@ fun CategoryPageContentPreview() {
         onNameChange = {},
         onParentChange = {},
         onSaveClick = {},
-        onDeleteClick = {}
+        onDeleteClick = {},
+        onIconChange = {},
     )
 }

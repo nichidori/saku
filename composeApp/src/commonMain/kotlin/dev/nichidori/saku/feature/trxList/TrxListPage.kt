@@ -25,6 +25,7 @@ import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.composable.label
+import dev.nichidori.saku.core.model.toCategoryIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -221,35 +222,35 @@ fun TrxListPage(
                         uiState.categories.forEach { category ->
                             val selected = selectedCategoryIds.contains(category.id)
                             FilterChip(
-                                    selected = selected,
-                                    onClick = {
-                                        val childrenIds = uiState.categories
-                                            .filter { it.parent?.id == category.id }
-                                            .map { it.id }
-                                        val parentId = category.parent?.id
+                                selected = selected,
+                                onClick = {
+                                    val childrenIds = uiState.categories
+                                        .filter { it.parent?.id == category.id }
+                                        .map { it.id }
+                                    val parentId = category.parent?.id
 
-                                        selectedCategoryIds = if (selected) {
-                                            var nextSet = selectedCategoryIds - category.id
-                                            if (childrenIds.isNotEmpty()) {
-                                                nextSet = nextSet - childrenIds.toSet()
-                                            }
-                                            if (parentId != null) {
-                                                nextSet = nextSet - parentId
-                                            }
-                                            nextSet
-                                        } else {
-                                            var nextSet = selectedCategoryIds + category.id
-                                            if (childrenIds.isNotEmpty()) {
-                                                nextSet = nextSet + childrenIds.toSet()
-                                            }
-                                            nextSet
+                                    selectedCategoryIds = if (selected) {
+                                        var nextSet = selectedCategoryIds - category.id
+                                        if (childrenIds.isNotEmpty()) {
+                                            nextSet = nextSet - childrenIds.toSet()
                                         }
-                                    },
-                                    label = {
-                                        Text(category.name)
-                                    },
-                                )
-                            }
+                                        if (parentId != null) {
+                                            nextSet = nextSet - parentId
+                                        }
+                                        nextSet
+                                    } else {
+                                        var nextSet = selectedCategoryIds + category.id
+                                        if (childrenIds.isNotEmpty()) {
+                                            nextSet = nextSet + childrenIds.toSet()
+                                        }
+                                        nextSet
+                                    }
+                                },
+                                label = {
+                                    Text(category.name)
+                                },
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -437,17 +438,28 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 )
                 .wrapContentSize()
         ) {
-            Text(
-                when (trx) {
-                    is Trx.Transfer -> "T"
-                    else -> trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
-                        it.firstOrNull()?.toString() ?: ""
-                    } ?: ""
-                },
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            // TODO: Set default icon for Transfer
+            val icon = if (trx is Trx.Transfer) null else trx.category?.icon.toCategoryIcon()
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = trx.category?.name,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    when (trx) {
+                        is Trx.Transfer -> "T"
+                        else -> trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
+                            it.firstOrNull()?.toString() ?: ""
+                        } ?: ""
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(

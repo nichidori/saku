@@ -24,6 +24,7 @@ import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.toCategoryIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
@@ -263,14 +264,24 @@ fun CategoryItem(
                 )
                 .wrapContentSize()
         ) {
-            Text(
-                category.name.split(' ').take(2).joinToString("") {
-                    it.firstOrNull()?.toString() ?: ""
-                },
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            val icon = category.icon.toCategoryIcon()
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = category.name,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    category.name.split(' ').take(2).joinToString("") {
+                        it.firstOrNull()?.toString() ?: ""
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Box(

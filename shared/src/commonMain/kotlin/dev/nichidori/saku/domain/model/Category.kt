@@ -8,5 +8,6 @@ data class Category(
     val type: TrxType,
     val parent: Category? = null,
     val createdAt: Instant,
-    val updatedAt: Instant?
+    val updatedAt: Instant?,
+    val icon: String? = null
 )

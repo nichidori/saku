@@ -15,7 +15,7 @@ import kotlin.time.Clock
 class DefaultCategoryRepository(
     private val db: AppDatabase,
 ) : CategoryRepository {
-    override suspend fun addCategory(name: String, type: TrxType, parent: Category?) {
+    override suspend fun addCategory(name: String, type: TrxType, icon: String?, parent: Category?) {
         db.useWriterConnection {
             it.immediateTransaction {
                 val parentId = parent?.id
@@ -30,6 +30,7 @@ class DefaultCategoryRepository(
                 val category = Category(
                     id = UUID.randomUUID().toString(),
                     name = name,
+                    icon = icon,
                     parent = parent,
                     type = type,
                     createdAt = Clock.System.now(),
@@ -82,6 +83,7 @@ class DefaultCategoryRepository(
         id: String,
         name: String,
         type: TrxType,
+        icon: String?,
         parent: Category?
     ) {
         db.useWriterConnection {
@@ -107,6 +109,7 @@ class DefaultCategoryRepository(
                 val updatedCategory = category.copy(
                     name = name,
                     type = type,
+                    icon = icon,
                     parent = parent,
                     updatedAt = Clock.System.now()
                 )

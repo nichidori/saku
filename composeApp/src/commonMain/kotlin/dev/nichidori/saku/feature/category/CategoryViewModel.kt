@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 data class CategoryUiState(
     val isLoading: Boolean = false,
     val name: String = "",
+    val icon: String? = null,
     val type: TrxType = TrxType.Expense,
     val canChooseType: Boolean = true,
     val parent: Category? = null,
@@ -66,6 +67,7 @@ class CategoryViewModel(
             _uiState.update {
                 it.copy(
                     name = category?.name ?: it.name,
+                    icon = category?.icon ?: it.icon,
                     type = category?.type ?: it.type,
                     parent = category?.parent ?: it.parent,
                     isLoading = false,
@@ -77,6 +79,10 @@ class CategoryViewModel(
 
     fun onNameChange(newValue: String) {
         _uiState.update { it.copy(name = newValue) }
+    }
+
+    fun onIconChange(newValue: String?) {
+        _uiState.update { it.copy(icon = newValue) }
     }
 
     fun onTypeChange(newValue: TrxType) {
@@ -96,12 +102,14 @@ class CategoryViewModel(
                     categoryRepository.updateCategory(
                         id = id,
                         name = uiState.value.name,
+                        icon = uiState.value.icon,
                         type = uiState.value.type,
                         parent = uiState.value.parent
                     )
                 } else {
                     categoryRepository.addCategory(
                         name = uiState.value.name,
+                        icon = uiState.value.icon,
                         type = uiState.value.type,
                         parent = uiState.value.parent
                     )
