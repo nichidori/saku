@@ -204,6 +204,6 @@ val IconPickerCategories: List<IconCategory> = listOf(
 /** Flat list for search/filtering across all categories */
 val AllPickerIcons: List<PickerIcon> = IconPickerCategories.flatMap { it.icons }
 
-fun String?.toCategoryIcon(): ImageVector? {
-    return AllPickerIcons.find { it.label == this }?.icon
+fun String?.toPickerIcon(): PickerIcon? {
+    return AllPickerIcons.find { it.label == this }
 }

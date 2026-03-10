@@ -26,7 +26,7 @@ import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.IconPickerCategories
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
-import dev.nichidori.saku.core.model.toCategoryIcon
+import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -256,7 +256,7 @@ fun CategoryPageContent(
                     .clickable { showIconPicker = true }
                     .wrapContentSize()
             ) {
-                val icon = uiState.icon.toCategoryIcon()
+                val icon = uiState.icon.toPickerIcon()?.icon
                 if (icon != null) {
                     Icon(
                         imageVector = icon,

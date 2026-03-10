@@ -25,7 +25,7 @@ import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.composable.label
-import dev.nichidori.saku.core.model.toCategoryIcon
+import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
@@ -439,7 +439,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 .wrapContentSize()
         ) {
             // TODO: Set default icon for Transfer
-            val icon = if (trx is Trx.Transfer) null else trx.category?.icon.toCategoryIcon()
+            val icon = if (trx is Trx.Transfer) null else trx.category?.icon.toPickerIcon()?.icon
             if (icon != null) {
                 Icon(
                     imageVector = icon,

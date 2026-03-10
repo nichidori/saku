@@ -24,7 +24,7 @@ import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
-import dev.nichidori.saku.core.model.toCategoryIcon
+import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
@@ -184,7 +184,7 @@ fun CategoryCard(
                 )
                 .wrapContentSize()
         ) {
-            val icon = category.icon.toCategoryIcon()
+            val icon = category.icon.toPickerIcon()?.icon
             if (icon != null) {
                 Icon(
                     imageVector = icon,

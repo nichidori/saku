@@ -24,7 +24,7 @@ import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
-import dev.nichidori.saku.core.model.toCategoryIcon
+import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
@@ -264,7 +264,7 @@ fun CategoryItem(
                 )
                 .wrapContentSize()
         ) {
-            val icon = category.icon.toCategoryIcon()
+            val icon = category.icon.toPickerIcon()?.icon
             if (icon != null) {
                 Icon(
                     imageVector = icon,
