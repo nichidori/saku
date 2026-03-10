@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowLeftRight
 import com.composables.icons.lucide.Filter
 import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyDefaultShape
@@ -438,23 +439,22 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 )
                 .wrapContentSize()
         ) {
-            // TODO: Set default icon for Transfer
-            val icon = if (trx is Trx.Transfer) null else trx.category?.icon.toPickerIcon()?.icon
+            val icon = when (trx) {
+                is Trx.Transfer -> Lucide.ArrowLeftRight
+                else -> trx.category?.icon.toPickerIcon()?.icon
+            }
             if (icon != null) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = trx.category?.name,
+                    contentDescription = if (trx is Trx.Transfer) "Transfer" else trx.category?.name,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             } else {
                 Text(
-                    when (trx) {
-                        is Trx.Transfer -> "T"
-                        else -> trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
-                            it.firstOrNull()?.toString() ?: ""
-                        } ?: ""
-                    },
+                    text = trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
+                        it.firstOrNull()?.toString() ?: ""
+                    } ?: "",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
