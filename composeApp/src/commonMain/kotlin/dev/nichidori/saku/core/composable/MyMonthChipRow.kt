@@ -83,23 +83,18 @@ fun MyMonthChipRow(
                     if (month != selectedMonth) onMonthSelect(month)
                 },
                 label = {
+                    val date = LocalDate(
+                        year = month.year,
+                        month = month.month,
+                        day = 1
+                    )
+                    val monthName = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })
+                    val yearSuffix = if (month.month == Month.JANUARY || month.month == Month.DECEMBER) {
+                        " ${(month.year % 100).toString().padStart(2, '0')}"
+                    } else ""
+
                     Text(
-                        LocalDate(
-                            year = month.year,
-                            month = month.month.ordinal + 1,
-                            day = 1
-                        ).format(
-                            LocalDate.Format {
-                                monthName(MonthNames.ENGLISH_ABBREVIATED)
-                                if (month == latestMonth ||
-                                    month.month == Month.JANUARY ||
-                                    month.month == Month.DECEMBER
-                                ) {
-                                    chars(" ")
-                                    year()
-                                }
-                            }
-                        ),
+                        text = monthName + yearSuffix,
                         fontWeight = FontWeight.Bold
                     )
                 }
