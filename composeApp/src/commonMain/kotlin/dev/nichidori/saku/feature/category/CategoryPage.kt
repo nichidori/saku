@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
@@ -129,6 +130,14 @@ fun CategoryPageContent(
                     contentPadding = PaddingValues(bottom = 16.dp),
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            "None",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                    }
                     item {
                         Box(
                             modifier = Modifier
@@ -154,6 +163,14 @@ fun CategoryPageContent(
                         }
                     }
                     IconPickerCategories.forEach { category ->
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                category.name,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                            )
+                        }
                         items(category.icons) { pickerIcon ->
                             Box(
                                 modifier = Modifier
