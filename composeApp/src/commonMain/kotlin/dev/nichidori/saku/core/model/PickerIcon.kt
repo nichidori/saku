@@ -20,6 +20,13 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Microwave", Lucide.Microwave),
             PickerIcon("Armchair", Lucide.Armchair),
             PickerIcon("Blinds", Lucide.Blinds),
+            PickerIcon("Washing Machine", Lucide.WashingMachine),
+            PickerIcon("Fan", Lucide.Fan),
+            PickerIcon("Heater", Lucide.Heater),
+            PickerIcon("Door Open", Lucide.DoorOpen),
+            PickerIcon("Key", Lucide.Key),
+            PickerIcon("Shower Head", Lucide.ShowerHead),
+            PickerIcon("Warehouse", Lucide.Warehouse),
         )
     ),
 
@@ -37,6 +44,17 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Cooking Pot", Lucide.CookingPot),
             PickerIcon("Chef Hat", Lucide.ChefHat),
             PickerIcon("Martini", Lucide.Martini),
+            PickerIcon("Wine", Lucide.Wine),
+            PickerIcon("Donut", Lucide.Donut),
+            PickerIcon("Beef", Lucide.Beef),
+            PickerIcon("Candy", Lucide.Candy),
+            PickerIcon("Egg", Lucide.Egg),
+            PickerIcon("Hop", Lucide.Hop),
+            PickerIcon("Ice Cream Cone", Lucide.IceCreamCone),
+            PickerIcon("Milk", Lucide.Milk),
+            PickerIcon("Apple", Lucide.Apple),
+            PickerIcon("Banana", Lucide.Banana),
+            PickerIcon("Cherry", Lucide.Cherry),
         )
     ),
 
@@ -52,6 +70,9 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Gift", Lucide.Gift),
             PickerIcon("Ticket", Lucide.Ticket),
             PickerIcon("Package", Lucide.Package),
+            PickerIcon("Wallet", Lucide.Wallet),
+            PickerIcon("Scan", Lucide.Scan),
+            PickerIcon("Footprints", Lucide.Footprints),
         )
     ),
 
@@ -67,6 +88,10 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Hospital", Lucide.Hospital),
             PickerIcon("Microscope", Lucide.Microscope),
             PickerIcon("Biceps Flexed", Lucide.BicepsFlexed),
+            PickerIcon("Cigarette", Lucide.Cigarette),
+            PickerIcon("Cigarette Off", Lucide.CigaretteOff),
+            PickerIcon("Dna", Lucide.Dna),
+            PickerIcon("Bandage", Lucide.Bandage),
         )
     ),
 
@@ -80,10 +105,18 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Piggy Bank", Lucide.PiggyBank),
             PickerIcon("Coins", Lucide.Coins),
             PickerIcon("Chart Bar", Lucide.ChartBar),
+            PickerIcon("Chart Pie", Lucide.ChartPie),
             PickerIcon("Trending Up", Lucide.TrendingUp),
             PickerIcon("Landmark", Lucide.Landmark),
             PickerIcon("Calculator", Lucide.Calculator),
             PickerIcon("Scale", Lucide.Scale),
+            PickerIcon("Hand Coins", Lucide.HandCoins),
+            PickerIcon("Wallet", Lucide.Wallet),
+            PickerIcon("Euro", Lucide.Euro),
+            PickerIcon("Pound", Lucide.PoundSterling),
+            PickerIcon("Yen", Lucide.JapaneseYen),
+            PickerIcon("Vault", Lucide.Vault),
+            PickerIcon("Gavel", Lucide.Gavel),
         )
     ),
 
@@ -99,6 +132,10 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Taxi", Lucide.CarTaxiFront),
             PickerIcon("Fuel", Lucide.Fuel),
             PickerIcon("Navigation", Lucide.Navigation),
+            PickerIcon("Tram", Lucide.TramFront),
+            PickerIcon("Cable Car", Lucide.CableCar),
+            PickerIcon("Car Front", Lucide.CarFront),
+            PickerIcon("Anchor", Lucide.Anchor),
         )
     ),
 
@@ -114,6 +151,9 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Atom", Lucide.Atom),
             PickerIcon("Brain", Lucide.Brain),
             PickerIcon("Flask", Lucide.FlaskConical),
+            PickerIcon("Languages", Lucide.Languages),
+            PickerIcon("Telescope", Lucide.Telescope),
+            PickerIcon("Notebook Pen", Lucide.NotebookPen),
         )
     ),
 
@@ -131,6 +171,13 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Popcorn", Lucide.Popcorn),
             PickerIcon("Trophy", Lucide.Trophy),
             PickerIcon("Guitar", Lucide.Guitar),
+            PickerIcon("Clapperboard", Lucide.Clapperboard),
+            PickerIcon("Mic", Lucide.Mic),
+            PickerIcon("Speaker", Lucide.Speaker),
+            PickerIcon("Cast", Lucide.Cast),
+            PickerIcon("Drum", Lucide.Drum),
+            PickerIcon("Piano", Lucide.Piano),
+            PickerIcon("Joystick", Lucide.Joystick),
         )
     ),
 
@@ -148,6 +195,17 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Droplets", Lucide.Droplets),
             PickerIcon("Paw Print", Lucide.PawPrint),
             PickerIcon("Bird", Lucide.Bird),
+            PickerIcon("Wind", Lucide.Wind),
+            PickerIcon("Rain", Lucide.CloudRain),
+            PickerIcon("Lightning", Lucide.CloudLightning),
+            PickerIcon("Cloud Sun", Lucide.CloudSun),
+            PickerIcon("Moon", Lucide.Moon),
+            PickerIcon("Sunrise", Lucide.Sunrise),
+            PickerIcon("Sunset", Lucide.Sunset),
+            PickerIcon("Fish", Lucide.Fish),
+            PickerIcon("Rabbit", Lucide.Rabbit),
+            PickerIcon("Squirrel", Lucide.Squirrel),
+            PickerIcon("Trees", Lucide.Trees),
         )
     ),
 
@@ -163,6 +221,11 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Contact", Lucide.Contact),
             PickerIcon("Phone", Lucide.Phone),
             PickerIcon("Mail", Lucide.Mail),
+            PickerIcon("User Round", Lucide.UserRound),
+            PickerIcon("User Plus", Lucide.UserRoundPlus),
+            PickerIcon("User Check", Lucide.UserRoundCheck),
+            PickerIcon("User Minus", Lucide.UserRoundMinus),
+            PickerIcon("User X", Lucide.UserRoundX),
         )
     ),
 
@@ -180,6 +243,14 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Database", Lucide.Database),
             PickerIcon("Globe", Lucide.Globe),
             PickerIcon("Router", Lucide.Router),
+            PickerIcon("Hard Drive", Lucide.HardDrive),
+            PickerIcon("Keyboard", Lucide.Keyboard),
+            PickerIcon("Mouse", Lucide.Mouse),
+            PickerIcon("Printer", Lucide.Printer),
+            PickerIcon("Server", Lucide.Server),
+            PickerIcon("Webcam", Lucide.Webcam),
+            PickerIcon("Battery", Lucide.BatteryFull),
+            PickerIcon("Bluetooth", Lucide.Bluetooth),
         )
     ),
 
@@ -190,6 +261,7 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Flag", Lucide.Flag),
             PickerIcon("Bell", Lucide.Bell),
             PickerIcon("Lock", Lucide.Lock),
+            PickerIcon("Lock Open", Lucide.LockOpen),
             PickerIcon("Search", Lucide.Search),
             PickerIcon("Map Pin", Lucide.MapPin),
             PickerIcon("Calendar", Lucide.Calendar),
@@ -197,6 +269,34 @@ val IconPickerCategories: List<IconCategory> = listOf(
             PickerIcon("Sparkles", Lucide.Sparkles),
             PickerIcon("Crown", Lucide.Crown),
             PickerIcon("Rocket", Lucide.Rocket),
+            PickerIcon("Trash", Lucide.Trash2),
+            PickerIcon("Archive", Lucide.Archive),
+            PickerIcon("Gem", Lucide.Gem),
+            PickerIcon("Magnet", Lucide.Magnet),
+            PickerIcon("Plug", Lucide.Plug),
+            PickerIcon("Scissors", Lucide.Scissors),
+            PickerIcon("Hammer", Lucide.Hammer),
+            PickerIcon("Wrench", Lucide.Wrench),
+        )
+    ),
+
+    IconCategory(
+        "Clothing", listOf(
+            PickerIcon("Shirt", Lucide.Shirt),
+            PickerIcon("Watch", Lucide.Watch),
+            PickerIcon("Glasses", Lucide.Glasses),
+            PickerIcon("Footprints", Lucide.Footprints),
+        )
+    ),
+
+    IconCategory(
+        "Travel", listOf(
+            PickerIcon("Map", Lucide.Map),
+            PickerIcon("Compass", Lucide.Compass),
+            PickerIcon("Luggage", Lucide.Luggage),
+            PickerIcon("Hotel", Lucide.Hotel),
+            PickerIcon("Globe", Lucide.Globe),
+            PickerIcon("Plane", Lucide.Plane),
         )
     ),
 )
