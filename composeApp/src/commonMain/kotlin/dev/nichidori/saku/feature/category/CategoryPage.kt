@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
@@ -114,7 +115,7 @@ fun CategoryPageContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
             ) {
                 Text(
                     "Select Icon",
@@ -125,17 +126,19 @@ fun CategoryPageContent(
                     columns = GridCells.Adaptive(minSize = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
                     item {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .requiredSize(48.dp)
                                 .background(
                                     color = if (uiState.icon == null) MaterialTheme.colorScheme.primaryContainer
                                     else MaterialTheme.colorScheme.surfaceContainer,
                                     shape = CircleShape
                                 )
+                                .clip(CircleShape)
                                 .clickable {
                                     onIconChange(null)
                                     showIconPicker = false
@@ -154,12 +157,13 @@ fun CategoryPageContent(
                         items(category.icons) { pickerIcon ->
                             Box(
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .requiredSize(48.dp)
                                     .background(
                                         color = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.primaryContainer
                                         else MaterialTheme.colorScheme.surfaceContainer,
                                         shape = CircleShape
                                     )
+                                    .clip(CircleShape)
                                     .clickable {
                                         onIconChange(pickerIcon.label)
                                         showIconPicker = false
@@ -171,7 +175,7 @@ fun CategoryPageContent(
                                     contentDescription = pickerIcon.label,
                                     tint = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.onPrimaryContainer
                                     else MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -246,35 +250,6 @@ fun CategoryPageContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = CircleShape
-                    )
-                    .clickable { showIconPicker = true }
-                    .wrapContentSize()
-            ) {
-                val icon = uiState.icon.toPickerIcon()?.icon
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = "Category icon",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
-                    )
-                } else {
-                    Text(
-                        uiState.name.firstOrNull()?.toString() ?: "?",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             if (uiState.canChooseType) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     SegmentedButton(
@@ -302,6 +277,36 @@ fun CategoryPageContent(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
+
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = CircleShape
+                    )
+                    .clip(CircleShape)
+                    .clickable { showIconPicker = true }
+                    .wrapContentSize()
+            ) {
+                val icon = uiState.icon.toPickerIcon()?.icon
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "Category icon",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Text(
+                        uiState.name.firstOrNull()?.toString() ?: "?",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
                 value = uiState.name,

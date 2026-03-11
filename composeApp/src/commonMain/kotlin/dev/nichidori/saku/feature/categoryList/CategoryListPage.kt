@@ -190,7 +190,7 @@ fun CategoryCard(
                     imageVector = icon,
                     contentDescription = category.name,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             } else {
                 Text(

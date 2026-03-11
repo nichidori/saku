@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -260,7 +261,7 @@ fun CategoryItem(
                 .size(40.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = MyDefaultShape
+                    shape = CircleShape
                 )
                 .wrapContentSize()
         ) {
@@ -270,7 +271,7 @@ fun CategoryItem(
                     imageVector = icon,
                     contentDescription = category.name,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             } else {
                 Text(
@@ -287,7 +288,7 @@ fun CategoryItem(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(72.dp)
+                .height(64.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerLowest,
                     shape = MyDefaultShape
