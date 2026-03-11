@@ -69,8 +69,8 @@ android {
         applicationId = "dev.nichidori.saku"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 9
-        versionName = "0.5.0"
+        versionCode = 10
+        versionName = "0.6.0"
     }
     lint {
         disable += "NullSafeMutableLiveData"
