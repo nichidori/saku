@@ -110,7 +110,11 @@ fun CategoryPageContent(
     if (showIconPicker) {
         ModalBottomSheet(
             onDismissRequest = { showIconPicker = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            modifier = Modifier.padding(
+                top = WindowInsets.statusBars.asPaddingValues()
+                    .calculateTopPadding()
+            )
         ) {
             Column(
                 modifier = Modifier
