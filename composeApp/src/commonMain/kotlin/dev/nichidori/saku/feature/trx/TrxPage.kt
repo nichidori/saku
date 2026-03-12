@@ -3,7 +3,6 @@ package dev.nichidori.saku.feature.trx
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,13 +19,14 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash
+import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -98,6 +98,10 @@ fun TrxPage(
             onTargetAccountChange = viewModel::onTargetAccountChange,
             onCategoryChange = viewModel::onCategoryChange,
             onNoteChange = viewModel::onNoteChange,
+            onEnableFeeToggle = viewModel::onEnableFeeToggle,
+            onFeeAmountChange = viewModel::onFeeAmountChange,
+            onFeeAccountChange = viewModel::onFeeAccountChange,
+            onFeeCategoryChange = viewModel::onFeeCategoryChange,
             onSaveClick = viewModel::saveTrx,
             onDeleteClick = viewModel::deleteTrx,
             modifier = modifier
@@ -118,6 +122,10 @@ fun TrxPageContent(
     onTargetAccountChange: (Account) -> Unit,
     onCategoryChange: (Category) -> Unit,
     onNoteChange: (String) -> Unit,
+    onEnableFeeToggle: () -> Unit,
+    onFeeAmountChange: ((String) -> String) -> Unit,
+    onFeeAccountChange: (Account) -> Unit,
+    onFeeCategoryChange: (Category) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -127,6 +135,9 @@ fun TrxPageContent(
     var showSourceAccountInput by remember { mutableStateOf(false) }
     var showTargetAccountInput by remember { mutableStateOf(false) }
     var showCategoryInput by remember { mutableStateOf(false) }
+    var showFeeAmountInput by remember { mutableStateOf(false) }
+    var showFeeAccountInput by remember { mutableStateOf(false) }
+    var showFeeCategoryInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
     Scaffold(
@@ -288,6 +299,112 @@ fun TrxPageContent(
                     )
                 }
 
+                showFeeAmountInput -> {
+                    NumberKeyboard(
+                        actionLabel = "Next",
+                        onValueClick = {
+                            onFeeAmountChange { current ->
+                                current + it
+                            }
+                        },
+                        onDeleteClick = {
+                            onFeeAmountChange { current ->
+                                current.dropLast(1)
+                            }
+                        },
+                        onActionClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+
+                showFeeAccountInput -> {
+                    AccountSelector(
+                        accounts = uiState.accountOptions,
+                        onSelected = {
+                            onFeeAccountChange(it)
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                        selectedWhen = { it == (uiState.feeAccount ?: uiState.sourceAccount) },
+                        enabledWhen = { true },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+
+                showFeeCategoryInput -> {
+                    var selectedParent by remember(uiState.feeCategory) {
+                        mutableStateOf(uiState.expensesByParent.keys.firstOrNull {
+                            it.id == uiState.feeCategory?.id || it.id == uiState.feeCategory?.parent?.id
+                        })
+                    }
+                    val categories by remember(selectedParent) {
+                        derivedStateOf { uiState.expensesByParent[selectedParent] ?: emptyList() }
+                    }
+
+                    CategorySelector(
+                        categories = categories,
+                        onSelected = {
+                            onFeeCategoryChange(it)
+                            focusManager.clearFocus()
+                        },
+                        selectedWhen = { it.id == uiState.feeCategory?.id },
+                        header = {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp)
+                            ) {
+                                items(uiState.expensesByParent.keys.toList()) { parent ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .background(
+                                                color = if (parent == selectedParent) {
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.background
+                                                },
+                                                shape = MyDefaultShape
+                                            )
+                                            .clip(MyDefaultShape)
+                                            .focusProperties { canFocus = false }
+                                            .clickable {
+                                                if (uiState.expensesByParent[parent]?.isNotEmpty() != true) {
+                                                    selectedParent = parent
+                                                    onFeeCategoryChange(parent)
+                                                    focusManager.clearFocus()
+                                                } else {
+                                                    selectedParent = parent
+                                                }
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            parent.name,
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = if (parent == selectedParent) {
+                                                MaterialTheme.colorScheme.onPrimaryContainer
+                                            } else {
+                                                MaterialTheme.colorScheme.onBackground
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(bottom = bottomPadding)
+                    )
+                }
+
                 else -> {
                     MyButton(
                         text = "Save",
@@ -311,136 +428,195 @@ fun TrxPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                types.forEachIndexed { i, type ->
-                    SegmentedButton(
-                        shape = when (i) {
-                            0 -> MyDefaultShape.copy(
-                                bottomEnd = CornerSize(0.dp),
-                                topEnd = CornerSize(0.dp)
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    types.forEachIndexed { i, type ->
+                        SegmentedButton(
+                            shape = when (i) {
+                                0 -> MyDefaultShape.copy(
+                                    bottomEnd = CornerSize(0.dp),
+                                    topEnd = CornerSize(0.dp)
+                                )
+
+                                types.lastIndex -> MyDefaultShape.copy(
+                                    bottomStart = CornerSize(0.dp),
+                                    topStart = CornerSize(0.dp)
+                                )
+
+                                else -> RectangleShape
+                            },
+                            selected = type == uiState.type,
+                            onClick = {
+                                onTypeChange(type)
+                                showTargetAccountInput = false
+                            },
+                            icon = {}
+                        ) {
+                            Text(
+                                when (type) {
+                                    TrxType.Income -> "Income"
+                                    TrxType.Expense -> "Expense"
+                                    TrxType.Transfer -> "Transfer"
+                                }
                             )
-
-                            types.lastIndex -> MyDefaultShape.copy(
-                                bottomStart = CornerSize(0.dp),
-                                topStart = CornerSize(0.dp)
-                            )
-
-                            else -> RectangleShape
-                        },
-                        selected = type == uiState.type,
-                        onClick = {
-                            onTypeChange(type)
-                            showTargetAccountInput = false
-                        },
-                        icon = {}
-                    ) {
-                        Text(
-                            when (type) {
-                                TrxType.Income -> "Income"
-                                TrxType.Expense -> "Expense"
-                                TrxType.Transfer -> "Transfer"
-                            }
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-
-            MyTextField(
-                value = uiState.time?.format(
-                    LocalDateTime.Format {
-                        day()
-                        chars(" ")
-                        monthName(MonthNames.ENGLISH_ABBREVIATED)
-                        chars(" ")
-                        year()
-                        chars(" ")
-                        hour()
-                        chars(":")
-                        minute()
-                    }
-                ).orEmpty(),
-                onValueChange = onDescriptionChange,
-                label = "Time",
-                readOnly = true,
-                trailingIcon = {
-                    TextButton(
-                        onClick = { onTimeChange(Clock.System.now()) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text("Now")
-                    }
-                },
-                modifier = Modifier.onFocusChanged { focusState ->
-                    showTimeInput = focusState.isFocused
-                }
-            )
-
-            MyTextField(
-                value = uiState.amountFormatted,
-                onValueChange = { },
-                label = "Amount",
-                readOnly = true,
-                modifier = Modifier.onFocusChanged { focusState ->
-                    showAmountInput = focusState.isFocused
-                }
-            )
-
-            MyTextField(
-                value = uiState.description,
-                onValueChange = onDescriptionChange,
-                label = "Description",
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                )
-            )
-
-            MyTextField(
-                value = uiState.sourceAccount?.name.orEmpty(),
-                onValueChange = { },
-                label = "Source Account",
-                enabled = uiState.accountOptions.isNotEmpty(),
-                readOnly = true,
-                modifier = Modifier.onFocusChanged { focusState ->
-                    showSourceAccountInput = focusState.isFocused
-                }
-            )
-
-            AnimatedVisibility(visible = uiState.type == TrxType.Transfer) {
-                MyTextField(
-                    value = uiState.targetAccount?.name.orEmpty(),
-                    onValueChange = { },
-                    label = "Target Account",
-                    enabled = uiState.accountOptions.isNotEmpty(),
-                    readOnly = true,
-                    modifier = Modifier
-                        .onFocusChanged { focusState ->
-                            showTargetAccountInput = focusState.isFocused
                         }
-                )
-            }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
 
-            AnimatedVisibility(visible = uiState.type != TrxType.Transfer) {
                 MyTextField(
-                    value = uiState.category?.name.orEmpty(),
+                    value = uiState.time?.format(
+                        LocalDateTime.Format {
+                            day()
+                            chars(" ")
+                            monthName(MonthNames.ENGLISH_ABBREVIATED)
+                            chars(" ")
+                            year()
+                            chars(" ")
+                            hour()
+                            chars(":")
+                            minute()
+                        }
+                    ).orEmpty(),
+                    onValueChange = onDescriptionChange,
+                    label = "Time",
+                    readOnly = true,
+                    trailingIcon = {
+                        TextButton(
+                            onClick = { onTimeChange(Clock.System.now()) },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Now")
+                        }
+                    },
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        showTimeInput = focusState.isFocused
+                    }
+                )
+
+                MyTextField(
+                    value = uiState.amountFormatted,
                     onValueChange = { },
-                    label = "Category",
-                    enabled = uiState.categoriesByParent.isNotEmpty(),
+                    label = "Amount",
                     readOnly = true,
                     modifier = Modifier.onFocusChanged { focusState ->
-                        showCategoryInput = focusState.isFocused
+                        showAmountInput = focusState.isFocused
                     }
+                )
+
+                MyTextField(
+                    value = uiState.description,
+                    onValueChange = onDescriptionChange,
+                    label = "Description",
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                MyTextField(
+                    value = uiState.sourceAccount?.name.orEmpty(),
+                    onValueChange = { },
+                    label = "Source Account",
+                    enabled = uiState.accountOptions.isNotEmpty(),
+                    readOnly = true,
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        showSourceAccountInput = focusState.isFocused
+                    }
+                )
+
+                AnimatedVisibility(visible = uiState.type == TrxType.Transfer) {
+                    MyTextField(
+                        value = uiState.targetAccount?.name.orEmpty(),
+                        onValueChange = { },
+                        label = "Target Account",
+                        enabled = uiState.accountOptions.isNotEmpty(),
+                        readOnly = true,
+                        modifier = Modifier
+                            .onFocusChanged { focusState ->
+                                showTargetAccountInput = focusState.isFocused
+                            }
+                    )
+                }
+
+                AnimatedVisibility(visible = uiState.type != TrxType.Transfer) {
+                    MyTextField(
+                        value = uiState.category?.name.orEmpty(),
+                        onValueChange = { },
+                        label = "Category",
+                        enabled = uiState.categoriesByParent.isNotEmpty(),
+                        readOnly = true,
+                        modifier = Modifier.onFocusChanged { focusState ->
+                            showCategoryInput = focusState.isFocused
+                        }
+                    )
+                }
+
+                MyTextField(
+                    value = uiState.note,
+                    onValueChange = onNoteChange,
+                    label = "Note",
                 )
             }
 
-            MyTextField(
-                value = uiState.note,
-                onValueChange = onNoteChange,
-                label = "Note",
-            )
+            AnimatedVisibility(visible = uiState.type == TrxType.Transfer && !uiState.canDelete) {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp)
+                    ) {
+                        Text(
+                            text = "Additional Fee",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        IconButton(onClick = onEnableFeeToggle) {
+                            Icon(
+                                imageVector = if (uiState.enableFee) Lucide.X else Lucide.Plus,
+                                contentDescription = if (uiState.enableFee) "Hide Additional Fee" else "Show Additional Fee",
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(visible = uiState.enableFee) {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(top = 4.dp)) {
+                            MyTextField(
+                                value = uiState.feeAmountFormatted,
+                                onValueChange = { },
+                                label = "Fee Amount",
+                                readOnly = true,
+                                modifier = Modifier.onFocusChanged { focusState ->
+                                    showFeeAmountInput = focusState.isFocused
+                                }
+                            )
+
+                            MyTextField(
+                                value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
+                                onValueChange = { },
+                                label = "Fee Source Account",
+                                enabled = uiState.accountOptions.isNotEmpty(),
+                                readOnly = true,
+                                modifier = Modifier.onFocusChanged { focusState ->
+                                    showFeeAccountInput = focusState.isFocused
+                                }
+                            )
+
+                            MyTextField(
+                                value = uiState.feeCategory?.name.orEmpty(),
+                                onValueChange = { },
+                                label = "Fee Category",
+                                enabled = uiState.expensesByParent.isNotEmpty(),
+                                readOnly = true,
+                                modifier = Modifier.onFocusChanged { focusState ->
+                                    showFeeCategoryInput = focusState.isFocused
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -482,6 +658,10 @@ fun TrxPageContentPreview() {
         onTargetAccountChange = {},
         onCategoryChange = {},
         onNoteChange = {},
+        onEnableFeeToggle = {},
+        onFeeAmountChange = {},
+        onFeeAccountChange = {},
+        onFeeCategoryChange = {},
         onSaveClick = {},
         onDeleteClick = {}
     )

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 data class TrxUiState(
@@ -34,6 +35,10 @@ data class TrxUiState(
     val targetAccount: Account? = null,
     val category: Category? = null,
     val note: String = "",
+    val enableFee: Boolean = false,
+    val feeAmount: Long? = null,
+    val feeAccount: Account? = null,
+    val feeCategory: Category? = null,
     val accountOptions: List<Account> = listOf(),
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
@@ -47,11 +52,13 @@ data class TrxUiState(
         else -> emptyMap()
     }
     val amountFormatted = amount?.toRupiah().orEmpty()
+    val feeAmountFormatted = feeAmount?.toRupiah().orEmpty()
     val canSave = time != null
             && amount != null
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
             && (if (type != TrxType.Transfer) category != null else true)
+            && (if (type == TrxType.Transfer && enableFee) feeAmount != null && feeAmount > 0 && feeAccount != null && feeCategory != null else true)
 }
 
 class TrxViewModel(
@@ -149,6 +156,33 @@ class TrxViewModel(
         _uiState.update { it.copy(note = newValue) }
     }
 
+    fun onEnableFeeToggle() {
+        _uiState.update {
+            val enableFee = !it.enableFee
+            it.copy(
+                enableFee = enableFee,
+                feeAmount = null,
+                feeAccount = if (enableFee) it.sourceAccount else null,
+                feeCategory = null,
+            )
+        }
+    }
+
+    fun onFeeAmountChange(change: (String) -> String) {
+        _uiState.update { currState ->
+            val current = currState.feeAmount?.toString().orEmpty()
+            currState.copy(feeAmount = change(current).toLongOrNull())
+        }
+    }
+
+    fun onFeeAccountChange(newValue: Account) {
+        _uiState.update { it.copy(feeAccount = newValue) }
+    }
+
+    fun onFeeCategoryChange(newValue: Category) {
+        _uiState.update { it.copy(feeCategory = newValue) }
+    }
+
     fun saveTrx() {
         viewModelScope.launch {
             try {
@@ -158,6 +192,11 @@ class TrxViewModel(
                 if (uiState.value.type == TrxType.Transfer) {
                     if (uiState.value.targetAccount == null) throw Exception("Target account cannot be empty")
                     if (uiState.value.targetAccount == uiState.value.sourceAccount) throw Exception("Target account cannot be same as source account")
+                    if (uiState.value.enableFee) {
+                        if ((uiState.value.feeAmount ?: 0) <= 0) throw Exception("Fee amount cannot be empty")
+                        if (uiState.value.feeAccount == null) throw Exception("Fee account cannot be empty")
+                        if (uiState.value.feeCategory == null) throw Exception("Fee category cannot be empty")
+                    }
                 } else {
                     if (uiState.value.category == null) throw Exception("Category cannot be empty")
                 }
@@ -174,6 +213,18 @@ class TrxViewModel(
                             category = it.category,
                             note = it.note
                         )
+                        if (it.type == TrxType.Transfer && it.enableFee) {
+                            trxRepository.addTrx(
+                                type = TrxType.Expense,
+                                transactionAt = it.time + 1.milliseconds,
+                                amount = it.feeAmount!!,
+                                description = "",
+                                sourceAccount = it.feeAccount!!,
+                                targetAccount = null,
+                                category = it.feeCategory,
+                                note = ""
+                            )
+                        }
                     }
                 } else {
                     _uiState.value.let {
