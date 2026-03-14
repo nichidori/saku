@@ -23,9 +23,9 @@ if [ "$CURRENT_VERSION_NAME" != "$NEW_VERSION_NAME" ]; then
     # Extract current versionCode and increment it
     CURRENT_VERSION_CODE=$(grep -E 'versionCode = [0-9]+' "$GRADLE_FILE" | tr -dc '0-9')
     if [ -n "$CURRENT_VERSION_CODE" ]; then
-        NEW_VERSION_NAME_CODE=$((CURRENT_VERSION_CODE + 1))
-        sed -i "s/versionCode = $CURRENT_VERSION_CODE/versionCode = $NEW_VERSION_NAME_CODE/" "$GRADLE_FILE"
-        echo "Updated versionCode to $NEW_VERSION_NAME_CODE"
+        NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+        sed -i "s/versionCode = $CURRENT_VERSION_CODE/versionCode = $NEW_VERSION_CODE/" "$GRADLE_FILE"
+        echo "Updated versionCode to $NEW_VERSION_CODE"
     fi
 
     # Update versionName
@@ -34,7 +34,7 @@ if [ "$CURRENT_VERSION_NAME" != "$NEW_VERSION_NAME" ]; then
 
     # Commit and tag changes
     git add "$GRADLE_FILE"
-    git commit -m "build: update version to ${NEW_VERSION_NAME}+${NEW_VERSION_NAME_CODE}"
+    git commit -m "build: update version to ${NEW_VERSION_NAME}+${NEW_VERSION_CODE}"
     git tag "v${NEW_VERSION_NAME}"
 else
     echo "Version $NEW_VERSION_NAME is already set. Skipping version update and commit."
@@ -56,7 +56,7 @@ if [ -z "$APK_FILE" ]; then
     exit 1
 fi
 
-NEW_APK_NAME="${PACKAGE_NAME}-${NEW_VERSION_NAME}+${NEW_VERSION_NAME_CODE}-${FLAVOR}.apk"
+NEW_APK_NAME="${PACKAGE_NAME}-${NEW_VERSION_NAME}+${NEW_VERSION_CODE}-${FLAVOR}.apk"
 
 mkdir -p "$OUTPUT_DIR"
 cp "$APK_FILE" "$OUTPUT_DIR/$NEW_APK_NAME"
