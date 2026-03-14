@@ -8,11 +8,11 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.X
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import dev.nichidori.saku.core.composable.MyIconButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
 import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
@@ -42,7 +44,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-val defaultInputHeight = 320.dp
+val defaultInputHeight = 360.dp
 
 @Composable
 private fun CloseRow(
@@ -200,7 +202,6 @@ fun AccountTypeSelector(
     height: Dp = defaultInputHeight,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
@@ -208,26 +209,32 @@ fun AccountTypeSelector(
             .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
         CloseRow()
-        for (type in types) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = MyDefaultShape
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(types) { type ->
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.background,
+                            shape = MyDefaultShape
+                        )
+                        .clip(MyDefaultShape)
+                        .focusProperties { canFocus = false }
+                        .clickable { onSelected(type) }
+                        .height(48.dp)
+                ) {
+                    Text(
+                        type.label(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                    .clip(MyDefaultShape)
-                    .focusProperties { canFocus = false }
-                    .clickable { onSelected(type) }
-                    .height(48.dp)
-            ) {
-                Text(
-                    type.label(),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                }
             }
         }
     }
