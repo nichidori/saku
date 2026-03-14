@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -77,12 +76,11 @@ fun MyMonthChipRow(
         modifier = modifier.fillMaxWidth()
     ) {
         items(months) { month ->
-            FilterChip(
+            MyFilterChip(
                 selected = month == selectedMonth,
                 onClick = {
                     if (month != selectedMonth) onMonthSelect(month)
                 },
-                shape = MyDefaultShape,
                 label = {
                     val date = LocalDate(
                         year = month.year,

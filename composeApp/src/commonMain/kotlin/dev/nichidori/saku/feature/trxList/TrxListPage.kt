@@ -128,9 +128,8 @@ fun TrxListPage(
                     ) {
                         uiState.trxTypes.forEach {
                             val selected = selectedTrxTypes.contains(it)
-                            FilterChip(
+                            MyFilterChip(
                                 selected = selected,
-                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedTrxTypes = if (selected) {
                                         selectedTrxTypes - it
@@ -159,9 +158,8 @@ fun TrxListPage(
                     ) {
                         uiState.accounts.forEach {
                             val selected = selectedAccountIds.contains(it.id)
-                            FilterChip(
+                            MyFilterChip(
                                 selected = selected,
-                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedAccountIds = if (selected) {
                                         selectedAccountIds - it.id
@@ -190,9 +188,8 @@ fun TrxListPage(
                     ) {
                         uiState.accountTypes.forEach {
                             val selected = selectedAccountTypes.contains(it)
-                            FilterChip(
+                            MyFilterChip(
                                 selected = selected,
-                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedAccountTypes = if (selected) {
                                         selectedAccountTypes - it
@@ -221,9 +218,8 @@ fun TrxListPage(
                     ) {
                         uiState.categories.forEach { category ->
                             val selected = selectedCategoryIds.contains(category.id)
-                            FilterChip(
+                            MyFilterChip(
                                 selected = selected,
-                                shape = MyDefaultShape,
                                 onClick = {
                                     val childrenIds = uiState.categories
                                         .filter { it.parent?.id == category.id }
