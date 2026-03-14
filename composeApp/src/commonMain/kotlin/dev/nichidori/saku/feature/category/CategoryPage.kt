@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -112,6 +113,7 @@ fun CategoryPageContent(
         ModalBottomSheet(
             onDismissRequest = { showIconPicker = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
             modifier = Modifier.padding(
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding()

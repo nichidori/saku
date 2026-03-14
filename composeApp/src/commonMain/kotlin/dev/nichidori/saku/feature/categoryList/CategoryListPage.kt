@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
-import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -179,10 +179,6 @@ fun CategoryCard(
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                    shape = MyDefaultShape
-                )
                 .wrapContentSize()
         ) {
             val icon = category.icon.toPickerIcon()?.icon

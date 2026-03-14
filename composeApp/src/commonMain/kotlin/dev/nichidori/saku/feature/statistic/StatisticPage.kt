@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
@@ -26,11 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
-import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyMonthChipRow
-import dev.nichidori.saku.core.composable.MyNoData
-import dev.nichidori.saku.core.composable.label
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.model.toPickerIcon
@@ -362,59 +357,53 @@ fun StatisticItem(
         }
     }
 
-    Row(modifier = modifier) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = MyDefaultShape
-                )
-                .wrapContentSize()
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = name,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else {
-                Text(
-                    name.split(' ').take(2).joinToString("") {
-                        it.firstOrNull()?.toString() ?: ""
-                    },
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shape = MyDefaultShape
+            )
+            .clip(shape = MyDefaultShape)
+    ) {
+        if (animatedFraction > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedFraction)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = MyDefaultShape
+                    )
+            )
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(64.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                    shape = MyDefaultShape
-                )
-                .clip(shape = MyDefaultShape)
-        ) {
-            if (animatedFraction > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animatedFraction)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = MyDefaultShape
-                        )
-                )
-            }
-            Column(
-                modifier = Modifier.padding(top = 12.dp).padding(horizontal = 12.dp)
+        Row(modifier = Modifier.padding(start = 8.dp, end = 12.dp, top = 12.dp, bottom = 12.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .wrapContentSize()
             ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = name,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Text(
+                        name.split(' ').take(2).joinToString("") {
+                            it.firstOrNull()?.toString() ?: ""
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
                 Text(name, style = MaterialTheme.typography.labelSmall)
                 Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
             }

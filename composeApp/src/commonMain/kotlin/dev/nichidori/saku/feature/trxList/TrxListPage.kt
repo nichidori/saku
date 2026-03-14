@@ -440,7 +440,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 .size(40.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = MyDefaultShape
+                    shape = CircleShape,
                 )
                 .wrapContentSize()
         ) {
