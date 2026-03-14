@@ -19,11 +19,5 @@ fun MyFilterChip(
         label = label,
         modifier = modifier,
         shape = MyDefaultShape,
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-            selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary,
-        )
     )
 }
