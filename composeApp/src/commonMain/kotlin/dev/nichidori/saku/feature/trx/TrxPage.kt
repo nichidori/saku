@@ -503,7 +503,7 @@ fun TrxPageContent(
                 MyTextField(
                     value = uiState.sourceAccount?.name.orEmpty(),
                     onValueChange = { },
-                    label = "Source Account",
+                    label = if (uiState.type == TrxType.Transfer) "Source Account" else "Account",
                     enabled = uiState.accountOptions.isNotEmpty(),
                     readOnly = true,
                     modifier = Modifier.onFocusChanged { focusState ->
@@ -511,7 +511,7 @@ fun TrxPageContent(
                     }
                 )
 
-                AnimatedVisibility(visible = uiState.type == TrxType.Transfer) {
+                if (uiState.type == TrxType.Transfer) {
                     MyTextField(
                         value = uiState.targetAccount?.name.orEmpty(),
                         onValueChange = { },
@@ -523,9 +523,7 @@ fun TrxPageContent(
                                 showTargetAccountInput = focusState.isFocused
                             }
                     )
-                }
-
-                AnimatedVisibility(visible = uiState.type != TrxType.Transfer) {
+                } else {
                     MyTextField(
                         value = uiState.category?.name.orEmpty(),
                         onValueChange = { },
