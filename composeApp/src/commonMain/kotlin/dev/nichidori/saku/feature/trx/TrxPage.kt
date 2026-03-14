@@ -28,6 +28,7 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
@@ -147,7 +148,7 @@ fun TrxPageContent(
                 onUp = onUp,
                 action = {
                     if (uiState.canDelete) {
-                        IconButton(
+                        MyIconButton(
                             content = {
                                 Icon(
                                     imageVector = Lucide.Trash,
@@ -484,12 +485,11 @@ fun TrxPageContent(
                     label = "Time",
                     readOnly = true,
                     trailingIcon = {
-                        TextButton(
+                        MyTextButton(
+                            text = "Now",
                             onClick = { onTimeChange(Clock.System.now()) },
                             modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("Now")
-                        }
+                        )
                     },
                     modifier = Modifier.onFocusChanged { focusState ->
                         showTimeInput = focusState.isFocused
@@ -572,7 +572,7 @@ fun TrxPageContent(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
-                        IconButton(onClick = onEnableFeeToggle) {
+                        MyIconButton(onClick = onEnableFeeToggle) {
                             Icon(
                                 imageVector = if (uiState.enableFee) Lucide.X else Lucide.Plus,
                                 contentDescription = if (uiState.enableFee) "Hide Additional Fee" else "Show Additional Fee",

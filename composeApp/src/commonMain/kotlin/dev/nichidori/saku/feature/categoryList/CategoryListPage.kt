@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.MyAppBar
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.toPickerIcon
@@ -68,7 +69,7 @@ fun CategoryListContent(
                 title = "Categories",
                 onUp = onUp,
                 action = {
-                    IconButton(onClick = onNewCategoryClick) {
+                    MyIconButton(onClick = onNewCategoryClick) {
                         Icon(
                             imageVector = Lucide.Plus,
                             contentDescription = "Add category"

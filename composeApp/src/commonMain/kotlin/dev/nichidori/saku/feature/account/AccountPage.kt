@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
@@ -104,7 +105,7 @@ fun AccountPageContent(
                 onUp = onUp,
                 action = {
                     if (uiState.canDelete) {
-                        IconButton(
+                        MyIconButton(
                             content = {
                                 Icon(
                                     imageVector = Lucide.Trash,

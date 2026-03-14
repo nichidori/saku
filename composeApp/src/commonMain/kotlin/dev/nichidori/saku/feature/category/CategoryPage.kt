@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.IconPickerCategories
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -213,7 +214,7 @@ fun CategoryPageContent(
                 onUp = onUp,
                 action = {
                     if (uiState.canDelete) {
-                        IconButton(
+                        MyIconButton(
                             content = {
                                 Icon(
                                     imageVector = Lucide.Trash,
@@ -346,12 +347,11 @@ fun CategoryPageContent(
                 readOnly = true,
                 trailingIcon = if (uiState.parent != null) {
                     {
-                        TextButton(
+                        MyTextButton(
+                            text = "Remove",
                             onClick = { onParentChange(null) },
                             modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("Remove")
-                        }
+                        )
                     }
                 } else null,
                 modifier = Modifier.onFocusChanged { focusState ->

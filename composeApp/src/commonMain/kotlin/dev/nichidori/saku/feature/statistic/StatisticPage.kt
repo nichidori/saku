@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
@@ -145,7 +146,7 @@ fun StatisticPage(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                IconButton(onClick = { showGroupByOptions = true }) {
+                MyIconButton(onClick = { showGroupByOptions = true }) {
                     Icon(
                         imageVector = Lucide.SlidersHorizontal,
                         contentDescription = "Group By"
@@ -364,11 +365,10 @@ fun StatisticItem(
     Row(modifier = modifier) {
         Box(
             modifier = Modifier
-                .padding(top = 4.dp)
                 .size(40.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = CircleShape
+                    shape = MyDefaultShape
                 )
                 .wrapContentSize()
         ) {

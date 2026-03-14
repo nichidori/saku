@@ -22,9 +22,12 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeftRight
 import com.composables.icons.lucide.Filter
 import com.composables.icons.lucide.Lucide
+import dev.nichidori.saku.core.composable.MyButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyMonthChipRow
 import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.composable.MyTextButton
 import dev.nichidori.saku.core.composable.label
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -105,16 +108,15 @@ fun TrxListPage(
                         modifier = Modifier.weight(1f)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    TextButton(
+                    MyTextButton(
+                        text = "Reset",
                         onClick = {
                             selectedAccountIds = emptySet()
                             selectedAccountTypes = emptySet()
                             selectedCategoryIds = emptySet()
                             selectedTrxTypes = emptySet()
                         }
-                    ) {
-                        Text("Reset")
-                    }
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -134,6 +136,7 @@ fun TrxListPage(
                             val selected = selectedTrxTypes.contains(it)
                             FilterChip(
                                 selected = selected,
+                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedTrxTypes = if (selected) {
                                         selectedTrxTypes - it
@@ -164,6 +167,7 @@ fun TrxListPage(
                             val selected = selectedAccountIds.contains(it.id)
                             FilterChip(
                                 selected = selected,
+                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedAccountIds = if (selected) {
                                         selectedAccountIds - it.id
@@ -194,6 +198,7 @@ fun TrxListPage(
                             val selected = selectedAccountTypes.contains(it)
                             FilterChip(
                                 selected = selected,
+                                shape = MyDefaultShape,
                                 onClick = {
                                     selectedAccountTypes = if (selected) {
                                         selectedAccountTypes - it
@@ -224,6 +229,7 @@ fun TrxListPage(
                             val selected = selectedCategoryIds.contains(category.id)
                             FilterChip(
                                 selected = selected,
+                                shape = MyDefaultShape,
                                 onClick = {
                                     val childrenIds = uiState.categories
                                         .filter { it.parent?.id == category.id }
@@ -257,7 +263,8 @@ fun TrxListPage(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
+                MyButton(
+                    text = "Save",
                     onClick = {
                         viewModel.applyFilters(
                             accountIds = selectedAccountIds,
@@ -268,9 +275,7 @@ fun TrxListPage(
                         showFilterOption = false
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save")
-                }
+                )
             }
         }
     }
@@ -289,7 +294,7 @@ fun TrxListPage(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                IconButton(
+                MyIconButton(
                     onClick = {
                         showFilterOption = true
                         viewModel.loadAccounts()
@@ -435,7 +440,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 .size(40.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = CircleShape
+                    shape = MyDefaultShape
                 )
                 .wrapContentSize()
         ) {

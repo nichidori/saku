@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
@@ -72,7 +73,7 @@ fun HomePageContent(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                IconButton(
+                MyIconButton(
                     onClick = onCategoryClick
                 ) {
                     Icon(imageVector = Lucide.Menu, contentDescription = "Open category list")
@@ -90,7 +91,7 @@ fun HomePageContent(
                     title = "Net Worth",
                     value = uiState.netWorthFormatted,
                     action = {
-                        IconButton(onClick = onBalanceToggle) {
+                        MyIconButton(onClick = onBalanceToggle) {
                             Icon(
                                 imageVector = if (uiState.showBalance) Lucide.EyeOff else Lucide.Eye,
                                 contentDescription = "Toggle balance visibility"
@@ -178,7 +179,7 @@ fun AccountSection(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = onNewAccountClick) {
+            MyIconButton(onClick = onNewAccountClick) {
                 Icon(
                     imageVector = Lucide.Plus,
                     contentDescription = "New Account"

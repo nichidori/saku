@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
+import dev.nichidori.saku.core.composable.MyIconButton
 
 @Composable
 fun MyAppBar(
@@ -39,7 +40,7 @@ fun MyAppBar(
             .padding(horizontal = 4.dp)
             .padding(top = 4.dp, bottom = 12.dp)
     ) {
-        IconButton(onClick = { onUp() }) {
+        MyIconButton(onClick = { onUp() }) {
             Icon(
                 imageVector = Lucide.ChevronLeft,
                 contentDescription = "Back"

@@ -12,6 +12,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import dev.nichidori.saku.core.composable.MyIconButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -54,7 +55,7 @@ private fun CloseRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         content()
-        IconButton(
+        MyIconButton(
             onClick = { focusManager.clearFocus() },
             modifier = Modifier.padding(vertical = 4.dp).size(32.dp)
         ) {

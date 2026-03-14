@@ -82,6 +82,7 @@ fun MyMonthChipRow(
                 onClick = {
                     if (month != selectedMonth) onMonthSelect(month)
                 },
+                shape = MyDefaultShape,
                 label = {
                     val date = LocalDate(
                         year = month.year,
