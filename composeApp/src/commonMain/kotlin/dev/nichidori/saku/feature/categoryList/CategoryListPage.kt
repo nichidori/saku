@@ -6,8 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,10 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
-import dev.nichidori.saku.core.composable.MyAppBar
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.composable.MyNoData
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
@@ -82,31 +81,13 @@ fun CategoryListContent(
         modifier = modifier,
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
-            SingleChoiceSegmentedButtonRow(
+            MySegmentedControl(
+                items = listOf(TrxType.Income, TrxType.Expense),
+                selectedItem = uiState.selectedType,
+                onItemSelection = onSelectedTypeChange,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            ) {
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topEnd = CornerSize(0.dp),
-                        bottomEnd = CornerSize(0.dp)
-                    ),
-                    selected = uiState.selectedType == TrxType.Income,
-                    onClick = { onSelectedTypeChange(TrxType.Income) },
-                    icon = {},
-                ) {
-                    Text("Income", style = MaterialTheme.typography.labelMedium)
-                }
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topStart = CornerSize(0.dp),
-                        bottomStart = CornerSize(0.dp)
-                    ),
-                    selected = uiState.selectedType == TrxType.Expense,
-                    onClick = { onSelectedTypeChange(TrxType.Expense) },
-                    icon = {},
-                ) {
-                    Text("Expense", style = MaterialTheme.typography.labelMedium)
-                }
+            ) { type ->
+                Text(if (type == TrxType.Income) "Income" else "Expense", style = MaterialTheme.typography.labelMedium)
             }
             val categoriesByParent = if (uiState.selectedType == TrxType.Income) {
                 uiState.incomesByParent

@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -191,42 +190,21 @@ fun StatisticPageContent(
                 .fillMaxSize()
                 .consumeWindowInsets(contentPadding)
         ) {
-            SingleChoiceSegmentedButtonRow(
+            MySegmentedControl(
+                items = listOf(TrxType.Income, TrxType.Expense),
+                selectedItem = selectedType,
+                onItemSelection = { selectedType = it },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            ) {
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topEnd = CornerSize(0.dp),
-                        bottomEnd = CornerSize(0.dp)
-                    ),
-                    selected = selectedType == TrxType.Income,
-                    onClick = { selectedType = TrxType.Income },
-                    icon = {},
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text("Income", style = MaterialTheme.typography.labelSmall)
-                        Text(
-                            uiState.totalIncome.toRupiah(),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-                SegmentedButton(
-                    shape = MyDefaultShape.copy(
-                        topStart = CornerSize(0.dp),
-                        bottomStart = CornerSize(0.dp)
-                    ),
-                    selected = selectedType == TrxType.Expense,
-                    onClick = { selectedType = TrxType.Expense },
-                    icon = {},
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text("Expense", style = MaterialTheme.typography.labelSmall)
-                        Text(
-                            uiState.totalExpense.toRupiah(),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+            ) { type ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        if (type == TrxType.Income) "Income" else "Expense",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        if (type == TrxType.Income) uiState.totalIncome.toRupiah() else uiState.totalExpense.toRupiah(),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))

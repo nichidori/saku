@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.IconPickerCategories
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -276,29 +274,13 @@ fun CategoryPageContent(
                 .padding(bottom = 16.dp)
         ) {
             if (uiState.canChooseType) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        shape = MyDefaultShape.copy(
-                            topEnd = CornerSize(0.dp),
-                            bottomEnd = CornerSize(0.dp)
-                        ),
-                        selected = uiState.type == TrxType.Income,
-                        onClick = { onTypeChange(TrxType.Income) },
-                        icon = {},
-                    ) {
-                        Text("Income", style = MaterialTheme.typography.labelMedium)
-                    }
-                    SegmentedButton(
-                        shape = MyDefaultShape.copy(
-                            topStart = CornerSize(0.dp),
-                            bottomStart = CornerSize(0.dp)
-                        ),
-                        selected = uiState.type == TrxType.Expense,
-                        onClick = { onTypeChange(TrxType.Expense) },
-                        icon = {},
-                    ) {
-                        Text("Expense", style = MaterialTheme.typography.labelMedium)
-                    }
+                MySegmentedControl(
+                    items = listOf(TrxType.Income, TrxType.Expense),
+                    selectedItem = uiState.type,
+                    onItemSelection = onTypeChange,
+                    modifier = Modifier.fillMaxWidth()
+                ) { type ->
+                    Text(if (type == TrxType.Income) "Income" else "Expense", style = MaterialTheme.typography.labelMedium)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }

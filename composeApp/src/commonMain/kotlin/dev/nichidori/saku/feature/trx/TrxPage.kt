@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -28,7 +29,6 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
@@ -433,38 +433,22 @@ fun TrxPageContent(
                 .padding(bottom = 16.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    types.forEachIndexed { i, type ->
-                        SegmentedButton(
-                            shape = when (i) {
-                                0 -> MyDefaultShape.copy(
-                                    bottomEnd = CornerSize(0.dp),
-                                    topEnd = CornerSize(0.dp)
-                                )
-
-                                types.lastIndex -> MyDefaultShape.copy(
-                                    bottomStart = CornerSize(0.dp),
-                                    topStart = CornerSize(0.dp)
-                                )
-
-                                else -> RectangleShape
-                            },
-                            selected = type == uiState.type,
-                            onClick = {
-                                onTypeChange(type)
-                                showTargetAccountInput = false
-                            },
-                            icon = {}
-                        ) {
-                            Text(
-                                when (type) {
-                                    TrxType.Income -> "Income"
-                                    TrxType.Expense -> "Expense"
-                                    TrxType.Transfer -> "Transfer"
-                                }
-                            )
+                MySegmentedControl(
+                    items = types,
+                    selectedItem = uiState.type,
+                    onItemSelection = { type ->
+                        onTypeChange(type)
+                        showTargetAccountInput = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { type ->
+                    Text(
+                        when (type) {
+                            TrxType.Income -> "Income"
+                            TrxType.Expense -> "Expense"
+                            TrxType.Transfer -> "Transfer"
                         }
-                    }
+                    )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
 
