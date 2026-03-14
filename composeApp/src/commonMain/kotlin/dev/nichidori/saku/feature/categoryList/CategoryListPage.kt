@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -103,7 +104,6 @@ fun CategoryListContent(
                         item {
                             CategoryCard(
                                 category = parent,
-                                isParent = true,
                                 onClick = onCategoryClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -115,11 +115,10 @@ fun CategoryListContent(
                                 ChildNodeIndicator(
                                     isLast = i == children.lastIndex,
                                     yOffset = 8f,
-                                    modifier = Modifier.size(height = (48 + 16).dp, width = 48.dp)
+                                    modifier = Modifier.size(height = (48 + 8).dp, width = 40.dp)
                                 )
                                 CategoryCard(
                                     category = child,
-                                    isParent = false,
                                     onClick = onCategoryClick,
                                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                                 )
@@ -141,26 +140,21 @@ fun CategoryListContent(
 @Composable
 fun CategoryCard(
     category: Category,
-    isParent: Boolean,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .background(
-                color = if (isParent) MaterialTheme.colorScheme.surfaceContainerHighest
-                else MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
-            .clip(MyDefaultShape)
-            .clickable { onClick(category.id) }
-            .padding(8.dp)
     ) {
         Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(32.dp)
-                .wrapContentSize()
+                .size(40.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = CircleShape,
+                )
         ) {
             val icon = category.icon.toPickerIcon()?.icon
             if (icon != null) {
@@ -168,25 +162,38 @@ fun CategoryCard(
                     imageVector = icon,
                     contentDescription = category.name,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             } else {
                 Text(
                     category.name.split(' ').take(2).joinToString("") {
                         it.firstOrNull()?.toString() ?: ""
                     },
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            category.name,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = MyDefaultShape
+                )
+                .clip(MyDefaultShape)
+                .clickable { onClick(category.id) }
+                .padding(12.dp)
+        ) {
+            Text(
+                category.name,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
