@@ -38,7 +38,6 @@ fun MyTextButton(
     TextButton(
         onClick = onClick,
         enabled = enabled,
-        shape = MyDefaultShape,
         modifier = modifier,
     ) {
         Text(text)
@@ -56,7 +55,6 @@ fun MyIconButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = MyDefaultShape,
         colors = IconButtonDefaults.iconButtonColors(),
         content = content,
     )
