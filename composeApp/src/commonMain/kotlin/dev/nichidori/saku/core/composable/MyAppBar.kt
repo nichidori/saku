@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
 import dev.nichidori.saku.core.composable.MyIconButton
@@ -42,12 +44,13 @@ fun MyAppBar(
     ) {
         MyIconButton(onClick = { onUp() }) {
             Icon(
-                imageVector = Lucide.ChevronLeft,
-                contentDescription = "Back"
+                imageVector = Lucide.ArrowLeft,
+                contentDescription = "Back",
+                modifier = Modifier.padding(top = 2.dp).size(20.dp)
             )
         }
         title?.let {
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(2.dp))
             Text(
                 text = it,
                 style = MaterialTheme.typography.titleLarge,

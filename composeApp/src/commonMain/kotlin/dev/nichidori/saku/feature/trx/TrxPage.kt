@@ -158,6 +158,7 @@ fun TrxPageContent(
                             },
                             onClick = onDeleteClick,
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
                 }
             )

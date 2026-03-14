@@ -20,15 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeftRight
-import com.composables.icons.lucide.Filter
+import com.composables.icons.lucide.ListFilter
 import com.composables.icons.lucide.Lucide
-import dev.nichidori.saku.core.composable.MyButton
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.composable.MyMonthChipRow
-import dev.nichidori.saku.core.composable.MyNoData
-import dev.nichidori.saku.core.composable.MyTextButton
-import dev.nichidori.saku.core.composable.label
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
@@ -303,7 +297,7 @@ fun TrxListPage(
                 ) {
                     Box(modifier = Modifier.padding(2.dp)) {
                         Icon(
-                            imageVector = Lucide.Filter,
+                            imageVector = Lucide.ListFilter,
                             contentDescription = "Filter transactions"
                         )
 

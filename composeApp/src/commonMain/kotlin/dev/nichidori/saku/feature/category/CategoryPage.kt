@@ -226,6 +226,7 @@ fun CategoryPageContent(
                             },
                             onClick = onDeleteClick,
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
                 }
             )

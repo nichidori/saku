@@ -144,7 +144,8 @@ fun StatisticPage(
                 MyIconButton(onClick = { showGroupByOptions = true }) {
                     Icon(
                         imageVector = Lucide.SlidersHorizontal,
-                        contentDescription = "Group By"
+                        contentDescription = "Group By",
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
