@@ -471,10 +471,13 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 else -> trx.sourceAccount.name
             }
             val primaryText = trx.description.ifBlank { accountInfo }
-            val secondaryText = if (trx.description.isBlank()) null else accountInfo
+            val secondaryText = if (trx.description.isBlank()) trx.category?.name
+                else "$accountInfo${trx.category?.name?.let { "  •  $it" }}"
             Text(
                 text = primaryText,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall,
+                color = if (secondaryText == null) MaterialTheme.colorScheme.outline
+                    else MaterialTheme.colorScheme.onBackground
             )
             secondaryText?.let {
                 Text(
