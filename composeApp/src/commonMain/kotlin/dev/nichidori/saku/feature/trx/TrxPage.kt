@@ -568,7 +568,7 @@ fun TrxPageContent(
                             MyTextField(
                                 value = uiState.feeAmountFormatted,
                                 onValueChange = { },
-                                label = "Fee Amount",
+                                label = "Amount",
                                 readOnly = true,
                                 modifier = Modifier.onFocusChanged { focusState ->
                                     showFeeAmountInput = focusState.isFocused
@@ -578,7 +578,7 @@ fun TrxPageContent(
                             MyTextField(
                                 value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
                                 onValueChange = { },
-                                label = "Fee Source Account",
+                                label = "Source Account",
                                 enabled = uiState.accountOptions.isNotEmpty(),
                                 readOnly = true,
                                 modifier = Modifier.onFocusChanged { focusState ->
@@ -589,7 +589,7 @@ fun TrxPageContent(
                             MyTextField(
                                 value = uiState.feeCategory?.name.orEmpty(),
                                 onValueChange = { },
-                                label = "Fee Category",
+                                label = "Category",
                                 enabled = uiState.expensesByParent.isNotEmpty(),
                                 readOnly = true,
                                 modifier = Modifier.onFocusChanged { focusState ->
