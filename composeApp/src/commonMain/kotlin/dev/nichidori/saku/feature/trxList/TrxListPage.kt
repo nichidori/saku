@@ -115,36 +115,6 @@ fun TrxListPage(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    // Trx Type
-                    Text(
-                        "Transaction Type",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        uiState.trxTypes.forEach {
-                            val selected = selectedTrxTypes.contains(it)
-                            MyFilterChip(
-                                selected = selected,
-                                onClick = {
-                                    selectedTrxTypes = if (selected) {
-                                        selectedTrxTypes - it
-                                    } else {
-                                        selectedTrxTypes + it
-                                    }
-                                },
-                                label = {
-                                    Text(it.label())
-                                },
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // Account
                     Text(
                         "Account",
@@ -195,6 +165,36 @@ fun TrxListPage(
                                         selectedAccountTypes - it
                                     } else {
                                         selectedAccountTypes + it
+                                    }
+                                },
+                                label = {
+                                    Text(it.label())
+                                },
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Trx Type
+                    Text(
+                        "Transaction Type",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        uiState.trxTypes.forEach {
+                            val selected = selectedTrxTypes.contains(it)
+                            MyFilterChip(
+                                selected = selected,
+                                onClick = {
+                                    selectedTrxTypes = if (selected) {
+                                        selectedTrxTypes - it
+                                    } else {
+                                        selectedTrxTypes + it
                                     }
                                 },
                                 label = {
