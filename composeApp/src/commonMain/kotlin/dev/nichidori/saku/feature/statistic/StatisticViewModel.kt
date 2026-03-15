@@ -17,17 +17,21 @@ import kotlinx.datetime.YearMonth
 enum class StatisticGroupBy { Category, Account, AccountType }
 
 data class StatisticUiState(
-    val loadStatus: Status<YearMonth, Exception> = Initial,
+    val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
     val groupBy: StatisticGroupBy = StatisticGroupBy.Category,
-    val incomesOfCategory: Map<Category, Long> = emptyMap(),
-    val expensesOfCategory: Map<Category, Long> = emptyMap(),
-    val incomesOfAccount: Map<Account, Long> = emptyMap(),
-    val expensesOfAccount: Map<Account, Long> = emptyMap(),
-    val incomesOfAccountType: Map<AccountType, Long> = emptyMap(),
-    val expensesOfAccountType: Map<AccountType, Long> = emptyMap(),
 ) {
-    val totalIncome: Long = incomesOfCategory.values.sum()
-    val totalExpense: Long = expensesOfCategory.values.sum()
+    data class MonthlyState(
+        val loadStatus: Status<Unit, Exception> = Initial,
+        val incomesOfCategory: Map<Category, Long> = emptyMap(),
+        val expensesOfCategory: Map<Category, Long> = emptyMap(),
+        val incomesOfAccount: Map<Account, Long> = emptyMap(),
+        val expensesOfAccount: Map<Account, Long> = emptyMap(),
+        val incomesOfAccountType: Map<AccountType, Long> = emptyMap(),
+        val expensesOfAccountType: Map<AccountType, Long> = emptyMap(),
+    ) {
+        val totalIncome: Long = incomesOfCategory.values.sum()
+        val totalExpense: Long = expensesOfCategory.values.sum()
+    }
 }
 
 class StatisticViewModel(
@@ -43,7 +47,7 @@ class StatisticViewModel(
     fun load(month: YearMonth) {
         viewModelScope.launch {
             try {
-                _uiState.update {
+                updateMonthlyState(month) {
                     it.copy(loadStatus = Loading)
                 }
 
@@ -75,29 +79,44 @@ class StatisticViewModel(
                     .groupBy({ it.sourceAccount.type }, { it.amount })
                     .mapValues { it.value.sum() }
 
-                _uiState.update {
-                    it.copy(
-                        loadStatus = Success(month),
-                        incomesOfCategory = incomesOfCategory
-                            .toSortedMap(compareByDescending { c -> incomesOfCategory[c] }),
-                        expensesOfCategory = expensesOfCategory
-                            .toSortedMap(compareByDescending { c -> expensesOfCategory[c] }),
-                        incomesOfAccount = incomesOfAccount
-                            .toSortedMap(compareByDescending { a -> incomesOfAccount[a] }),
-                        expensesOfAccount = expensesOfAccount
-                            .toSortedMap(compareByDescending { a -> expensesOfAccount[a] }),
-                        incomesOfAccountType = incomesOfAccountType
-                            .toSortedMap(compareByDescending { at -> incomesOfAccountType[at] }),
-                        expensesOfAccountType = expensesOfAccountType
-                            .toSortedMap(compareByDescending { at -> expensesOfAccountType[at] }),
+                _uiState.update { currentState ->
+                    val currentMonthlyState = currentState.stateByMonth[month] ?: StatisticUiState.MonthlyState()
+                    currentState.copy(
+                        stateByMonth = currentState.stateByMonth + (month to currentMonthlyState.copy(
+                            loadStatus = Success(Unit),
+                            incomesOfCategory = incomesOfCategory
+                                .toSortedMap(compareByDescending { c -> incomesOfCategory[c] }),
+                            expensesOfCategory = expensesOfCategory
+                                .toSortedMap(compareByDescending { c -> expensesOfCategory[c] }),
+                            incomesOfAccount = incomesOfAccount
+                                .toSortedMap(compareByDescending { a -> incomesOfAccount[a] }),
+                            expensesOfAccount = expensesOfAccount
+                                .toSortedMap(compareByDescending { a -> expensesOfAccount[a] }),
+                            incomesOfAccountType = incomesOfAccountType
+                                .toSortedMap(compareByDescending { at -> incomesOfAccountType[at] }),
+                            expensesOfAccountType = expensesOfAccountType
+                                .toSortedMap(compareByDescending { at -> expensesOfAccountType[at] }),
+                        ))
                     )
                 }
             } catch (e: Exception) {
                 this@StatisticViewModel.log(e)
-                _uiState.update {
+                updateMonthlyState(month) {
                     it.copy(loadStatus = Failure(e))
                 }
             }
+        }
+    }
+
+    private fun updateMonthlyState(
+        month: YearMonth,
+        transform: (StatisticUiState.MonthlyState) -> StatisticUiState.MonthlyState
+    ) {
+        _uiState.update { currentState ->
+            val currentMonthState = currentState.stateByMonth[month] ?: StatisticUiState.MonthlyState()
+            currentState.copy(
+                stateByMonth = currentState.stateByMonth + (month to transform(currentMonthState))
+            )
         }
     }
 }

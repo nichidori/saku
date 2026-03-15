@@ -27,6 +27,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Loading
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -224,12 +225,13 @@ fun StatisticPageContent(
                 onItemSelection = { selectedType = it },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) { type ->
+                val currentMonthlyState = uiState.stateByMonth[selectedMonth] ?: StatisticUiState.MonthlyState()
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = if (type == TrxType.Income) "Income" else "Expense",
                         style = MaterialTheme.typography.labelSmall
                     )
-                    Text(text = if (type == TrxType.Income) uiState.totalIncome.toRupiah() else uiState.totalExpense.toRupiah())
+                    Text(text = if (type == TrxType.Income) currentMonthlyState.totalIncome.toRupiah() else currentMonthlyState.totalExpense.toRupiah())
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -240,94 +242,94 @@ fun StatisticPageContent(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
-                if (pageMonth == selectedMonth) {
-                    when (uiState.loadStatus) {
-                        is Success<*>, is Failure<*> -> {
-                            val animatedCategories = remember(uiState.loadStatus, uiState.groupBy, selectedType) {
-                                mutableStateMapOf<String, Boolean>()
-                            }
+                val monthlyState = uiState.stateByMonth[pageMonth] ?: StatisticUiState.MonthlyState()
+                
+                when (monthlyState.loadStatus) {
+                    Loading, is Success<*>, is Failure<*> -> {
+                        val animatedCategories = remember(pageMonth, uiState.groupBy, selectedType) {
+                            mutableStateMapOf<String, Boolean>()
+                        }
 
-                            val (items, maxAmount) = remember(uiState, selectedType) {
-                                when (uiState.groupBy) {
-                                    StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
-                                        Pair(
-                                            uiState.incomesOfCategory.entries.toList(),
-                                            uiState.totalIncome
-                                        )
-                                    } else {
-                                        Pair(
-                                            uiState.expensesOfCategory.entries.toList(),
-                                            uiState.totalExpense
-                                        )
-                                    }
-
-                                    StatisticGroupBy.Account -> if (selectedType == TrxType.Income) {
-                                        Pair(
-                                            uiState.incomesOfAccount.entries.toList(),
-                                            uiState.totalIncome
-                                        )
-                                    } else {
-                                        Pair(
-                                            uiState.expensesOfAccount.entries.toList(),
-                                            uiState.totalExpense
-                                        )
-                                    }
-
-                                    StatisticGroupBy.AccountType -> if (selectedType == TrxType.Income) {
-                                        Pair(
-                                            uiState.incomesOfAccountType.entries.toList(),
-                                            uiState.totalIncome
-                                        )
-                                    } else {
-                                        Pair(
-                                            uiState.expensesOfAccountType.entries.toList(),
-                                            uiState.totalExpense
-                                        )
-                                    }
+                        val (items, maxAmount) = remember(monthlyState, uiState.groupBy, selectedType) {
+                            when (uiState.groupBy) {
+                                StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
+                                    Pair(
+                                        monthlyState.incomesOfCategory.entries.toList(),
+                                        monthlyState.totalIncome
+                                    )
+                                } else {
+                                    Pair(
+                                        monthlyState.expensesOfCategory.entries.toList(),
+                                        monthlyState.totalExpense
+                                    )
                                 }
-                            }
 
-                            if (items.isNotEmpty()) {
-                                LazyColumn(
-                                    contentPadding = PaddingValues(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = 16.dp
-                                    ),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    items(items, key = { it.key.toString() }) { (item, amount) ->
-                                        val (name, icon) = when (item) {
-                                            is Category -> item.name to item.icon.toPickerIcon()?.icon
-                                            is Account -> item.name to null
-                                            is AccountType -> item.label() to null
-                                            else -> "" to null
-                                        }
-
-                                        StatisticItem(
-                                            name = name,
-                                            icon = icon,
-                                            amount = amount,
-                                            maxAmount = maxAmount,
-                                            hasAnimated = animatedCategories[item.toString()] == true,
-                                            onAnimationComplete = {
-                                                animatedCategories[item.toString()] = true
-                                            }
-                                        )
-                                    }
+                                StatisticGroupBy.Account -> if (selectedType == TrxType.Income) {
+                                    Pair(
+                                        monthlyState.incomesOfAccount.entries.toList(),
+                                        monthlyState.totalIncome
+                                    )
+                                } else {
+                                    Pair(
+                                        monthlyState.expensesOfAccount.entries.toList(),
+                                        monthlyState.totalExpense
+                                    )
                                 }
-                            } else {
-                                MyNoData(
-                                    message = "No transactions yet",
-                                    contentDescription = "No transactions",
-                                    modifier = Modifier.fillMaxSize()
-                                )
+
+                                StatisticGroupBy.AccountType -> if (selectedType == TrxType.Income) {
+                                    Pair(
+                                        monthlyState.incomesOfAccountType.entries.toList(),
+                                        monthlyState.totalIncome
+                                    )
+                                } else {
+                                    Pair(
+                                        monthlyState.expensesOfAccountType.entries.toList(),
+                                        monthlyState.totalExpense
+                                    )
+                                }
                             }
                         }
 
-                        else -> Unit
+                        if (items.isNotEmpty()) {
+                            LazyColumn(
+                                contentPadding = PaddingValues(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 16.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(items, key = { it.key.toString() }) { (item, amount) ->
+                                    val (name, icon) = when (item) {
+                                        is Category -> item.name to item.icon.toPickerIcon()?.icon
+                                        is Account -> item.name to null
+                                        is AccountType -> item.label() to null
+                                        else -> "" to null
+                                    }
+
+                                    StatisticItem(
+                                        name = name,
+                                        icon = icon,
+                                        amount = amount,
+                                        maxAmount = maxAmount,
+                                        hasAnimated = animatedCategories[item.toString()] == true,
+                                        onAnimationComplete = {
+                                            animatedCategories[item.toString()] = true
+                                        }
+                                    )
+                                }
+                            }
+                        } else if (monthlyState.loadStatus !is Loading) {
+                            MyNoData(
+                                message = "No transactions yet",
+                                contentDescription = "No transactions",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
+
+                    else -> Unit
                 }
             }
         }
