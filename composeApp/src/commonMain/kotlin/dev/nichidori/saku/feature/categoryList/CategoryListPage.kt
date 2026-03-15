@@ -19,7 +19,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.*
@@ -108,21 +110,22 @@ fun CategoryListContent(
                                 onClick = onCategoryClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = if (i != 0) 8.dp else 0.dp)
+                                    .padding(top = if (i != 0) 16.dp else 0.dp)
                             )
                         }
-                        itemsIndexed(children) { i, child ->
-                            Row {
-                                Spacer(modifier = Modifier.width(8.dp))
+                        itemsIndexed(children) { index, child ->
+                            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                                 ChildNodeIndicator(
-                                    isLast = i == children.lastIndex,
-                                    yOffset = 4f,
-                                    modifier = Modifier.size(height = (48 + 4).dp, width = 40.dp)
+                                    isLast = index == children.lastIndex,
+                                    topPadding = 16.dp,
+                                    modifier = Modifier.fillMaxHeight().width((48 + 4).dp)
                                 )
                                 CategoryCard(
                                     category = child,
                                     onClick = onCategoryClick,
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(top = 16.dp)
                                 )
                             }
                         }
@@ -145,47 +148,53 @@ fun CategoryCard(
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.clickable { onClick(category.id) }
+    MyBox(
+        modifier = modifier
+            .clip(MyDefaultShape)
+            .clickable { onClick(category.id) }
     ) {
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(40.dp)
-        ) {
-            val icon = category.icon.toPickerIcon()?.icon
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = category.name,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else {
-                Text(
-                    category.name.split(' ').take(2).joinToString("") {
-                        it.firstOrNull()?.toString() ?: ""
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(12.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .weight(1f)
-                .clip(MyDefaultShape)
-                .padding(12.dp)
+            modifier = Modifier.padding(8.dp)
         ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(40.dp)
+            ) {
+                val icon = category.icon.toPickerIcon()?.icon
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = category.name,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Text(
+                        category.name.split(' ').take(2).joinToString("") {
+                            it.firstOrNull()?.toString() ?: ""
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 category.name,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
             )
+            Icon(
+                imageVector = Lucide.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
@@ -194,31 +203,28 @@ fun CategoryCard(
 fun ChildNodeIndicator(
     modifier: Modifier = Modifier,
     isLast: Boolean = false,
-    yOffset: Float = 0f,
+    topPadding: Dp = 0.dp,
 ) {
     val density = LocalDensity.current
     val strokeWidth = with(density) { 2.dp.toPx() }
+    val topPaddingPx = with(density) { topPadding.toPx() }
     val color = MaterialTheme.colorScheme.outline
 
     Canvas(modifier = modifier) {
+        val centerX = size.width / 2
+        val centerY = topPaddingPx + (size.height - topPaddingPx) / 2
+
         drawLine(
             color = color,
-            start = Offset(x = size.width / 2, y = 0f),
-            end = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
+            start = Offset(x = centerX, y = 0f),
+            end = Offset(x = centerX, y = if (isLast) centerY else size.height),
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round
         )
         drawLine(
             color = color,
-            start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
-            end = Offset(x = size.width, y = (size.height / 2) + yOffset),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
-        if (!isLast) drawLine(
-            color = color,
-            start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
-            end = Offset(x = size.width / 2, y = size.height),
+            start = Offset(x = centerX, y = centerY),
+            end = Offset(x = size.width, y = centerY),
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round
         )

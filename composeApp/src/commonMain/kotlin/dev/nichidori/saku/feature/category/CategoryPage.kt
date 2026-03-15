@@ -153,7 +153,8 @@ fun CategoryPageContent(
                                 )
                                 .border(
                                     width = 2.dp,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = if (selected) MaterialTheme.colorScheme.onSurface
+                                    else Color.Transparent,
                                     shape = CircleShape
                                 )
                                 .clip(CircleShape)
@@ -192,7 +193,8 @@ fun CategoryPageContent(
                                     )
                                     .border(
                                         width = 2.dp,
-                                        color = MaterialTheme.colorScheme.onSurface,
+                                        color = if (selected) MaterialTheme.colorScheme.onSurface
+                                        else Color.Transparent,
                                         shape = CircleShape
                                     )
                                     .clip(CircleShape)
@@ -291,8 +293,8 @@ fun CategoryPageContent(
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
                     Text(
-                        text = if (type == TrxType.Income) "Income" else "Expense"
-                        , style = MaterialTheme.typography.labelLarge,
+                        text = if (type == TrxType.Income) "Income" else "Expense",
+                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
