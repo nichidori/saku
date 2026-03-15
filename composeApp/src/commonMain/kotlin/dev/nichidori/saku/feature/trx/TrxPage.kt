@@ -176,7 +176,6 @@ fun TrxPageContent(
                             onTimeChange(it.toInstant(TimeZone.currentSystemDefault()))
                         },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -198,7 +197,6 @@ fun TrxPageContent(
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -213,7 +211,6 @@ fun TrxPageContent(
                         selectedWhen = { it == uiState.sourceAccount },
                         enabledWhen = { it != uiState.targetAccount },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -228,7 +225,6 @@ fun TrxPageContent(
                         selectedWhen = { it == uiState.targetAccount },
                         enabledWhen = { it != uiState.sourceAccount },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -313,7 +309,6 @@ fun TrxPageContent(
                             }
                         },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -335,7 +330,6 @@ fun TrxPageContent(
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -350,7 +344,6 @@ fun TrxPageContent(
                         selectedWhen = { it == (uiState.feeAccount ?: uiState.sourceAccount) },
                         enabledWhen = { true },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
@@ -434,7 +427,6 @@ fun TrxPageContent(
                             }
                         },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }

@@ -86,6 +86,7 @@ fun NumberKeyboard(
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
@@ -172,7 +173,7 @@ fun KeyboardKey(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = backgroundColor ?: MaterialTheme.colorScheme.surface,
+                color = backgroundColor ?: MaterialTheme.colorScheme.background,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
@@ -212,6 +213,7 @@ fun AccountTypeSelector(
 ) {
     Column(
         modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
@@ -236,7 +238,7 @@ fun AccountTypeSelector(
                                 .weight(1f)
                                 .background(
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.secondary
+                                        selected -> MaterialTheme.colorScheme.primary
                                         else -> MaterialTheme.colorScheme.background
                                     },
                                     shape = MyDefaultShape
@@ -251,7 +253,7 @@ fun AccountTypeSelector(
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                 color = when {
-                                    selected -> MaterialTheme.colorScheme.onSecondary
+                                    selected -> MaterialTheme.colorScheme.onPrimary
                                     else -> MaterialTheme.colorScheme.onBackground
                                 }
                             )
@@ -297,6 +299,7 @@ fun AccountSelector(
 ) {
     Column(
         modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
@@ -323,7 +326,7 @@ fun AccountSelector(
                                 .weight(1f)
                                 .background(
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.primaryContainer
+                                        selected -> MaterialTheme.colorScheme.primary
                                         enabled -> MaterialTheme.colorScheme.background
                                         else -> MaterialTheme.colorScheme.surfaceContainer
                                     },
@@ -339,7 +342,7 @@ fun AccountSelector(
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                 color = when {
-                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    selected -> MaterialTheme.colorScheme.onPrimary
                                     enabled -> MaterialTheme.colorScheme.onBackground
                                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                                 },
@@ -411,6 +414,7 @@ fun CategorySelector(
 ) {
     Column(
         modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
@@ -437,7 +441,7 @@ fun CategorySelector(
                                 .weight(1f)
                                 .background(
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.primaryContainer
+                                        selected -> MaterialTheme.colorScheme.primary
                                         enabled -> MaterialTheme.colorScheme.background
                                         else -> MaterialTheme.colorScheme.surfaceContainer
                                     },
@@ -453,7 +457,7 @@ fun CategorySelector(
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                 color = when {
-                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    selected -> MaterialTheme.colorScheme.onPrimary
                                     enabled -> MaterialTheme.colorScheme.onBackground
                                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                                 },
@@ -510,6 +514,7 @@ fun MyDateTimePicker(
 ) {
     Column(
         modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .requiredHeight(height)
             .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()

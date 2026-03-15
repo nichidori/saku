@@ -87,7 +87,7 @@ fun StatisticPage(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
                             .background(
-                                color = if (selected) MaterialTheme.colorScheme.secondary
+                                color = if (selected) MaterialTheme.colorScheme.primary
                                 else Color.Transparent,
                                 shape = MyDefaultShape
                             )
@@ -106,7 +106,7 @@ fun StatisticPage(
                             Text(
                                 it.label(),
                                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                color = if (selected) MaterialTheme.colorScheme.onSecondary
+                                color = if (selected) MaterialTheme.colorScheme.onPrimary
                                 else MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
@@ -114,7 +114,7 @@ fun StatisticPage(
                                 Icon(
                                     imageVector = Lucide.Check,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondary
+                                    tint = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }

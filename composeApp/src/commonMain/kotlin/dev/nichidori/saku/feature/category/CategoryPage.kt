@@ -138,7 +138,7 @@ fun CategoryPageContent(
                         Text(
                             "None",
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
@@ -178,7 +178,7 @@ fun CategoryPageContent(
                             Text(
                                 category.name,
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.outline,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                             )
                         }
@@ -255,7 +255,6 @@ fun CategoryPageContent(
                         },
                         selectedWhen = { it.id == uiState.parent?.id },
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)
                     )
                 }
