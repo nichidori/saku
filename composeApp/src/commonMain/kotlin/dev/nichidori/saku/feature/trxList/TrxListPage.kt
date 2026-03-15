@@ -1,7 +1,6 @@
 package dev.nichidori.saku.feature.trxList
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -382,16 +381,11 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .clickable { onClick(trx.id) }
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    shape = CircleShape,
-                )
                 .wrapContentSize()
         ) {
             val icon = when (trx) {

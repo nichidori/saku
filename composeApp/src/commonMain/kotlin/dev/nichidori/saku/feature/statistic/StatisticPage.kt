@@ -3,7 +3,6 @@ package dev.nichidori.saku.feature.statistic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +12,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,7 +23,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
-import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
 import dev.nichidori.saku.core.composable.*
@@ -374,11 +371,7 @@ fun StatisticItem(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(40.dp)
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    shape = CircleShape,
-                )
+                .wrapContentSize()
         ) {
             if (icon != null) {
                 Icon(
@@ -404,7 +397,7 @@ fun StatisticItem(
                 .weight(1f)
                 .height(IntrinsicSize.Min)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
                     shape = MyDefaultShape
                 )
                 .clip(shape = MyDefaultShape)
