@@ -132,7 +132,7 @@ private fun NavBarActionButton(
         modifier = modifier
             .size(48.dp)
             .background(
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.primaryContainer,
                 shape = MyDefaultShape
             )
             .clip(MyDefaultShape)
@@ -177,7 +177,7 @@ private fun NavBarActionButton(
         Icon(
             imageVector = imageVector,
             contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.onSecondary
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
 }
