@@ -1,17 +1,14 @@
 package dev.nichidori.saku.feature.category
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -144,12 +142,18 @@ fun CategoryPageContent(
                         )
                     }
                     item {
+                        val selected = uiState.icon == null
                         Box(
                             modifier = Modifier
                                 .requiredSize(48.dp)
                                 .background(
-                                    color = if (uiState.icon == null) MaterialTheme.colorScheme.primaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainer,
+                                    color = if (selected) MaterialTheme.colorScheme.secondary
+                                    else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     shape = CircleShape
                                 )
                                 .clip(CircleShape)
@@ -162,7 +166,7 @@ fun CategoryPageContent(
                             Text(
                                 uiState.name.firstOrNull()?.toString() ?: "?",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = if (uiState.icon == null) MaterialTheme.colorScheme.onPrimaryContainer
+                                color = if (selected) MaterialTheme.colorScheme.onSecondary
                                 else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -177,12 +181,18 @@ fun CategoryPageContent(
                             )
                         }
                         items(category.icons) { pickerIcon ->
+                            val selected = uiState.icon == pickerIcon.label
                             Box(
                                 modifier = Modifier
                                     .requiredSize(48.dp)
                                     .background(
-                                        color = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.secondary
-                                        else MaterialTheme.colorScheme.surfaceContainer,
+                                        color = if (selected) MaterialTheme.colorScheme.secondary
+                                        else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = 2.dp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         shape = CircleShape
                                     )
                                     .clip(CircleShape)
@@ -195,7 +205,7 @@ fun CategoryPageContent(
                                 Icon(
                                     imageVector = pickerIcon.icon,
                                     contentDescription = pickerIcon.label,
-                                    tint = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.onSecondary
+                                    tint = if (selected) MaterialTheme.colorScheme.onSecondary
                                     else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -291,8 +301,9 @@ fun CategoryPageContent(
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    .border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurface,
                         shape = CircleShape
                     )
                     .clip(CircleShape)

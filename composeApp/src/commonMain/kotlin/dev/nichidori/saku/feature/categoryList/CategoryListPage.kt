@@ -1,12 +1,10 @@
 package dev.nichidori.saku.feature.categoryList
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
@@ -100,8 +98,8 @@ fun CategoryListContent(
             }
             if (categoriesByParent.isNotEmpty()) {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    modifier = Modifier.weight(1f).padding(top = 16.dp),
                 ) {
                     categoriesByParent.onEachIndexed { i, (parent, children) ->
                         item {
@@ -110,20 +108,21 @@ fun CategoryListContent(
                                 onClick = onCategoryClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = if (i != 0) 16.dp else 0.dp)
+                                    .padding(top = if (i != 0) 8.dp else 0.dp)
                             )
                         }
                         itemsIndexed(children) { i, child ->
                             Row {
+                                Spacer(modifier = Modifier.width(8.dp))
                                 ChildNodeIndicator(
                                     isLast = i == children.lastIndex,
-                                    yOffset = 8f,
-                                    modifier = Modifier.size(height = (48 + 8).dp, width = 40.dp)
+                                    yOffset = 4f,
+                                    modifier = Modifier.size(height = (48 + 4).dp, width = 40.dp)
                                 )
                                 CategoryCard(
                                     category = child,
                                     onClick = onCategoryClick,
-                                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                                 )
                             }
                         }
@@ -148,16 +147,12 @@ fun CategoryCard(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = modifier.clickable { onClick(category.id) }
     ) {
+        Spacer(modifier = Modifier.width(8.dp))
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = CircleShape,
-                )
+            modifier = Modifier.size(40.dp)
         ) {
             val icon = category.icon.toPickerIcon()?.icon
             if (icon != null) {
@@ -172,29 +167,24 @@ fun CategoryCard(
                     category.name.split(' ').take(2).joinToString("") {
                         it.firstOrNull()?.toString() ?: ""
                     },
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .weight(1f)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = MyDefaultShape
-                )
                 .clip(MyDefaultShape)
-                .clickable { onClick(category.id) }
                 .padding(12.dp)
         ) {
             Text(
                 category.name,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -206,7 +196,8 @@ fun ChildNodeIndicator(
     isLast: Boolean = false,
     yOffset: Float = 0f,
 ) {
-    val stroke = Stroke(width = 1.5f, cap = StrokeCap.Round)
+    val density = LocalDensity.current
+    val strokeWidth = with(density) { 2.dp.toPx() }
     val color = MaterialTheme.colorScheme.outline
 
     Canvas(modifier = modifier) {
@@ -214,25 +205,22 @@ fun ChildNodeIndicator(
             color = color,
             start = Offset(x = size.width / 2, y = 0f),
             end = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
-            strokeWidth = stroke.width,
-            cap = stroke.cap,
-            pathEffect = stroke.pathEffect
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
         )
         drawLine(
             color = color,
             start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
             end = Offset(x = size.width, y = (size.height / 2) + yOffset),
-            strokeWidth = stroke.width,
-            cap = stroke.cap,
-            pathEffect = stroke.pathEffect
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
         )
         if (!isLast) drawLine(
             color = color,
             start = Offset(x = size.width / 2, y = (size.height / 2) + yOffset),
             end = Offset(x = size.width / 2, y = size.height),
-            strokeWidth = stroke.width,
-            cap = stroke.cap,
-            pathEffect = stroke.pathEffect
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
         )
     }
 }

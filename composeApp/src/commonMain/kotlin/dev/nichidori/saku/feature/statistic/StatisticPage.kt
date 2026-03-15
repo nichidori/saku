@@ -3,6 +3,7 @@ package dev.nichidori.saku.feature.statistic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -373,8 +374,9 @@ fun StatisticItem(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurface,
                     shape = CircleShape,
                 )
         ) {
@@ -402,7 +404,7 @@ fun StatisticItem(
                 .weight(1f)
                 .height(IntrinsicSize.Min)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = MyDefaultShape
                 )
                 .clip(shape = MyDefaultShape)
@@ -413,16 +415,36 @@ fun StatisticItem(
                         .fillMaxHeight()
                         .fillMaxWidth(animatedFraction)
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            color = MaterialTheme.colorScheme.secondary,
                             shape = MyDefaultShape
                         )
                 )
             }
-            Row(modifier = Modifier.padding(12.dp)) {
-                Column {
-                    Text(name, style = MaterialTheme.typography.labelSmall)
-                    Text(amount.toRupiah(), style = MaterialTheme.typography.bodyMedium)
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        amount.toRupiah(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 }
+                Text(
+                    text = "${(target * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

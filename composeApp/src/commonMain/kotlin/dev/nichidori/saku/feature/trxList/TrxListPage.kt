@@ -1,6 +1,7 @@
 package dev.nichidori.saku.feature.trxList
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -386,8 +387,9 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurface,
                     shape = CircleShape,
                 )
                 .wrapContentSize()
@@ -447,7 +449,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 color = when (trx) {
                     is Trx.Income -> MaterialTheme.colorScheme.primary
                     is Trx.Expense -> MaterialTheme.colorScheme.error
-                    is Trx.Transfer -> MaterialTheme.colorScheme.onBackground
+                    is Trx.Transfer -> MaterialTheme.colorScheme.outline
                 }
             )
             Text(
