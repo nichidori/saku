@@ -343,7 +343,7 @@ fun TrxListContent(
                             if (record.totalIncome.absoluteValue > 0) Text(
                                 record.totalIncome.absoluteValue.toRupiah(),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.outline,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier
                                     .padding(
                                         top = if (index > 0) 12.dp else 0.dp,
@@ -425,14 +425,14 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             Text(
                 text = primaryText,
                 style = MaterialTheme.typography.titleSmall,
-                color = if (secondaryText == null) MaterialTheme.colorScheme.outline
-                    else MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold,
             )
             secondaryText?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
         }
@@ -443,8 +443,9 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 color = when (trx) {
                     is Trx.Income -> MaterialTheme.colorScheme.primary
                     is Trx.Expense -> MaterialTheme.colorScheme.error
-                    is Trx.Transfer -> MaterialTheme.colorScheme.outline
-                }
+                    is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 trx.transactionAt.format(LocalDateTime.Format {
@@ -453,7 +454,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                     minute()
                 }),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
     }

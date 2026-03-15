@@ -136,7 +136,11 @@ fun TrendCard(
             Row {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.labelSmall)
-                    Text(value, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
                 action()
             }
@@ -235,7 +239,8 @@ fun AccountCard(
             Text(account.name, style = MaterialTheme.typography.labelSmall)
             Text(
                 account.balanceFormatted(show = showBalance),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
             )
         }
     }

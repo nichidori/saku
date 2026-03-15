@@ -420,7 +420,7 @@ fun StatisticItem(
                     Text(
                         name,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
                     Text(
                         amount.toRupiah(),
@@ -432,7 +432,7 @@ fun StatisticItem(
                 Text(
                     text = "${(target * 100).toInt()}%",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             }
