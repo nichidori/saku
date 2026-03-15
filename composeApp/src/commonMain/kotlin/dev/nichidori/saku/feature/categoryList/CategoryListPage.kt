@@ -203,7 +203,7 @@ fun ChildNodeIndicator(
     val density = LocalDensity.current
     val strokeWidth = with(density) { 2.dp.toPx() }
     val topPaddingPx = with(density) { topPadding.toPx() }
-    val color = MaterialTheme.colorScheme.outline
+    val color = MaterialTheme.colorScheme.outlineVariant
 
     Canvas(modifier = modifier) {
         val centerX = size.width / 2

@@ -317,9 +317,7 @@ fun TrxListContent(
                 item {
                     Column {
                         if (index > 0) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.surfaceVariant
-                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
