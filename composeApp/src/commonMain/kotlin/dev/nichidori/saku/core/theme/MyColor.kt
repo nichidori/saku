@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 val Ink           = Color(0xFF111111)
 val Washi         = Color(0xFFFAF8F1)
-val Solar         = Color(0xFFF5E642)
+val Solar         = Color(0xFFE8D44D)
 val Kinari        = Color(0xFFFFF9C4)
 val Asahi         = Color(0xFFFFAB00)
 val Ash           = Color(0xFF5E5E5E)

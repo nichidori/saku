@@ -27,7 +27,7 @@ fun MyFilterChip(
             .clip(MyDefaultShape)
             .clickable { onClick() }
             .then(
-                if (selected) Modifier.background(MaterialTheme.colorScheme.primary)
+                if (selected) Modifier.background(MaterialTheme.colorScheme.secondary)
                 else Modifier
             )
     ) {
@@ -35,7 +35,7 @@ fun MyFilterChip(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
-            val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary
+            val contentColor = if (selected) MaterialTheme.colorScheme.onSecondary
             else MaterialTheme.colorScheme.onSurface
             CompositionLocalProvider(LocalContentColor provides contentColor) {
                 ProvideTextStyle(MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) {
