@@ -67,7 +67,8 @@ fun StatisticPage(
         ModalBottomSheet(
             onDismissRequest = { showGroupByOptions = false },
             shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             Column {
                 Text(
@@ -104,7 +105,7 @@ fun StatisticPage(
                         ) {
                             Text(
                                 it.label(),
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                 color = if (selected) MaterialTheme.colorScheme.onSecondary
                                 else MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)

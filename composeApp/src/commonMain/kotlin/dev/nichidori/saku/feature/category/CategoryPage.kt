@@ -110,6 +110,7 @@ fun CategoryPageContent(
             onDismissRequest = { showIconPicker = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
             modifier = Modifier.padding(
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding()

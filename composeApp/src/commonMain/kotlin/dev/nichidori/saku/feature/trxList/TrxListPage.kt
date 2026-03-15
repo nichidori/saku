@@ -78,6 +78,7 @@ fun TrxListPage(
             onDismissRequest = { showFilterOption = false },
             sheetState = sheetState,
             shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
             modifier = Modifier.padding(
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding()
