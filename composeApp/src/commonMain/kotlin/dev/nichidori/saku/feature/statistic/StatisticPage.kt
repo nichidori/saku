@@ -380,10 +380,8 @@ fun StatisticItem(
                 )
             } else {
                 Text(
-                    name.split(' ').take(2).joinToString("") {
-                        it.firstOrNull()?.toString() ?: ""
-                    },
-                    style = MaterialTheme.typography.titleSmall,
+                    name.firstOrNull()?.toString() ?: "",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )

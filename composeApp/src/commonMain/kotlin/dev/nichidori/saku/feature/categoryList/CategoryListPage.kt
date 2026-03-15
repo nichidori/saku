@@ -168,10 +168,8 @@ fun CategoryCard(
                     )
                 } else {
                     Text(
-                        category.name.split(' ').take(2).joinToString("") {
-                            it.firstOrNull()?.toString() ?: ""
-                        },
-                        style = MaterialTheme.typography.labelSmall,
+                        category.name.firstOrNull()?.toString() ?: "",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                     )

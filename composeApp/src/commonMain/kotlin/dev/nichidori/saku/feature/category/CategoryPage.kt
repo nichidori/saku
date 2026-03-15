@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
@@ -294,9 +295,9 @@ fun CategoryPageContent(
                 ) { type ->
                     Text(text = if (type == TrxType.Income) "Income" else "Expense",)
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
+            Spacer(modifier = Modifier.height(24.dp))
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -322,6 +323,7 @@ fun CategoryPageContent(
                         uiState.name.firstOrNull()?.toString() ?: "?",
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }

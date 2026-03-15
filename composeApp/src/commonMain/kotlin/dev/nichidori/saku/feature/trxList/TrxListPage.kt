@@ -402,10 +402,8 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 )
             } else {
                 Text(
-                    text = trx.category?.name?.split(' ')?.take(2)?.joinToString("") {
-                        it.firstOrNull()?.toString() ?: ""
-                    } ?: "",
-                    style = MaterialTheme.typography.titleSmall,
+                    text = trx.category?.name?.firstOrNull()?.toString() ?: "",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
