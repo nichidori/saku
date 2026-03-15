@@ -131,7 +131,7 @@ fun CategoryPageContent(
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(bottom = 16.dp),
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
@@ -150,7 +150,7 @@ fun CategoryPageContent(
                                 .requiredSize(48.dp)
                                 .background(
                                     color = if (selected) MaterialTheme.colorScheme.secondary
-                                    else Color.Transparent,
+                                    else MaterialTheme.colorScheme.surfaceContainer,
                                     shape = CircleShape
                                 )
                                 .border(
@@ -170,7 +170,8 @@ fun CategoryPageContent(
                                 uiState.name.firstOrNull()?.toString() ?: "?",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (selected) MaterialTheme.colorScheme.onSecondary
-                                else MaterialTheme.colorScheme.onSurface
+                                else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
@@ -190,7 +191,7 @@ fun CategoryPageContent(
                                     .requiredSize(48.dp)
                                     .background(
                                         color = if (selected) MaterialTheme.colorScheme.secondary
-                                        else Color.Transparent,
+                                        else MaterialTheme.colorScheme.surfaceContainer,
                                         shape = CircleShape
                                     )
                                     .border(
@@ -293,7 +294,7 @@ fun CategoryPageContent(
                     onItemSelection = onTypeChange,
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
-                    Text(text = if (type == TrxType.Income) "Income" else "Expense",)
+                    Text(text = if (type == TrxType.Income) "Income" else "Expense")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
