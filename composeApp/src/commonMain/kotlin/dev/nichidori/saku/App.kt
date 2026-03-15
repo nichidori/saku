@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -28,9 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyNavBar
-import dev.nichidori.saku.core.composable.NavBarDestination
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
@@ -176,7 +176,7 @@ fun MainContainer(
     trxRepository: TrxRepository,
 ) {
     val innerNavController = rememberNavController()
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showInputOption by remember { mutableStateOf(false) }
     var selectedMonth by rememberSaveable { mutableStateOf(Clock.System.now().toYearMonth()) }
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
@@ -286,16 +286,9 @@ fun MainContainer(
 
         if (showInputOption) {
             ModalBottomSheet(
-                dragHandle = null,
                 onDismissRequest = { showInputOption = false },
-                sheetState = sheetState,
-                shape = MyDefaultShape,
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .padding(
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding() + 24.dp
-                    )
+                shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+                sheetState = sheetState
             ) {
                 InputOptionSelector(
                     onAccountClick = {
@@ -323,13 +316,20 @@ fun InputOptionSelector(
     onTrxClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier.padding(16.dp)
-    ) {
-        InputOption(label = "Add Account", onClick = onAccountClick)
-        InputOption(label = "Add Category", onClick = onCategoryClick)
-        InputOption(label = "Add Transaction", onClick = onTrxClick)
+    Column(modifier = modifier) {
+        Text(
+            "Add",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 16.dp
+            )
+        )
+        InputOption(label = "Account", onClick = onAccountClick)
+        InputOption(label = "Category", onClick = onCategoryClick)
+        InputOption(label = "Transaction", onClick = onTrxClick)
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -339,25 +339,25 @@ fun InputOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
+    MyBox(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = MyDefaultShape
-            )
-            .clip(MyDefaultShape)
-            .focusProperties { canFocus = false }
+            .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable { onClick() }
-            .height(48.dp)
     ) {
-        Text(
-            label,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 

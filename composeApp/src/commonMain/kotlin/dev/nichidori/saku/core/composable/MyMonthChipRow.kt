@@ -92,10 +92,7 @@ fun MyMonthChipRow(
                         " ${(month.year % 100).toString().padStart(2, '0')}"
                     } else ""
 
-                    Text(
-                        text = monthName + yearSuffix,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = monthName + yearSuffix)
                 }
             )
         }

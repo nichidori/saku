@@ -139,7 +139,7 @@ fun CategoryPageContent(
                         Text(
                             "None",
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
@@ -172,7 +172,7 @@ fun CategoryPageContent(
                             Text(
                                 category.name,
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.secondary,
+                                color = MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                             )
                         }
@@ -181,7 +181,7 @@ fun CategoryPageContent(
                                 modifier = Modifier
                                     .requiredSize(48.dp)
                                     .background(
-                                        color = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.primaryContainer
+                                        color = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.secondary
                                         else MaterialTheme.colorScheme.surfaceContainer,
                                         shape = CircleShape
                                     )
@@ -195,7 +195,7 @@ fun CategoryPageContent(
                                 Icon(
                                     imageVector = pickerIcon.icon,
                                     contentDescription = pickerIcon.label,
-                                    tint = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.onPrimaryContainer
+                                    tint = if (uiState.icon == pickerIcon.label) MaterialTheme.colorScheme.onSecondary
                                     else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -280,7 +280,10 @@ fun CategoryPageContent(
                     onItemSelection = onTypeChange,
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
-                    Text(if (type == TrxType.Income) "Income" else "Expense", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = if (type == TrxType.Income) "Income" else "Expense"
+                        , style = MaterialTheme.typography.labelLarge,
+                    )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }

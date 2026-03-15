@@ -443,11 +443,12 @@ fun TrxPageContent(
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
                     Text(
-                        when (type) {
+                        text = when (type) {
                             TrxType.Income -> "Income"
                             TrxType.Expense -> "Expense"
                             TrxType.Transfer -> "Transfer"
-                        }
+                        },
+                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -578,7 +579,7 @@ fun TrxPageContent(
                             MyTextField(
                                 value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
                                 onValueChange = { },
-                                label = "Source Account",
+                                label = "Account",
                                 enabled = uiState.accountOptions.isNotEmpty(),
                                 readOnly = true,
                                 modifier = Modifier.onFocusChanged { focusState ->

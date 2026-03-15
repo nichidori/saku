@@ -88,7 +88,10 @@ fun CategoryListContent(
                 onItemSelection = onSelectedTypeChange,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) { type ->
-                Text(if (type == TrxType.Income) "Income" else "Expense", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    text = if (type == TrxType.Income) "Income" else "Expense",
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
             val categoriesByParent = if (uiState.selectedType == TrxType.Income) {
                 uiState.incomesByParent

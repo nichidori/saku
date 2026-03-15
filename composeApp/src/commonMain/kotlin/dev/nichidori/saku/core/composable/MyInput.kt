@@ -1,5 +1,6 @@
 package dev.nichidori.saku.core.composable
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
+import dev.darkokoa.datetimewheelpicker.core.SelectorProperties
+import dev.darkokoa.datetimewheelpicker.core.WheelPickerDefaults
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
 import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
 import dev.darkokoa.datetimewheelpicker.core.format.timeFormatter
@@ -44,7 +47,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-val defaultInputHeight = 360.dp
+val defaultInputHeight = 350.dp
 
 @Composable
 private fun CloseRow(
@@ -90,36 +93,42 @@ fun NumberKeyboard(
     ) {
         CloseRow()
         for (i in 1..3) {
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+                modifier = Modifier.weight(1f)
+            ) {
                 for (j in 1..3) {
                     val value = ((i - 1) * 3 + j)
                     KeyboardKey(
                         label = value.toString(),
                         onClick = { onValueClick(value) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).fillMaxHeight()
                     )
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+            modifier = Modifier.weight(1f)
+        ) {
             KeyboardKey(
                 label = "Delete",
                 onClick = onDeleteClick,
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                foregroundColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.weight(1f)
+                backgroundColor = MaterialTheme.colorScheme.secondary,
+                foregroundColor = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
             KeyboardKey(
                 label = "0",
                 onClick = { onValueClick(0) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
             KeyboardKey(
                 label = actionLabel,
                 onClick = onActionClick,
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                foregroundColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.weight(1f)
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                foregroundColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
         }
     }
@@ -173,7 +182,6 @@ fun KeyboardKey(
                 indication = ripple(),
                 onClick = {}
             )
-            .height(56.dp)
             .padding(16.dp)
     ) {
         Text(
@@ -490,7 +498,7 @@ fun MyDateTimePicker(
             .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
     ) {
         CloseRow()
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         WheelDateTimePicker(
             startDateTime = startDateTime,
             maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
@@ -506,6 +514,14 @@ fun MyDateTimePicker(
             dateFormatter = dateFormatter(),
             timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
             onSnappedDateTime = onDateTimePicked,
+            selectorProperties = WheelPickerDefaults.selectorProperties(
+                shape = MyDefaultShape,
+                color = MaterialTheme.colorScheme.secondary,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                ),
+            ),
             modifier = Modifier.fillMaxWidth()
         )
     }

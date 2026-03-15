@@ -1,10 +1,12 @@
 package dev.nichidori.saku.feature.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,8 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
-import dev.nichidori.saku.core.composable.MyIconButton
+import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
@@ -124,13 +127,9 @@ fun TrendCard(
     modifier: Modifier = Modifier,
     action: @Composable () -> Unit = {}
 ) {
-    Box(
+    MyBox(
         modifier = modifier
             .padding(horizontal = 16.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
             .fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -227,12 +226,8 @@ fun AccountCard(
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    MyBox(
         modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = MyDefaultShape
-            )
             .clip(MyDefaultShape)
             .clickable { onClick(account.id) },
     ) {

@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -51,116 +52,132 @@ fun MyNavBar(
     onAddLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    var hoverInteraction: HoverInteraction.Enter? by remember { mutableStateOf(null) }
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .background(color = MaterialTheme.colorScheme.primary)
             .padding(horizontal = 32.dp, vertical = 12.dp)
             .padding(
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             ),
     ) {
-        Icon(
+        NavBarItem(
             imageVector = Lucide.House,
             contentDescription = "Home",
-            tint = if (selectedDestination == NavBarDestination.Home) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.secondary
-            },
-            modifier = Modifier
-                .size(48.dp)
-                .clip(MyDefaultShape)
-                .clickable { onHomeClick() }
-                .padding(12.dp)
+            isSelected = selectedDestination == NavBarDestination.Home,
+            onClick = onHomeClick
         )
         Spacer(modifier = Modifier.width(24.dp))
-        Icon(
+        NavBarItem(
             imageVector = Lucide.ReceiptText,
             contentDescription = "Transaction",
-            tint = if (selectedDestination == NavBarDestination.Trx) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.secondary
-            },
-            modifier = Modifier
-                .size(48.dp)
-                .clip(MyDefaultShape)
-                .clickable { onTrxClick() }
-                .padding(12.dp)
+            isSelected = selectedDestination == NavBarDestination.Trx,
+            onClick = onTrxClick
         )
         Spacer(modifier = Modifier.width(24.dp))
-        Icon(
+        NavBarItem(
             imageVector = Lucide.ChartPie,
             contentDescription = "Statistic",
-            tint = if (selectedDestination == NavBarDestination.Statistic) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.secondary
-            },
-            modifier = Modifier
-                .size(48.dp)
-                .clip(MyDefaultShape)
-                .clickable { onStatisticClick() }
-                .padding(12.dp)
+            isSelected = selectedDestination == NavBarDestination.Statistic,
+            onClick = onStatisticClick
         )
         Spacer(modifier = Modifier.width(24.dp))
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = MyDefaultShape
-                )
-                .clip(MyDefaultShape)
-                .indication(interactionSource, LocalIndication.current)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = { offset ->
-                            val press = PressInteraction.Press(offset)
-                            interactionSource.emit(press)
-                            tryAwaitRelease()
-                            interactionSource.emit(PressInteraction.Release(press))
-                        },
-                        onTap = { onAddClick() },
-                        onLongPress = { onAddLongPress() }
-                    )
-                }
-                .pointerInput(interactionSource) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Main)
-                            when (event.type) {
-                                PointerEventType.Enter -> {
-                                    if (hoverInteraction == null) {
-                                        val enter = HoverInteraction.Enter()
-                                        hoverInteraction = enter
-                                        interactionSource.tryEmit(enter)
-                                    }
-                                }
+        NavBarActionButton(
+            imageVector = Lucide.Pencil,
+            contentDescription = "Add",
+            onClick = onAddClick,
+            onLongPress = onAddLongPress
+        )
+    }
+}
 
-                                PointerEventType.Exit -> {
-                                    hoverInteraction?.let {
-                                        interactionSource.tryEmit(HoverInteraction.Exit(it))
-                                        hoverInteraction = null
-                                    }
+@Composable
+private fun NavBarItem(
+    imageVector: ImageVector,
+    contentDescription: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Icon(
+        imageVector = imageVector,
+        contentDescription = contentDescription,
+        tint = if (isSelected) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+        },
+        modifier = modifier
+            .size(48.dp)
+            .clip(MyDefaultShape)
+            .clickable { onClick() }
+            .padding(12.dp)
+    )
+}
+
+@Composable
+private fun NavBarActionButton(
+    imageVector: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    var hoverInteraction: HoverInteraction.Enter? by remember { mutableStateOf(null) }
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .background(
+                color = MaterialTheme.colorScheme.secondary,
+                shape = MyDefaultShape
+            )
+            .clip(MyDefaultShape)
+            .indication(interactionSource, LocalIndication.current)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { offset ->
+                        val press = PressInteraction.Press(offset)
+                        interactionSource.emit(press)
+                        tryAwaitRelease()
+                        interactionSource.emit(PressInteraction.Release(press))
+                    },
+                    onTap = { onClick() },
+                    onLongPress = { onLongPress() }
+                )
+            }
+            .pointerInput(interactionSource) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Main)
+                        when (event.type) {
+                            PointerEventType.Enter -> {
+                                if (hoverInteraction == null) {
+                                    val enter = HoverInteraction.Enter()
+                                    hoverInteraction = enter
+                                    interactionSource.tryEmit(enter)
+                                }
+                            }
+
+                            PointerEventType.Exit -> {
+                                hoverInteraction?.let {
+                                    interactionSource.tryEmit(HoverInteraction.Exit(it))
+                                    hoverInteraction = null
                                 }
                             }
                         }
                     }
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Lucide.Pencil,
-                contentDescription = "Add",
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-        }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSecondary
+        )
     }
 }

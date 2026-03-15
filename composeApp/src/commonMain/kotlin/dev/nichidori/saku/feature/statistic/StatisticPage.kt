@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
 import dev.nichidori.saku.core.composable.*
@@ -81,24 +82,46 @@ fun StatisticPage(
                     )
                 )
                 StatisticGroupBy.entries.forEach {
-                    ListItem(
-                        headlineContent = {
-                            Text(it.label(), style = MaterialTheme.typography.titleSmall)
-                        },
-                        trailingContent = {
-                            if (it == uiState.groupBy) {
-                                Icon(imageVector = Lucide.Check, contentDescription = null)
+                    val selected = it == uiState.groupBy
+                    MyBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .background(
+                                color = if (selected) MaterialTheme.colorScheme.secondary
+                                else Color.Transparent,
+                                shape = MyDefaultShape
+                            )
+                            .clip(MyDefaultShape)
+                            .clickable {
+                                viewModel.setGroupBy(it)
+                                showGroupByOptions = false
                             }
-                        },
-                        colors = ListItemDefaults.colors(
-                            containerColor = Color.Transparent
-                        ),
-                        modifier = Modifier.clickable {
-                            viewModel.setGroupBy(it)
-                            showGroupByOptions = false
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                it.label(),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (selected) MaterialTheme.colorScheme.onSecondary
+                                else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (selected) {
+                                Icon(
+                                    imageVector = Lucide.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondary
+                                )
+                            }
                         }
-                    )
+                    }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -195,6 +218,7 @@ fun StatisticPageContent(
                 .fillMaxSize()
                 .consumeWindowInsets(contentPadding)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
             MySegmentedControl(
                 items = listOf(TrxType.Income, TrxType.Expense),
                 selectedItem = selectedType,
@@ -212,7 +236,7 @@ fun StatisticPageContent(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             HorizontalPager(
                 state = pagerState,
                 verticalAlignment = Alignment.Top,

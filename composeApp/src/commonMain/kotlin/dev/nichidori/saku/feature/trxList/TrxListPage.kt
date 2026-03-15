@@ -115,17 +115,7 @@ fun TrxListPage(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    // Account
-                    Text(
-                        "Account",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
+                    FilterSection(title = "Account") {
                         uiState.accounts.forEach {
                             val selected = selectedAccountIds.contains(it.id)
                             MyFilterChip(
@@ -143,19 +133,8 @@ fun TrxListPage(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Account type
-                    Text(
-                        "Account Type",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
+                    FilterSection(title = "Account Type") {
                         uiState.accountTypes.forEach {
                             val selected = selectedAccountTypes.contains(it)
                             MyFilterChip(
@@ -173,19 +152,8 @@ fun TrxListPage(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Trx Type
-                    Text(
-                        "Transaction Type",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
+                    FilterSection(title = "Transaction Type") {
                         uiState.trxTypes.forEach {
                             val selected = selectedTrxTypes.contains(it)
                             MyFilterChip(
@@ -203,19 +171,8 @@ fun TrxListPage(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Category
-                    Text(
-                        "Category",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
+                    FilterSection(title = "Category") {
                         uiState.categories.forEach { category ->
                             val selected = selectedCategoryIds.contains(category.id)
                             MyFilterChip(
@@ -249,7 +206,6 @@ fun TrxListPage(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -303,9 +259,9 @@ fun TrxListPage(
                                     .size(14.dp)
                                     .align(Alignment.TopEnd)
                                     .offset(x = 4.dp, y = (-4).dp)
-                                    .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                    .background(MaterialTheme.colorScheme.onSurface, CircleShape)
                                     .padding(2.dp)
-                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondary, CircleShape)
                             )
                         }
                     }
@@ -322,7 +278,7 @@ fun TrxListPage(
                 onMonthSelect = onMonthChange,
                 listState = monthChipsListState,
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
@@ -423,7 +379,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .clickable { onClick(trx.id) }
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         Box(
             modifier = Modifier
@@ -510,5 +466,29 @@ fun TrxType.label(): String {
         TrxType.Income -> "Income"
         TrxType.Expense -> "Expense"
         TrxType.Transfer -> "Transfer"
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FilterSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable FlowRowScope.() -> Unit
+) {
+    Column(modifier = modifier) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.outline,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content
+        )
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
