@@ -292,10 +292,7 @@ fun CategoryPageContent(
                     onItemSelection = onTypeChange,
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
-                    Text(
-                        text = if (type == TrxType.Income) "Income" else "Expense",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    Text(text = if (type == TrxType.Income) "Income" else "Expense",)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }

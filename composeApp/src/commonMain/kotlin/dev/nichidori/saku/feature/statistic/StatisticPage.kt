@@ -17,10 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
@@ -225,13 +225,10 @@ fun StatisticPageContent(
             ) { type ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        if (type == TrxType.Income) "Income" else "Expense",
+                        text = if (type == TrxType.Income) "Income" else "Expense",
                         style = MaterialTheme.typography.labelSmall
                     )
-                    Text(
-                        if (type == TrxType.Income) uiState.totalIncome.toRupiah() else uiState.totalExpense.toRupiah(),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Text(text = if (type == TrxType.Income) uiState.totalIncome.toRupiah() else uiState.totalExpense.toRupiah())
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))

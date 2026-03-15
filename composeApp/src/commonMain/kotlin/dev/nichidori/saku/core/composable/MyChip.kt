@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -26,7 +27,7 @@ fun MyFilterChip(
             .clip(MyDefaultShape)
             .clickable { onClick() }
             .then(
-                if (selected) Modifier.background(MaterialTheme.colorScheme.secondary)
+                if (selected) Modifier.background(MaterialTheme.colorScheme.primary)
                 else Modifier
             )
     ) {
@@ -34,10 +35,10 @@ fun MyFilterChip(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
-            val contentColor = if (selected) MaterialTheme.colorScheme.onSecondary
+            val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary
             else MaterialTheme.colorScheme.onSurface
             CompositionLocalProvider(LocalContentColor provides contentColor) {
-                ProvideTextStyle(MaterialTheme.typography.labelLarge) {
+                ProvideTextStyle(MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) {
                     label()
                 }
             }

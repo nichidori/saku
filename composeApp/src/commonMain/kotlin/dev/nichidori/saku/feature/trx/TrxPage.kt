@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
@@ -478,7 +479,6 @@ fun TrxPageContent(
                             TrxType.Expense -> "Expense"
                             TrxType.Transfer -> "Transfer"
                         },
-                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
