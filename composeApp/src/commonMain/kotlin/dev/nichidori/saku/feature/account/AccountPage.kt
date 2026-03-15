@@ -152,6 +152,7 @@ fun AccountPageContent(
                             onTypeChange(it)
                             focusManager.moveFocus(FocusDirection.Next)
                         },
+                        selectedWhen = { it == uiState.type },
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surfaceContainer)
                             .padding(bottom = bottomPadding)

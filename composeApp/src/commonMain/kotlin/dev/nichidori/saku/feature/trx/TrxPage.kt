@@ -233,13 +233,26 @@ fun TrxPageContent(
                 }
 
                 showCategoryInput -> {
-                    var selectedParent by remember(uiState.category, uiState.type) {
-                        mutableStateOf(uiState.categoriesByParent.keys.firstOrNull {
-                            it.id == uiState.category?.id || it.id == uiState.category?.parent?.id
-                        })
+                    val hasNestedCategories = remember(uiState.categoriesByParent) {
+                        uiState.categoriesByParent.values.any { it.isNotEmpty() }
                     }
-                    val categories by remember(selectedParent) {
-                        derivedStateOf { uiState.categoriesByParent[selectedParent] ?: emptyList() }
+                    var selectedParent by remember(uiState.category, uiState.type, hasNestedCategories) {
+                        mutableStateOf(
+                            if (hasNestedCategories) {
+                                uiState.categoriesByParent.keys.firstOrNull {
+                                    it.id == uiState.category?.id || it.id == uiState.category?.parent?.id
+                                } ?: uiState.categoriesByParent.keys.firstOrNull()
+                            } else null
+                        )
+                    }
+                    val categories by remember(selectedParent, hasNestedCategories) {
+                        derivedStateOf {
+                            if (hasNestedCategories) {
+                                uiState.categoriesByParent[selectedParent] ?: emptyList()
+                            } else {
+                                uiState.categoriesByParent.keys.toList()
+                            }
+                        }
                     }
 
                     CategorySelector(
@@ -250,47 +263,49 @@ fun TrxPageContent(
                         },
                         selectedWhen = { it.id == uiState.category?.id },
                         header = {
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(end = 8.dp)
-                            ) {
-                                items(uiState.categoriesByParent.keys.toList()) { parent ->
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .background(
-                                                color = if (parent == selectedParent) {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                } else {
-                                                    MaterialTheme.colorScheme.background
-                                                },
-                                                shape = MyDefaultShape
-                                            )
-                                            .clip(MyDefaultShape)
-                                            .focusProperties { canFocus = false }
-                                            .clickable {
-                                                if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
-                                                    selectedParent = parent
-                                                    onCategoryChange(parent)
-                                                    focusManager.clearFocus()
-                                                } else {
-                                                    selectedParent = parent
+                            if (hasNestedCategories) {
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(end = 12.dp)
+                                ) {
+                                    items(uiState.categoriesByParent.keys.toList()) { parent ->
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .background(
+                                                    color = if (parent == selectedParent) {
+                                                        MaterialTheme.colorScheme.primaryContainer
+                                                    } else {
+                                                        MaterialTheme.colorScheme.background
+                                                    },
+                                                    shape = MyDefaultShape
+                                                )
+                                                .clip(MyDefaultShape)
+                                                .focusProperties { canFocus = false }
+                                                .clickable {
+                                                    if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
+                                                        selectedParent = parent
+                                                        onCategoryChange(parent)
+                                                        focusManager.clearFocus()
+                                                    } else {
+                                                        selectedParent = parent
+                                                    }
                                                 }
-                                            }
-                                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    ) {
-                                        Text(
-                                            parent.name,
-                                            textAlign = TextAlign.Center,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = if (parent == selectedParent) {
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.onBackground
-                                            }
-                                        )
+                                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        ) {
+                                            Text(
+                                                parent.name,
+                                                textAlign = TextAlign.Center,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = if (parent == selectedParent) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onBackground
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -339,13 +354,26 @@ fun TrxPageContent(
                 }
 
                 showFeeCategoryInput -> {
-                    var selectedParent by remember(uiState.feeCategory) {
-                        mutableStateOf(uiState.expensesByParent.keys.firstOrNull {
-                            it.id == uiState.feeCategory?.id || it.id == uiState.feeCategory?.parent?.id
-                        })
+                    val hasNestedCategories = remember(uiState.expensesByParent) {
+                        uiState.expensesByParent.values.any { it.isNotEmpty() }
                     }
-                    val categories by remember(selectedParent) {
-                        derivedStateOf { uiState.expensesByParent[selectedParent] ?: emptyList() }
+                    var selectedParent by remember(uiState.feeCategory, hasNestedCategories) {
+                        mutableStateOf(
+                            if (hasNestedCategories) {
+                                uiState.expensesByParent.keys.firstOrNull {
+                                    it.id == uiState.feeCategory?.id || it.id == uiState.feeCategory?.parent?.id
+                                } ?: uiState.expensesByParent.keys.firstOrNull()
+                            } else null
+                        )
+                    }
+                    val categories by remember(selectedParent, hasNestedCategories) {
+                        derivedStateOf {
+                            if (hasNestedCategories) {
+                                uiState.expensesByParent[selectedParent] ?: emptyList()
+                            } else {
+                                uiState.expensesByParent.keys.toList()
+                            }
+                        }
                     }
 
                     CategorySelector(
@@ -356,47 +384,49 @@ fun TrxPageContent(
                         },
                         selectedWhen = { it.id == uiState.feeCategory?.id },
                         header = {
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(end = 8.dp)
-                            ) {
-                                items(uiState.expensesByParent.keys.toList()) { parent ->
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .background(
-                                                color = if (parent == selectedParent) {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                } else {
-                                                    MaterialTheme.colorScheme.background
-                                                },
-                                                shape = MyDefaultShape
-                                            )
-                                            .clip(MyDefaultShape)
-                                            .focusProperties { canFocus = false }
-                                            .clickable {
-                                                if (uiState.expensesByParent[parent]?.isNotEmpty() != true) {
-                                                    selectedParent = parent
-                                                    onFeeCategoryChange(parent)
-                                                    focusManager.clearFocus()
-                                                } else {
-                                                    selectedParent = parent
+                            if (hasNestedCategories) {
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(end = 8.dp)
+                                ) {
+                                    items(uiState.expensesByParent.keys.toList()) { parent ->
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .background(
+                                                    color = if (parent == selectedParent) {
+                                                        MaterialTheme.colorScheme.primaryContainer
+                                                    } else {
+                                                        MaterialTheme.colorScheme.background
+                                                    },
+                                                    shape = MyDefaultShape
+                                                )
+                                                .clip(MyDefaultShape)
+                                                .focusProperties { canFocus = false }
+                                                .clickable {
+                                                    if (uiState.expensesByParent[parent]?.isNotEmpty() != true) {
+                                                        selectedParent = parent
+                                                        onFeeCategoryChange(parent)
+                                                        focusManager.clearFocus()
+                                                    } else {
+                                                        selectedParent = parent
+                                                    }
                                                 }
-                                            }
-                                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    ) {
-                                        Text(
-                                            parent.name,
-                                            textAlign = TextAlign.Center,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = if (parent == selectedParent) {
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.onBackground
-                                            }
-                                        )
+                                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        ) {
+                                            Text(
+                                                parent.name,
+                                                textAlign = TextAlign.Center,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = if (parent == selectedParent) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onBackground
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }

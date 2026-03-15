@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import dev.darkokoa.datetimewheelpicker.WheelDateTimePicker
-import dev.darkokoa.datetimewheelpicker.core.SelectorProperties
 import dev.darkokoa.datetimewheelpicker.core.WheelPickerDefaults
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
 import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
@@ -47,7 +46,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-val defaultInputHeight = 350.dp
+val defaultInputHeight = 320.dp
 
 @Composable
 private fun CloseRow(
@@ -80,7 +79,7 @@ fun NumberKeyboard(
     onActionClick: () -> Unit,
     modifier: Modifier = Modifier,
     actionLabel: String = "Done",
-    spacing: Dp = 8.dp,
+    spacing: Dp = 12.dp,
     height: Dp = defaultInputHeight
 ) {
     Column(
@@ -206,6 +205,7 @@ fun KeyboardKeyPreview() {
 fun AccountTypeSelector(
     types: List<AccountType>,
     onSelected: (AccountType) -> Unit,
+    selectedWhen: (AccountType) -> Boolean = { false },
     modifier: Modifier = Modifier,
     height: Dp = defaultInputHeight,
 ) {
@@ -219,29 +219,46 @@ fun AccountTypeSelector(
         CloseRow()
         Spacer(modifier = Modifier.height(8.dp))
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(types) { type ->
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.background,
-                            shape = MyDefaultShape
-                        )
-                        .clip(MyDefaultShape)
-                        .focusProperties { canFocus = false }
-                        .clickable { onSelected(type) }
-                        .height(48.dp)
+            items(types.chunked(2)) { rowTypes ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        type.label(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    rowTypes.forEach { type ->
+                        val selected = selectedWhen(type)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(
+                                    color = when {
+                                        selected -> MaterialTheme.colorScheme.secondary
+                                        else -> MaterialTheme.colorScheme.background
+                                    },
+                                    shape = MyDefaultShape
+                                )
+                                .clip(MyDefaultShape)
+                                .focusProperties { canFocus = false }
+                                .clickable { onSelected(type) }
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                type.label(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = when {
+                                    selected -> MaterialTheme.colorScheme.onSecondary
+                                    else -> MaterialTheme.colorScheme.onBackground
+                                }
+                            )
+                        }
+                    }
+                    if (rowTypes.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -287,12 +304,12 @@ fun AccountSelector(
         CloseRow(content = header)
         Spacer(modifier = Modifier.height(8.dp))
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
             items(accounts.chunked(2)) { rowAccounts ->
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     rowAccounts.forEach { account ->
@@ -401,12 +418,12 @@ fun CategorySelector(
         CloseRow(content = header)
         Spacer(modifier = Modifier.height(8.dp))
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
             items(categories.chunked(2)) { rowCategories ->
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     rowCategories.forEach { category ->
