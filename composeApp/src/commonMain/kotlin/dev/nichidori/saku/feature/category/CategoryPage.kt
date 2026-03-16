@@ -245,8 +245,6 @@ fun CategoryPageContent(
             )
         },
         bottomBar = {
-            val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
-                .calculateBottomPadding()
             when {
                 showParentInput -> {
                     CategorySelector(
@@ -256,8 +254,6 @@ fun CategoryPageContent(
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         selectedWhen = { it.id == uiState.parent?.id },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -268,8 +264,8 @@ fun CategoryPageContent(
                         onClick = onSaveClick,
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.background)
+                            .navigationBarsPadding()
                             .padding(16.dp)
-                            .padding(bottom = bottomPadding)
                     )
                 }
             }

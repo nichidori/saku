@@ -84,53 +84,59 @@ fun NumberKeyboard(
     height: Dp = defaultInputHeight
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .requiredHeight(height)
-            .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .navigationBarsPadding()
     ) {
-        CloseRow()
-        for (i in 1..3) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            modifier = Modifier
+                .requiredHeight(height)
+                .pointerInput(Unit) { detectTapGestures {} }
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+            CloseRow()
+            for (i in 1..3) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    for (j in 1..3) {
+                        val value = ((i - 1) * 3 + j)
+                        KeyboardKey(
+                            label = value.toString(),
+                            onClick = { onValueClick(value) },
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
+                    }
+                }
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(spacing),
                 modifier = Modifier.weight(1f)
             ) {
-                for (j in 1..3) {
-                    val value = ((i - 1) * 3 + j)
-                    KeyboardKey(
-                        label = value.toString(),
-                        onClick = { onValueClick(value) },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                }
+                KeyboardKey(
+                    label = "Delete",
+                    onClick = onDeleteClick,
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    foregroundColor = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                KeyboardKey(
+                    label = "0",
+                    onClick = { onValueClick(0) },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                KeyboardKey(
+                    label = actionLabel,
+                    onClick = onActionClick,
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    foregroundColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
             }
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(spacing),
-            modifier = Modifier.weight(1f)
-        ) {
-            KeyboardKey(
-                label = "Delete",
-                onClick = onDeleteClick,
-                backgroundColor = MaterialTheme.colorScheme.secondary,
-                foregroundColor = MaterialTheme.colorScheme.onSecondary,
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
-            KeyboardKey(
-                label = "0",
-                onClick = { onValueClick(0) },
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
-            KeyboardKey(
-                label = actionLabel,
-                onClick = onActionClick,
-                backgroundColor = MaterialTheme.colorScheme.primary,
-                foregroundColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
         }
     }
 }
@@ -213,54 +219,60 @@ fun AccountTypeSelector(
 ) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .requiredHeight(height)
-            .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .navigationBarsPadding()
     ) {
-        CloseRow()
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .requiredHeight(height)
+                .pointerInput(Unit) { detectTapGestures {} }
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
         ) {
-            items(types.chunked(2)) { rowTypes ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    rowTypes.forEach { type ->
-                        val selected = selectedWhen(type)
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
+            CloseRow()
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(types.chunked(2)) { rowTypes ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowTypes.forEach { type ->
+                            val selected = selectedWhen(type)
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        color = when {
+                                            selected -> MaterialTheme.colorScheme.primary
+                                            else -> MaterialTheme.colorScheme.background
+                                        },
+                                        shape = MyDefaultShape
+                                    )
+                                    .clip(MyDefaultShape)
+                                    .focusProperties { canFocus = false }
+                                    .clickable { onSelected(type) }
+                                    .height(48.dp)
+                            ) {
+                                Text(
+                                    type.label(),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.primary
-                                        else -> MaterialTheme.colorScheme.background
-                                    },
-                                    shape = MyDefaultShape
+                                        selected -> MaterialTheme.colorScheme.onPrimary
+                                        else -> MaterialTheme.colorScheme.onBackground
+                                    }
                                 )
-                                .clip(MyDefaultShape)
-                                .focusProperties { canFocus = false }
-                                .clickable { onSelected(type) }
-                                .height(48.dp)
-                        ) {
-                            Text(
-                                type.label(),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                color = when {
-                                    selected -> MaterialTheme.colorScheme.onPrimary
-                                    else -> MaterialTheme.colorScheme.onBackground
-                                }
-                            )
+                            }
                         }
-                    }
-                    if (rowTypes.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        if (rowTypes.size < 2) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -299,58 +311,64 @@ fun AccountSelector(
 ) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .requiredHeight(height)
-            .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .navigationBarsPadding()
     ) {
-        CloseRow(content = header)
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .requiredHeight(height)
+                .pointerInput(Unit) { detectTapGestures {} }
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
         ) {
-            items(accounts.chunked(2)) { rowAccounts ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    rowAccounts.forEach { account ->
-                        val selected = remember(selectedWhen, account) { selectedWhen(account) }
-                        val enabled = remember(enabledWhen, account) { enabledWhen(account) }
+            CloseRow(content = header)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(accounts.chunked(2)) { rowAccounts ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowAccounts.forEach { account ->
+                            val selected = remember(selectedWhen, account) { selectedWhen(account) }
+                            val enabled = remember(enabledWhen, account) { enabledWhen(account) }
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        color = when {
+                                            selected -> MaterialTheme.colorScheme.primary
+                                            enabled -> MaterialTheme.colorScheme.background
+                                            else -> MaterialTheme.colorScheme.surfaceContainer
+                                        },
+                                        shape = MyDefaultShape
+                                    )
+                                    .clip(MyDefaultShape)
+                                    .focusProperties { canFocus = false }
+                                    .clickable(enabled = enabled) { onSelected(account) }
+                                    .height(48.dp)
+                            ) {
+                                Text(
+                                    account.name,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.primary
-                                        enabled -> MaterialTheme.colorScheme.background
-                                        else -> MaterialTheme.colorScheme.surfaceContainer
+                                        selected -> MaterialTheme.colorScheme.onPrimary
+                                        enabled -> MaterialTheme.colorScheme.onBackground
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
                                     },
-                                    shape = MyDefaultShape
                                 )
-                                .clip(MyDefaultShape)
-                                .focusProperties { canFocus = false }
-                                .clickable(enabled = enabled) { onSelected(account) }
-                                .height(48.dp)
-                        ) {
-                            Text(
-                                account.name,
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                color = when {
-                                    selected -> MaterialTheme.colorScheme.onPrimary
-                                    enabled -> MaterialTheme.colorScheme.onBackground
-                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            )
+                            }
                         }
-                    }
-                    if (rowAccounts.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        if (rowAccounts.size < 2) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -414,58 +432,64 @@ fun CategorySelector(
 ) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .requiredHeight(height)
-            .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .navigationBarsPadding()
     ) {
-        CloseRow(content = header)
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .requiredHeight(height)
+                .pointerInput(Unit) { detectTapGestures {} }
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
         ) {
-            items(categories.chunked(2)) { rowCategories ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    rowCategories.forEach { category ->
-                        val selected = remember(selectedWhen, category) { selectedWhen(category) }
-                        val enabled = remember(enabledWhen, category) { enabledWhen(category) }
+            CloseRow(content = header)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(categories.chunked(2)) { rowCategories ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowCategories.forEach { category ->
+                            val selected = remember(selectedWhen, category) { selectedWhen(category) }
+                            val enabled = remember(enabledWhen, category) { enabledWhen(category) }
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        color = when {
+                                            selected -> MaterialTheme.colorScheme.primary
+                                            enabled -> MaterialTheme.colorScheme.background
+                                            else -> MaterialTheme.colorScheme.surfaceContainer
+                                        },
+                                        shape = MyDefaultShape
+                                    )
+                                    .clip(MyDefaultShape)
+                                    .focusProperties { canFocus = false }
+                                    .clickable(enabled = enabled) { onSelected(category) }
+                                    .height(48.dp)
+                            ) {
+                                Text(
+                                    category.name,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                     color = when {
-                                        selected -> MaterialTheme.colorScheme.primary
-                                        enabled -> MaterialTheme.colorScheme.background
-                                        else -> MaterialTheme.colorScheme.surfaceContainer
+                                        selected -> MaterialTheme.colorScheme.onPrimary
+                                        enabled -> MaterialTheme.colorScheme.onBackground
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
                                     },
-                                    shape = MyDefaultShape
                                 )
-                                .clip(MyDefaultShape)
-                                .focusProperties { canFocus = false }
-                                .clickable(enabled = enabled) { onSelected(category) }
-                                .height(48.dp)
-                        ) {
-                            Text(
-                                category.name,
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                color = when {
-                                    selected -> MaterialTheme.colorScheme.onPrimary
-                                    enabled -> MaterialTheme.colorScheme.onBackground
-                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            )
+                            }
                         }
-                    }
-                    if (rowCategories.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        if (rowCategories.size < 2) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -514,39 +538,45 @@ fun MyDateTimePicker(
 ) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .requiredHeight(height)
-            .pointerInput(Unit) { detectTapGestures {} }
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .navigationBarsPadding()
     ) {
-        CloseRow()
-        Spacer(modifier = Modifier.height(32.dp))
-        WheelDateTimePicker(
-            startDateTime = startDateTime,
-            maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
-                LocalDateTime(
-                    year = it.year,
-                    month = 12,
-                    day = 31,
-                    hour = 23,
-                    minute = 59,
-                    second = 59
-                )
-            },
-            dateFormatter = dateFormatter(),
-            timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
-            onSnappedDateTime = onDateTimePicked,
-            selectorProperties = WheelPickerDefaults.selectorProperties(
-                shape = MyDefaultShape,
-                color = MaterialTheme.colorScheme.secondary,
-                border = BorderStroke(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.onBackground,
+        Column(
+            modifier = Modifier
+                .requiredHeight(height)
+                .pointerInput(Unit) { detectTapGestures {} }
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+            CloseRow()
+            Spacer(modifier = Modifier.height(32.dp))
+            WheelDateTimePicker(
+                startDateTime = startDateTime,
+                maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                    LocalDateTime(
+                        year = it.year,
+                        month = 12,
+                        day = 31,
+                        hour = 23,
+                        minute = 59,
+                        second = 59
+                    )
+                },
+                dateFormatter = dateFormatter(),
+                timeFormatter = timeFormatter(timeFormat = TimeFormat.HOUR_24),
+                onSnappedDateTime = onDateTimePicked,
+                selectorProperties = WheelPickerDefaults.selectorProperties(
+                    shape = MyDefaultShape,
+                    color = MaterialTheme.colorScheme.secondary,
+                    border = BorderStroke(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    ),
                 ),
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 

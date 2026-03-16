@@ -6,7 +6,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -20,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
@@ -121,8 +119,6 @@ fun AccountPageContent(
             )
         },
         bottomBar = {
-            val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
-                .calculateBottomPadding()
             when {
                 showBalanceInput -> {
                     NumberKeyboard(
@@ -140,9 +136,6 @@ fun AccountPageContent(
                         onActionClick = {
                             focusManager.moveFocus(FocusDirection.Next)
                         },
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
-                            .padding(bottom = bottomPadding)
                     )
                 }
                 showTypeInput -> {
@@ -153,9 +146,6 @@ fun AccountPageContent(
                             focusManager.moveFocus(FocusDirection.Next)
                         },
                         selectedWhen = { it == uiState.type },
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
-                            .padding(bottom = bottomPadding)
                     )
                 }
                 else -> {
@@ -165,8 +155,8 @@ fun AccountPageContent(
                         onClick = onSaveClick,
                         modifier = modifier
                             .background(color = MaterialTheme.colorScheme.background)
+                            .navigationBarsPadding()
                             .padding(16.dp)
-                            .padding(bottom = bottomPadding)
                     )
                 }
             }

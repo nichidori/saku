@@ -165,8 +165,6 @@ fun TrxPageContent(
             )
         },
         bottomBar = {
-            val bottomPadding = WindowInsets.navigationBars.asPaddingValues()
-                .calculateBottomPadding()
             when {
                 showTimeInput -> {
                     MyDateTimePicker(
@@ -175,8 +173,6 @@ fun TrxPageContent(
                         onDateTimePicked = {
                             onTimeChange(it.toInstant(TimeZone.currentSystemDefault()))
                         },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -196,8 +192,6 @@ fun TrxPageContent(
                         onActionClick = {
                             focusManager.moveFocus(FocusDirection.Next)
                         },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -210,8 +204,6 @@ fun TrxPageContent(
                         },
                         selectedWhen = { it == uiState.sourceAccount },
                         enabledWhen = { it != uiState.targetAccount },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -224,8 +216,6 @@ fun TrxPageContent(
                         },
                         selectedWhen = { it == uiState.targetAccount },
                         enabledWhen = { it != uiState.sourceAccount },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -308,8 +298,6 @@ fun TrxPageContent(
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -329,8 +317,6 @@ fun TrxPageContent(
                         onActionClick = {
                             focusManager.moveFocus(FocusDirection.Next)
                         },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -343,8 +329,6 @@ fun TrxPageContent(
                         },
                         selectedWhen = { it == (uiState.feeAccount ?: uiState.sourceAccount) },
                         enabledWhen = { true },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -426,8 +410,6 @@ fun TrxPageContent(
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .padding(bottom = bottomPadding)
                     )
                 }
 
@@ -438,8 +420,8 @@ fun TrxPageContent(
                         onClick = onSaveClick,
                         modifier = modifier
                             .background(color = MaterialTheme.colorScheme.background)
+                            .navigationBarsPadding()
                             .padding(16.dp)
-                            .padding(bottom = bottomPadding)
                     )
                 }
             }
