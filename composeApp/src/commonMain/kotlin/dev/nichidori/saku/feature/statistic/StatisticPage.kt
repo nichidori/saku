@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -17,18 +18,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Loading
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
@@ -235,6 +234,9 @@ fun StatisticPageContent(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+            val categoryFractions = remember(uiState.groupBy, selectedType) {
+                mutableStateMapOf<Int, Float>()
+            }
             HorizontalPager(
                 state = pagerState,
                 verticalAlignment = Alignment.Top,
@@ -246,10 +248,6 @@ fun StatisticPageContent(
                 
                 when (monthlyState.loadStatus) {
                     Loading, is Success<*>, is Failure<*> -> {
-                        val animatedCategories = remember(pageMonth, uiState.groupBy, selectedType) {
-                            mutableStateMapOf<String, Boolean>()
-                        }
-
                         val (items, maxAmount) = remember(monthlyState, uiState.groupBy, selectedType) {
                             when (uiState.groupBy) {
                                 StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
@@ -290,6 +288,12 @@ fun StatisticPageContent(
                             }
                         }
 
+                        LaunchedEffect(items.size) {
+                            categoryFractions.keys.filter { it >= items.size }.forEach {
+                                categoryFractions.remove(it)
+                            }
+                        }
+
                         if (items.isNotEmpty()) {
                             LazyColumn(
                                 contentPadding = PaddingValues(
@@ -300,7 +304,7 @@ fun StatisticPageContent(
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                items(items, key = { it.key.toString() }) { (item, amount) ->
+                                itemsIndexed(items, key = { index, _ -> index }) { index, (item, amount) ->
                                     val (name, icon) = when (item) {
                                         is Category -> item.name to item.icon.toPickerIcon()?.icon
                                         is Account -> item.name to null
@@ -313,9 +317,9 @@ fun StatisticPageContent(
                                         icon = icon,
                                         amount = amount,
                                         maxAmount = maxAmount,
-                                        hasAnimated = animatedCategories[item.toString()] == true,
-                                        onAnimationComplete = {
-                                            animatedCategories[item.toString()] = true
+                                        previousTarget = categoryFractions[index] ?: 0f,
+                                        onTargetChange = {
+                                            categoryFractions[index] = it
                                         }
                                     )
                                 }
@@ -342,25 +346,21 @@ fun StatisticItem(
     icon: ImageVector?,
     amount: Long,
     maxAmount: Long,
-    hasAnimated: Boolean,
-    onAnimationComplete: () -> Unit,
+    previousTarget: Float,
+    onTargetChange: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val target = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
-    var animationTarget by remember { mutableFloatStateOf(if (hasAnimated) target else 0f) }
+    var animationTarget by remember { mutableFloatStateOf(previousTarget) }
 
     val animatedFraction by animateFloatAsState(
         targetValue = animationTarget,
         animationSpec = tween(durationMillis = 500)
     )
 
-    LaunchedEffect(target, hasAnimated) {
-        if (!hasAnimated) {
-            animationTarget = target
-            onAnimationComplete()
-        } else {
-            animationTarget = target
-        }
+    LaunchedEffect(target) {
+        animationTarget = target
+        onTargetChange(target)
     }
 
     Row(
