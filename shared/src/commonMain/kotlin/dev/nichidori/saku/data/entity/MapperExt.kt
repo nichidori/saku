@@ -5,6 +5,7 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.Budget
 import kotlin.time.Instant
 
 fun AccountEntity.toDomain(): Account = Account(
@@ -204,3 +205,31 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
         )
     }
 }
+
+fun BudgetEntity.toDomain(category: Category): Budget = Budget(
+    id = id,
+    name = name,
+    category = category,
+    month = month,
+    year = year,
+    totalAmount = totalAmount,
+    spentAmount = spentAmount,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+)
+
+fun BudgetWithCategoryEntity.toDomain(): Budget {
+    return budget.toDomain(category.toDomain())
+}
+
+fun Budget.toEntity(): BudgetEntity = BudgetEntity(
+    id = id,
+    name = name,
+    categoryId = category.id,
+    month = month,
+    year = year,
+    totalAmount = totalAmount,
+    spentAmount = spentAmount,
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
+)
