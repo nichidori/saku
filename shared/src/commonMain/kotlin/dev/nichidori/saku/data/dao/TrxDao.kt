@@ -49,4 +49,15 @@ interface TrxDao {
         categoryId: String? = null,
         accountId: String? = null
     ): List<TrxWithDetailsEntity>
+
+    @Query(
+        """
+        SELECT SUM(amount) FROM trx
+        WHERE transaction_at >= :startTime
+          AND transaction_at < :endTime
+          AND category_id = :categoryId
+          AND type = :type
+        """
+    )
+    suspend fun getTotalAmount(startTime: Long, endTime: Long, categoryId: String, type: TrxTypeEntity): Long?
 }

@@ -4,24 +4,26 @@ import androidx.room.immediateTransaction
 import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
 import dev.nichidori.saku.data.AppDatabase
+import dev.nichidori.saku.data.entity.TrxTypeEntity
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.domain.model.Budget
 import dev.nichidori.saku.domain.model.BudgetTemplate
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.repo.BudgetRepository
+import kotlinx.datetime.*
+import kotlinx.datetime.DateTimeUnit.Companion.DAY
+import kotlinx.datetime.TimeZone
 import java.util.*
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DefaultBudgetRepository(
     private val db: AppDatabase,
 ) : BudgetRepository {
 
     // Budget Template methods
-    override suspend fun addBudgetTemplate(
-        category: Category,
-        defaultAmount: Long
-    ) {
+    override suspend fun addBudgetTemplate(category: Category, defaultAmount: Long) {
         val template = BudgetTemplate(
             id = UUID.randomUUID().toString(),
             category = category,
@@ -82,26 +84,51 @@ class DefaultBudgetRepository(
     }
 
     // Budget methods
-    override suspend fun addBudget(
-        templateId: String,
-        category: Category,
-        month: Int,
-        year: Int,
-        baseAmount: Long,
-        spentAmount: Long
-    ) {
-        val budget = Budget(
-            id = UUID.randomUUID().toString(),
-            category = category,
-            month = month,
-            year = year,
-            baseAmount = baseAmount,
-            spentAmount = spentAmount,
-            createdAt = Clock.System.now(),
-            updatedAt = null
-        )
+    override suspend fun ensureBudgetsExist(now: YearMonth) {
         db.useWriterConnection {
-            db.budgetDao().insert(budget.toEntity(templateId))
+            val templates = db.budgetTemplateDao().getAllWithCategory()
+            val timeZone = TimeZone.currentSystemDefault()
+
+            for (template in templates) {
+                val category = template.category.toDomain()
+                val start = Instant.fromEpochMilliseconds(template.budgetTemplate.createdAt)
+                    .toLocalDateTime(timeZone = timeZone)
+                    .let { d -> YearMonth(d.year, d.month) }
+                val existingMonths = db.budgetDao()
+                    .getByCategoryIdWithCategory(categoryId = category.id)
+                    .map { d -> YearMonth(d.budget.year, d.budget.month) }
+                    .toHashSet()
+
+                it.immediateTransaction {
+                    for (month in start.rangeUntil(now.plusMonth())) {
+                        if (month !in existingMonths) {
+                            val spentAmount = db.trxDao().getTotalAmount(
+                                startTime = month.firstDay
+                                    .atStartOfDayIn(timeZone = timeZone)
+                                    .toEpochMilliseconds(),
+                                endTime = month.lastDay
+                                    .plus(1, DAY)
+                                    .atStartOfDayIn(timeZone = timeZone)
+                                    .toEpochMilliseconds(),
+                                categoryId = category.id,
+                                type = TrxTypeEntity.Expense,
+                            ) ?: 0
+
+                            val budget = Budget(
+                                id = UUID.randomUUID().toString(),
+                                category = category,
+                                month = month.month.number,
+                                year = month.year,
+                                baseAmount = template.budgetTemplate.defaultAmount,
+                                spentAmount = spentAmount,
+                                createdAt = Clock.System.now(),
+                                updatedAt = null
+                            )
+                            db.budgetDao().insert(budget.toEntity(templateId = template.budgetTemplate.id))
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -125,26 +152,20 @@ class DefaultBudgetRepository(
 
     override suspend fun updateBudget(
         id: String,
-        templateId: String,
-        category: Category,
-        month: Int,
-        year: Int,
         baseAmount: Long,
         spentAmount: Long
     ) {
         db.useWriterConnection {
             it.immediateTransaction {
-                val updatedBudget = db.budgetDao().getByIdWithCategory(id)?.toDomain()
-                    ?.copy(
-                        category = category,
-                        month = month,
-                        year = year,
-                        baseAmount = baseAmount,
-                        spentAmount = spentAmount,
-                        updatedAt = Clock.System.now()
-                    )
+                val existingBudget = db.budgetDao().getByIdWithCategory(id)
                     ?: throw NoSuchElementException("Budget not found")
-                db.budgetDao().update(updatedBudget.toEntity(templateId))
+
+                val updatedBudget = existingBudget.toDomain().copy(
+                    baseAmount = baseAmount,
+                    spentAmount = spentAmount,
+                    updatedAt = Clock.System.now()
+                )
+                db.budgetDao().update(updatedBudget.toEntity(existingBudget.budget.templateId))
             }
         }
     }

@@ -1,23 +1,16 @@
 package dev.nichidori.saku.data.repo
 
 import androidx.room.Room
-import kotlinx.coroutines.test.runTest
 import dev.nichidori.saku.data.AppDatabase
-import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.domain.model.Budget
 import dev.nichidori.saku.domain.model.BudgetTemplate
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.*
+import kotlin.test.*
 import kotlin.time.Clock
 
 class DefaultBudgetRepositoryTest {
@@ -115,21 +108,79 @@ class DefaultBudgetRepositoryTest {
     // Budget tests
 
     @Test
-    fun addBudget_shouldInsertBudgetWithGeneratedId() = runTest {
-        db.categoryDao().insert(category.toEntity())
-        db.budgetTemplateDao().insert(template.toEntity())
-        repository.addBudget(
-            "tmpl-1",
-            budget.category,
-            budget.month,
-            budget.year,
-            budget.baseAmount,
-            budget.spentAmount
-        )
+    fun ensureBudgetsExist_shouldCreateBudgets() = runTest {
+        val templateCreatedAt = Clock.System.now()
+        val templateWithDate = template.copy(createdAt = templateCreatedAt)
         
-        val budgets = db.budgetDao().getByMonthAndYearWithCategory(3, 2026).map { it.toDomain() }
-        assertEquals(1, budgets.size)
-        assertNotEquals("budget-1", budgets.first().id)
+        db.categoryDao().insert(category.toEntity())
+        db.budgetTemplateDao().insert(templateWithDate.toEntity())
+
+        val timeZone = TimeZone.currentSystemDefault()
+        val startDateTime = templateCreatedAt.toLocalDateTime(timeZone)
+        val startYearMonth = YearMonth(startDateTime.year, startDateTime.month)
+        
+        val nextMonth = startYearMonth.plusMonth()
+        val twoMonthsLater = nextMonth.plusMonth()
+
+        repository.ensureBudgetsExist(twoMonthsLater)
+
+        val startBudget = repository.getBudgetsByMonthAndYear(startYearMonth.month.number, startYearMonth.year)
+        val nextMonthBudget = repository.getBudgetsByMonthAndYear(nextMonth.month.number, nextMonth.year)
+        val twoMonthsLaterBudget = repository.getBudgetsByMonthAndYear(twoMonthsLater.month.number, twoMonthsLater.year)
+
+        assertEquals(1, startBudget.size)
+        assertEquals(1, nextMonthBudget.size)
+        assertEquals(1, twoMonthsLaterBudget.size)
+        
+        assertEquals(templateWithDate.defaultAmount, startBudget.first().baseAmount)
+        assertEquals(0L, startBudget.first().spentAmount)
+    }
+
+    @Test
+    fun ensureBudgetsExist_withTransactions_shouldSetSpentAmount() = runTest {
+        val templateCreatedAt = Clock.System.now()
+        val templateWithDate = template.copy(createdAt = templateCreatedAt)
+        
+        db.categoryDao().insert(category.toEntity())
+        db.budgetTemplateDao().insert(templateWithDate.toEntity())
+
+        val timeZone = TimeZone.currentSystemDefault()
+        val startDateTime = templateCreatedAt.toLocalDateTime(timeZone)
+        val startYearMonth = YearMonth(startDateTime.year, startDateTime.month)
+        
+        val sourceAccount = dev.nichidori.saku.data.entity.AccountEntity(
+            id = "acc-1",
+            name = "Cash",
+            initialAmount = 1_000_000,
+            currentAmount = 1_000_000,
+            type = dev.nichidori.saku.data.entity.AccountTypeEntity.Cash,
+            createdAt = 0L,
+            updatedAt = null
+        )
+        db.accountDao().insert(sourceAccount)
+
+        val trxTime = startYearMonth.firstDay.atStartOfDayIn(timeZone).toEpochMilliseconds() + 1000L
+        val trx = dev.nichidori.saku.data.entity.TrxEntity(
+            id = "trx-1",
+            description = "Lunch",
+            amount = 50_000,
+            categoryId = category.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = trxTime,
+            note = null,
+            createdAt = 0L,
+            updatedAt = null,
+            type = dev.nichidori.saku.data.entity.TrxTypeEntity.Expense
+        )
+        db.trxDao().insert(trx)
+
+        repository.ensureBudgetsExist(startYearMonth)
+
+        val startBudget = repository.getBudgetsByMonthAndYear(startYearMonth.month.number, startYearMonth.year)
+        
+        assertEquals(1, startBudget.size)
+        assertEquals(50_000L, startBudget.first().spentAmount)
     }
 
     @Test
@@ -171,10 +222,6 @@ class DefaultBudgetRepositoryTest {
 
         repository.updateBudget(
             budget.id,
-            "tmpl-1",
-            budget.category,
-            budget.month,
-            budget.year,
             6_000_000L,
             1_500_000L
         )

@@ -495,4 +495,112 @@ class TrxDaoTest {
 
         assertTrue(results.isEmpty())
     }
+
+    @Test
+    fun getTotalAmount_shouldReturnSumOfAmountsForMatchingCriteria() = runTest {
+        setupBasicData()
+
+        val baseTime = System.currentTimeMillis()
+        val startTime = baseTime
+        val endTime = baseTime + 10000
+
+        val expense1 = TrxEntity(
+            id = "expense-1",
+            description = "Lunch",
+            amount = 50_000,
+            categoryId = expenseCategory.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = baseTime + 1000,
+            note = null,
+            createdAt = baseTime,
+            updatedAt = null,
+            type = TrxTypeEntity.Expense
+        )
+
+        val expense2 = TrxEntity(
+            id = "expense-2",
+            description = "Dinner",
+            amount = 75_000,
+            categoryId = expenseCategory.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = baseTime + 5000,
+            note = null,
+            createdAt = baseTime,
+            updatedAt = null,
+            type = TrxTypeEntity.Expense
+        )
+
+        val expenseOutsideTime = TrxEntity(
+            id = "expense-outside",
+            description = "Yesterday",
+            amount = 100_000,
+            categoryId = expenseCategory.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = baseTime - 1000,
+            note = null,
+            createdAt = baseTime,
+            updatedAt = null,
+            type = TrxTypeEntity.Expense
+        )
+
+        val expenseDifferentCategory = TrxEntity(
+            id = "expense-diff-cat",
+            description = "Other",
+            amount = 200_000,
+            categoryId = incomeCategory.id, // technically mismatch but for test
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = baseTime + 2000,
+            note = null,
+            createdAt = baseTime,
+            updatedAt = null,
+            type = TrxTypeEntity.Expense
+        )
+
+        val incomeTrxHere = TrxEntity(
+            id = "income-1",
+            description = "Salary",
+            amount = 500_000,
+            categoryId = expenseCategory.id,
+            sourceAccountId = sourceAccount.id,
+            targetAccountId = null,
+            transactionAt = baseTime + 3000,
+            note = null,
+            createdAt = baseTime,
+            updatedAt = null,
+            type = TrxTypeEntity.Income
+        )
+
+        trxDao.insert(expense1)
+        trxDao.insert(expense2)
+        trxDao.insert(expenseOutsideTime)
+        trxDao.insert(expenseDifferentCategory)
+        trxDao.insert(incomeTrxHere)
+
+        val totalAmount = trxDao.getTotalAmount(
+            startTime = startTime,
+            endTime = endTime,
+            categoryId = expenseCategory.id,
+            type = TrxTypeEntity.Expense
+        )
+
+        assertEquals(125_000L, totalAmount)
+    }
+
+    @Test
+    fun getTotalAmount_withNoMatchingTrx_shouldReturnNull() = runTest {
+        setupBasicData()
+
+        val totalAmount = trxDao.getTotalAmount(
+            startTime = 0,
+            endTime = Long.MAX_VALUE,
+            categoryId = expenseCategory.id,
+            type = TrxTypeEntity.Expense
+        )
+
+        assertNull(totalAmount)
+    }
 }
