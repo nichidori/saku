@@ -396,4 +396,64 @@ class MapperExtTest {
         assertEquals(1_000_101L, domain.createdAt.toEpochMilliseconds())
         assertNull(domain.updatedAt)
     }
+
+    @Test
+    fun toDomainAndBack_withBudgetEntity_shouldPreserveData() {
+        val category = Category(
+            id = "cat-1",
+            name = "Food",
+            type = TrxType.Expense,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val entity = BudgetEntity(
+            id = "budget-1",
+            name = "Food Budget",
+            categoryId = category.id,
+            month = 3,
+            year = 2026,
+            totalAmount = 5000L,
+            spentAmount = 1000L,
+            createdAt = 1_000_000L,
+            updatedAt = 2_000_000L
+        )
+
+        val domain = entity.toDomain(category)
+        val roundTrip = domain.toEntity()
+
+        assertEquals(entity, roundTrip)
+    }
+
+    @Test
+    fun toDomain_withBudgetWithCategoryEntity_shouldMapCorrectly() {
+        val catEntity = CategoryEntity(
+            id = "cat-1",
+            name = "Food",
+            type = TrxTypeEntity.Expense,
+            parentId = null,
+            createdAt = 1_000L,
+            updatedAt = null
+        )
+        val budgetEntity = BudgetEntity(
+            id = "budget-1",
+            name = "Food Budget",
+            categoryId = catEntity.id,
+            month = 3,
+            year = 2026,
+            totalAmount = 5000L,
+            spentAmount = 1000L,
+            createdAt = 1_000_000L,
+            updatedAt = 2_000_000L
+        )
+        val withCategory = BudgetWithCategoryEntity(
+            budget = budgetEntity,
+            category = catEntity
+        )
+
+        val domain = withCategory.toDomain()
+
+        assertEquals(budgetEntity.id, domain.id)
+        assertEquals(catEntity.name, domain.category.name)
+    }
 }
