@@ -82,6 +82,22 @@ class BudgetDaoTest {
     }
 
     @Test
+    fun getByCategoryIdWithCategory_shouldReturnBudgetsForSpecificCategory() = runTest {
+        categoryDao.insert(category)
+        budgetDao.insert(budget)
+
+        val anotherCategory = category.copy(id = "cat-other", name = "Other")
+        categoryDao.insert(anotherCategory)
+        val anotherBudget = budget.copy(id = "budget-2", categoryId = "cat-other")
+        budgetDao.insert(anotherBudget)
+
+        val results = budgetDao.getByCategoryIdWithCategory(category.id)
+
+        assertEquals(1, results.size)
+        assertEquals(budget.id, results[0].budget.id)
+    }
+
+    @Test
     fun update_shouldUpdateBudgetDetails() = runTest {
         categoryDao.insert(category)
         budgetDao.insert(budget)

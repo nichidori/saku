@@ -14,6 +14,7 @@ interface BudgetRepository {
     )
     suspend fun getBudgetById(id: String): Budget?
     suspend fun getBudgetsByMonthAndYear(month: Int, year: Int): List<Budget>
+    suspend fun getBudgetsByCategory(categoryId: String): List<Budget>
     suspend fun updateBudget(
         id: String,
         name: String,

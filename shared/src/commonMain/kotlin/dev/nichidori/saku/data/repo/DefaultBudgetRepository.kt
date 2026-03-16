@@ -51,6 +51,12 @@ class DefaultBudgetRepository(
         }
     }
 
+    override suspend fun getBudgetsByCategory(categoryId: String): List<Budget> {
+        return db.useReaderConnection {
+            db.budgetDao().getByCategoryIdWithCategory(categoryId).map { it.toDomain() }
+        }
+    }
+
     override suspend fun updateBudget(
         id: String,
         name: String,

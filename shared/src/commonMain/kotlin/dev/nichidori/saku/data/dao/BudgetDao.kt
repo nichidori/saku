@@ -25,6 +25,10 @@ interface BudgetDao {
     @Query("SELECT * FROM budget WHERE month = :month AND year = :year")
     suspend fun getByMonthAndYearWithCategory(month: Int, year: Int): List<BudgetWithCategoryEntity>
 
+    @Transaction
+    @Query("SELECT * FROM budget WHERE category_id = :categoryId")
+    suspend fun getByCategoryIdWithCategory(categoryId: String): List<BudgetWithCategoryEntity>
+
     @Query("DELETE FROM budget WHERE id = :id")
     suspend fun deleteById(id: String)
 }

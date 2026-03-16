@@ -98,6 +98,16 @@ class DefaultBudgetRepositoryTest {
     }
 
     @Test
+    fun getBudgetsByCategory_shouldReturnMatchingBudgets() = runTest {
+        db.categoryDao().insert(category.toEntity())
+        db.budgetDao().insert(budget.toEntity())
+
+        val result = repository.getBudgetsByCategory(category.id)
+        assertEquals(1, result.size)
+        assertEquals(budget.name, result.first().name)
+    }
+
+    @Test
     fun updateBudget_shouldUpdateExistingBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetDao().insert(budget.toEntity())
