@@ -1,11 +1,6 @@
 package dev.nichidori.saku.data.entity
 
-import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.AccountType
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxType
-import dev.nichidori.saku.domain.model.Budget
+import dev.nichidori.saku.domain.model.*
 import kotlin.time.Instant
 
 fun AccountEntity.toDomain(): Account = Account(
@@ -208,11 +203,11 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
 
 fun BudgetEntity.toDomain(category: Category): Budget = Budget(
     id = id,
-    name = name,
+    templateId = templateId,
     category = category,
     month = month,
     year = year,
-    totalAmount = totalAmount,
+    baseAmount = baseAmount,
     spentAmount = spentAmount,
     createdAt = Instant.fromEpochMilliseconds(createdAt),
     updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -224,12 +219,36 @@ fun BudgetWithCategoryEntity.toDomain(): Budget {
 
 fun Budget.toEntity(): BudgetEntity = BudgetEntity(
     id = id,
-    name = name,
+    templateId = templateId,
     categoryId = category.id,
     month = month,
     year = year,
-    totalAmount = totalAmount,
+    baseAmount = baseAmount,
     spentAmount = spentAmount,
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
+)
+
+fun BudgetTemplateEntity.toDomain(category: Category): BudgetTemplate = BudgetTemplate(
+    id = id,
+    category = category,
+    startMonth = startMonth,
+    startYear = startYear,
+    defaultAmount = defaultAmount,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+)
+
+fun BudgetTemplateWithCategoryEntity.toDomain(): BudgetTemplate {
+    return budgetTemplate.toDomain(category.toDomain())
+}
+
+fun BudgetTemplate.toEntity(): BudgetTemplateEntity = BudgetTemplateEntity(
+    id = id,
+    categoryId = category.id,
+    startMonth = startMonth,
+    startYear = startYear,
+    defaultAmount = defaultAmount,
     createdAt = createdAt.toEpochMilliseconds(),
     updatedAt = updatedAt?.toEpochMilliseconds()
 )

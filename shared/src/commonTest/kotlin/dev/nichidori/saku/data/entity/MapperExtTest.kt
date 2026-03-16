@@ -409,12 +409,38 @@ class MapperExtTest {
         )
         val entity = BudgetEntity(
             id = "budget-1",
-            name = "Food Budget",
+            templateId = "tmpl-1",
             categoryId = category.id,
             month = 3,
             year = 2026,
-            totalAmount = 5000L,
+            baseAmount = 5000L,
             spentAmount = 1000L,
+            createdAt = 1_000_000L,
+            updatedAt = 2_000_000L
+        )
+
+        val domain = entity.toDomain(category)
+        val roundTrip = domain.toEntity()
+
+        assertEquals(entity, roundTrip)
+    }
+
+    @Test
+    fun toDomainAndBack_withBudgetTemplateEntity_shouldPreserveData() {
+        val category = Category(
+            id = "cat-1",
+            name = "Food",
+            type = TrxType.Expense,
+            parent = null,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        val entity = BudgetTemplateEntity(
+            id = "tmpl-1",
+            categoryId = category.id,
+            startMonth = 1,
+            startYear = 2026,
+            defaultAmount = 5000L,
             createdAt = 1_000_000L,
             updatedAt = 2_000_000L
         )
@@ -437,11 +463,11 @@ class MapperExtTest {
         )
         val budgetEntity = BudgetEntity(
             id = "budget-1",
-            name = "Food Budget",
+            templateId = "tmpl-1",
             categoryId = catEntity.id,
             month = 3,
             year = 2026,
-            totalAmount = 5000L,
+            baseAmount = 5000L,
             spentAmount = 1000L,
             createdAt = 1_000_000L,
             updatedAt = 2_000_000L
@@ -454,6 +480,37 @@ class MapperExtTest {
         val domain = withCategory.toDomain()
 
         assertEquals(budgetEntity.id, domain.id)
+        assertEquals(catEntity.name, domain.category.name)
+        assertEquals("tmpl-1", domain.templateId)
+    }
+
+    @Test
+    fun toDomain_withBudgetTemplateWithCategoryEntity_shouldMapCorrectly() {
+        val catEntity = CategoryEntity(
+            id = "cat-1",
+            name = "Food",
+            type = TrxTypeEntity.Expense,
+            parentId = null,
+            createdAt = 1_000L,
+            updatedAt = null
+        )
+        val templateEntity = BudgetTemplateEntity(
+            id = "tmpl-1",
+            categoryId = catEntity.id,
+            startMonth = 1,
+            startYear = 2026,
+            defaultAmount = 5000L,
+            createdAt = 1_000_000L,
+            updatedAt = 2_000_000L
+        )
+        val withCategory = BudgetTemplateWithCategoryEntity(
+            budgetTemplate = templateEntity,
+            category = catEntity
+        )
+
+        val domain = withCategory.toDomain()
+
+        assertEquals(templateEntity.id, domain.id)
         assertEquals(catEntity.name, domain.category.name)
     }
 }

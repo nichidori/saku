@@ -1,15 +1,36 @@
 package dev.nichidori.saku.domain.repo
 
 import dev.nichidori.saku.domain.model.Budget
+import dev.nichidori.saku.domain.model.BudgetTemplate
 import dev.nichidori.saku.domain.model.Category
 
 interface BudgetRepository {
+    // Budget Template methods
+    suspend fun addBudgetTemplate(
+        category: Category,
+        startMonth: Int,
+        startYear: Int,
+        defaultAmount: Long
+    )
+    suspend fun getBudgetTemplateById(id: String): BudgetTemplate?
+    suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate?
+    suspend fun getAllBudgetTemplates(): List<BudgetTemplate>
+    suspend fun updateBudgetTemplate(
+        id: String,
+        category: Category,
+        startMonth: Int,
+        startYear: Int,
+        defaultAmount: Long
+    )
+    suspend fun deleteBudgetTemplate(id: String)
+
+    // Budget methods
     suspend fun addBudget(
-        name: String,
+        templateId: String,
         category: Category,
         month: Int,
         year: Int,
-        totalAmount: Long,
+        baseAmount: Long,
         spentAmount: Long
     )
     suspend fun getBudgetById(id: String): Budget?
@@ -17,11 +38,11 @@ interface BudgetRepository {
     suspend fun getBudgetsByCategory(categoryId: String): List<Budget>
     suspend fun updateBudget(
         id: String,
-        name: String,
+        templateId: String,
         category: Category,
         month: Int,
         year: Int,
-        totalAmount: Long,
+        baseAmount: Long,
         spentAmount: Long
     )
     suspend fun deleteBudget(id: String)

@@ -7,29 +7,104 @@ import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.domain.model.Budget
+import dev.nichidori.saku.domain.model.BudgetTemplate
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.repo.BudgetRepository
-import java.util.UUID
+import java.util.*
 import kotlin.time.Clock
 
 class DefaultBudgetRepository(
     private val db: AppDatabase,
 ) : BudgetRepository {
+
+    // Budget Template methods
+    override suspend fun addBudgetTemplate(
+        category: Category,
+        startMonth: Int,
+        startYear: Int,
+        defaultAmount: Long
+    ) {
+        val template = BudgetTemplate(
+            id = UUID.randomUUID().toString(),
+            category = category,
+            startMonth = startMonth,
+            startYear = startYear,
+            defaultAmount = defaultAmount,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        db.useWriterConnection {
+            db.budgetTemplateDao().insert(template.toEntity())
+        }
+    }
+
+    override suspend fun getBudgetTemplateById(id: String): BudgetTemplate? {
+        return db.useReaderConnection {
+            db.budgetTemplateDao().getByIdWithCategory(id)?.toDomain()
+        }
+    }
+
+    override suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate? {
+        return db.useReaderConnection {
+            db.budgetTemplateDao().getByCategoryIdWithCategory(categoryId)?.toDomain()
+        }
+    }
+
+    override suspend fun getAllBudgetTemplates(): List<BudgetTemplate> {
+        return db.useReaderConnection {
+            db.budgetTemplateDao().getAllWithCategory().map { it.toDomain() }
+        }
+    }
+
+    override suspend fun updateBudgetTemplate(
+        id: String,
+        category: Category,
+        startMonth: Int,
+        startYear: Int,
+        defaultAmount: Long
+    ) {
+        db.useWriterConnection {
+            it.immediateTransaction {
+                val existing = db.budgetTemplateDao().getByIdWithCategory(id)?.toDomain()
+                    ?: throw NoSuchElementException("Budget template not found")
+                val updated = existing.copy(
+                    category = category,
+                    startMonth = startMonth,
+                    startYear = startYear,
+                    defaultAmount = defaultAmount,
+                    updatedAt = Clock.System.now()
+                )
+                db.budgetTemplateDao().update(updated.toEntity())
+            }
+        }
+    }
+
+    override suspend fun deleteBudgetTemplate(id: String) {
+        db.useWriterConnection {
+            it.immediateTransaction {
+                db.budgetTemplateDao().getByIdWithCategory(id)
+                    ?: throw NoSuchElementException("Budget template not found")
+                db.budgetTemplateDao().deleteById(id)
+            }
+        }
+    }
+
+    // Budget methods
     override suspend fun addBudget(
-        name: String,
+        templateId: String,
         category: Category,
         month: Int,
         year: Int,
-        totalAmount: Long,
+        baseAmount: Long,
         spentAmount: Long
     ) {
         val budget = Budget(
             id = UUID.randomUUID().toString(),
-            name = name,
+            templateId = templateId,
             category = category,
             month = month,
             year = year,
-            totalAmount = totalAmount,
+            baseAmount = baseAmount,
             spentAmount = spentAmount,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -59,22 +134,22 @@ class DefaultBudgetRepository(
 
     override suspend fun updateBudget(
         id: String,
-        name: String,
+        templateId: String,
         category: Category,
         month: Int,
         year: Int,
-        totalAmount: Long,
+        baseAmount: Long,
         spentAmount: Long
     ) {
         db.useWriterConnection {
             it.immediateTransaction {
                 val updatedBudget = db.budgetDao().getByIdWithCategory(id)?.toDomain()
                     ?.copy(
-                        name = name,
+                        templateId = templateId,
                         category = category,
                         month = month,
                         year = year,
-                        totalAmount = totalAmount,
+                        baseAmount = baseAmount,
                         spentAmount = spentAmount,
                         updatedAt = Clock.System.now()
                     )

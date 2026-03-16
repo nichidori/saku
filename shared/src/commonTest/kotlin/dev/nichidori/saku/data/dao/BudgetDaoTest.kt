@@ -4,6 +4,7 @@ import androidx.room.Room
 import kotlinx.coroutines.test.runTest
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.BudgetEntity
+import dev.nichidori.saku.data.entity.BudgetTemplateEntity
 import dev.nichidori.saku.data.entity.CategoryEntity
 import dev.nichidori.saku.data.entity.TrxTypeEntity
 import dev.nichidori.saku.data.getRoomDatabase
@@ -18,6 +19,7 @@ class BudgetDaoTest {
 
     private lateinit var db: AppDatabase
     private lateinit var budgetDao: BudgetDao
+    private lateinit var budgetTemplateDao: BudgetTemplateDao
     private lateinit var categoryDao: CategoryDao
 
     private val category = CategoryEntity(
@@ -29,13 +31,23 @@ class BudgetDaoTest {
         updatedAt = null
     )
 
+    private val template = BudgetTemplateEntity(
+        id = "tmpl-1",
+        categoryId = "cat-food",
+        startMonth = 1,
+        startYear = 2026,
+        defaultAmount = 5_000_000L,
+        createdAt = System.currentTimeMillis(),
+        updatedAt = null
+    )
+
     private val budget = BudgetEntity(
         id = "budget-1",
-        name = "Monthly Food Budget",
+        templateId = "tmpl-1",
         categoryId = "cat-food",
         month = 3,
         year = 2026,
-        totalAmount = 5_000_000L,
+        baseAmount = 5_000_000L,
         spentAmount = 1_000_000L,
         createdAt = System.currentTimeMillis(),
         updatedAt = null
@@ -45,6 +57,7 @@ class BudgetDaoTest {
     fun setup() {
         db = getRoomDatabase(builder = Room.inMemoryDatabaseBuilder<AppDatabase>())
         budgetDao = db.budgetDao()
+        budgetTemplateDao = db.budgetTemplateDao()
         categoryDao = db.categoryDao()
     }
 
@@ -56,13 +69,13 @@ class BudgetDaoTest {
     @Test
     fun insertAndGetByIdWithCategory_shouldReturnMatchingBudgetWithCategory() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
 
         val result = budgetDao.getByIdWithCategory(budget.id)
 
         assertNotNull(result)
         assertEquals(budget.id, result.budget.id)
-        assertEquals(budget.name, result.budget.name)
         assertEquals(category.id, result.category.id)
         assertEquals(category.name, result.category.name)
     }
@@ -70,6 +83,7 @@ class BudgetDaoTest {
     @Test
     fun getByMonthAndYearWithCategory_shouldReturnBudgetsForSpecificMonth() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
         
         val anotherBudget = budget.copy(id = "budget-2", month = 4)
@@ -84,11 +98,14 @@ class BudgetDaoTest {
     @Test
     fun getByCategoryIdWithCategory_shouldReturnBudgetsForSpecificCategory() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
 
         val anotherCategory = category.copy(id = "cat-other", name = "Other")
         categoryDao.insert(anotherCategory)
-        val anotherBudget = budget.copy(id = "budget-2", categoryId = "cat-other")
+        val anotherTemplate = template.copy(id = "tmpl-2", categoryId = "cat-other")
+        budgetTemplateDao.insert(anotherTemplate)
+        val anotherBudget = budget.copy(id = "budget-2", templateId = "tmpl-2", categoryId = "cat-other")
         budgetDao.insert(anotherBudget)
 
         val results = budgetDao.getByCategoryIdWithCategory(category.id)
@@ -100,20 +117,21 @@ class BudgetDaoTest {
     @Test
     fun update_shouldUpdateBudgetDetails() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
 
-        val updatedBudget = budget.copy(name = "Updated Budget", totalAmount = 6_000_000L)
+        val updatedBudget = budget.copy(baseAmount = 6_000_000L)
         budgetDao.update(updatedBudget)
 
         val result = budgetDao.getByIdWithCategory(budget.id)
         assertNotNull(result)
-        assertEquals("Updated Budget", result.budget.name)
-        assertEquals(6_000_000L, result.budget.totalAmount)
+        assertEquals(6_000_000L, result.budget.baseAmount)
     }
 
     @Test
     fun deleteById_shouldRemoveBudget() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
 
         budgetDao.deleteById(budget.id)
@@ -125,14 +143,14 @@ class BudgetDaoTest {
     @Test
     fun insertDuplicateUnique_shouldReplaceExisting() = runTest {
         categoryDao.insert(category)
+        budgetTemplateDao.insert(template)
         budgetDao.insert(budget)
 
-        val duplicateBudget = budget.copy(id = "budget-new-id", name = "New Name")
+        val duplicateBudget = budget.copy(id = "budget-new-id")
         budgetDao.insert(duplicateBudget)
 
         val results = budgetDao.getByMonthAndYearWithCategory(3, 2026)
         assertEquals(1, results.size)
         assertEquals("budget-new-id", results[0].budget.id)
-        assertEquals("New Name", results[0].budget.name)
     }
 }
