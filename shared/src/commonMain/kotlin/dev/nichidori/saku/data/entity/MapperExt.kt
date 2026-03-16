@@ -203,7 +203,6 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
 
 fun BudgetEntity.toDomain(category: Category): Budget = Budget(
     id = id,
-    templateId = templateId,
     category = category,
     month = month,
     year = year,
@@ -217,7 +216,7 @@ fun BudgetWithCategoryEntity.toDomain(): Budget {
     return budget.toDomain(category.toDomain())
 }
 
-fun Budget.toEntity(): BudgetEntity = BudgetEntity(
+fun Budget.toEntity(templateId: String): BudgetEntity = BudgetEntity(
     id = id,
     templateId = templateId,
     categoryId = category.id,
@@ -232,8 +231,6 @@ fun Budget.toEntity(): BudgetEntity = BudgetEntity(
 fun BudgetTemplateEntity.toDomain(category: Category): BudgetTemplate = BudgetTemplate(
     id = id,
     category = category,
-    startMonth = startMonth,
-    startYear = startYear,
     defaultAmount = defaultAmount,
     createdAt = Instant.fromEpochMilliseconds(createdAt),
     updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
@@ -246,8 +243,6 @@ fun BudgetTemplateWithCategoryEntity.toDomain(): BudgetTemplate {
 fun BudgetTemplate.toEntity(): BudgetTemplateEntity = BudgetTemplateEntity(
     id = id,
     categoryId = category.id,
-    startMonth = startMonth,
-    startYear = startYear,
     defaultAmount = defaultAmount,
     createdAt = createdAt.toEpochMilliseconds(),
     updatedAt = updatedAt?.toEpochMilliseconds()

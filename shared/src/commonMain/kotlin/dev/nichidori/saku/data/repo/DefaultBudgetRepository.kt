@@ -20,15 +20,11 @@ class DefaultBudgetRepository(
     // Budget Template methods
     override suspend fun addBudgetTemplate(
         category: Category,
-        startMonth: Int,
-        startYear: Int,
         defaultAmount: Long
     ) {
         val template = BudgetTemplate(
             id = UUID.randomUUID().toString(),
             category = category,
-            startMonth = startMonth,
-            startYear = startYear,
             defaultAmount = defaultAmount,
             createdAt = Clock.System.now(),
             updatedAt = null
@@ -59,8 +55,6 @@ class DefaultBudgetRepository(
     override suspend fun updateBudgetTemplate(
         id: String,
         category: Category,
-        startMonth: Int,
-        startYear: Int,
         defaultAmount: Long
     ) {
         db.useWriterConnection {
@@ -69,8 +63,6 @@ class DefaultBudgetRepository(
                     ?: throw NoSuchElementException("Budget template not found")
                 val updated = existing.copy(
                     category = category,
-                    startMonth = startMonth,
-                    startYear = startYear,
                     defaultAmount = defaultAmount,
                     updatedAt = Clock.System.now()
                 )
@@ -100,7 +92,6 @@ class DefaultBudgetRepository(
     ) {
         val budget = Budget(
             id = UUID.randomUUID().toString(),
-            templateId = templateId,
             category = category,
             month = month,
             year = year,
@@ -110,7 +101,7 @@ class DefaultBudgetRepository(
             updatedAt = null
         )
         db.useWriterConnection {
-            db.budgetDao().insert(budget.toEntity())
+            db.budgetDao().insert(budget.toEntity(templateId))
         }
     }
 
@@ -145,7 +136,6 @@ class DefaultBudgetRepository(
             it.immediateTransaction {
                 val updatedBudget = db.budgetDao().getByIdWithCategory(id)?.toDomain()
                     ?.copy(
-                        templateId = templateId,
                         category = category,
                         month = month,
                         year = year,
@@ -154,7 +144,7 @@ class DefaultBudgetRepository(
                         updatedAt = Clock.System.now()
                     )
                     ?: throw NoSuchElementException("Budget not found")
-                db.budgetDao().update(updatedBudget.toEntity())
+                db.budgetDao().update(updatedBudget.toEntity(templateId))
             }
         }
     }

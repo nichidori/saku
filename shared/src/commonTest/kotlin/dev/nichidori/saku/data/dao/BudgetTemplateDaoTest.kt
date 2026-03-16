@@ -32,8 +32,6 @@ class BudgetTemplateDaoTest {
     private val template = BudgetTemplateEntity(
         id = "tmpl-1",
         categoryId = "cat-food",
-        startMonth = 1,
-        startYear = 2026,
         defaultAmount = 5_000_000L,
         createdAt = System.currentTimeMillis(),
         updatedAt = null

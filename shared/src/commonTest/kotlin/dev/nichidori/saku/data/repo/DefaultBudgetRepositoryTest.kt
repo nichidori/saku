@@ -37,8 +37,6 @@ class DefaultBudgetRepositoryTest {
     private val template = BudgetTemplate(
         id = "tmpl-1",
         category = category,
-        startMonth = 1,
-        startYear = 2026,
         defaultAmount = 5_000_000L,
         createdAt = Clock.System.now(),
         updatedAt = null
@@ -46,7 +44,6 @@ class DefaultBudgetRepositoryTest {
 
     private val budget = Budget(
         id = "budget-1",
-        templateId = "tmpl-1",
         category = category,
         month = 3,
         year = 2026,
@@ -74,8 +71,6 @@ class DefaultBudgetRepositoryTest {
         db.categoryDao().insert(category.toEntity())
         repository.addBudgetTemplate(
             template.category,
-            template.startMonth,
-            template.startYear,
             template.defaultAmount
         )
 
@@ -101,8 +96,6 @@ class DefaultBudgetRepositoryTest {
         repository.updateBudgetTemplate(
             template.id,
             template.category,
-            template.startMonth,
-            template.startYear,
             10_000_000L
         )
 
@@ -126,7 +119,7 @@ class DefaultBudgetRepositoryTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
         repository.addBudget(
-            budget.templateId,
+            "tmpl-1",
             budget.category,
             budget.month,
             budget.year,
@@ -137,14 +130,13 @@ class DefaultBudgetRepositoryTest {
         val budgets = db.budgetDao().getByMonthAndYearWithCategory(3, 2026).map { it.toDomain() }
         assertEquals(1, budgets.size)
         assertNotEquals("budget-1", budgets.first().id)
-        assertEquals("tmpl-1", budgets.first().templateId)
     }
 
     @Test
     fun getBudgetById_shouldReturnCorrectBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity())
+        db.budgetDao().insert(budget.toEntity("tmpl-1"))
 
         val result = repository.getBudgetById(budget.id)
         assertNotNull(result)
@@ -155,7 +147,7 @@ class DefaultBudgetRepositoryTest {
     fun getBudgetsByMonthAndYear_shouldReturnMatchingBudgets() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity())
+        db.budgetDao().insert(budget.toEntity("tmpl-1"))
 
         val result = repository.getBudgetsByMonthAndYear(3, 2026)
         assertEquals(1, result.size)
@@ -165,7 +157,7 @@ class DefaultBudgetRepositoryTest {
     fun getBudgetsByCategory_shouldReturnMatchingBudgets() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity())
+        db.budgetDao().insert(budget.toEntity("tmpl-1"))
 
         val result = repository.getBudgetsByCategory(category.id)
         assertEquals(1, result.size)
@@ -175,11 +167,11 @@ class DefaultBudgetRepositoryTest {
     fun updateBudget_shouldUpdateExistingBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity())
+        db.budgetDao().insert(budget.toEntity("tmpl-1"))
 
         repository.updateBudget(
             budget.id,
-            budget.templateId,
+            "tmpl-1",
             budget.category,
             budget.month,
             budget.year,
@@ -197,7 +189,7 @@ class DefaultBudgetRepositoryTest {
     fun deleteBudget_shouldRemoveBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity())
+        db.budgetDao().insert(budget.toEntity("tmpl-1"))
 
         repository.deleteBudget(budget.id)
 

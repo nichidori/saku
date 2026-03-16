@@ -8,8 +8,6 @@ interface BudgetRepository {
     // Budget Template methods
     suspend fun addBudgetTemplate(
         category: Category,
-        startMonth: Int,
-        startYear: Int,
         defaultAmount: Long
     )
     suspend fun getBudgetTemplateById(id: String): BudgetTemplate?
@@ -18,8 +16,6 @@ interface BudgetRepository {
     suspend fun updateBudgetTemplate(
         id: String,
         category: Category,
-        startMonth: Int,
-        startYear: Int,
         defaultAmount: Long
     )
     suspend fun deleteBudgetTemplate(id: String)

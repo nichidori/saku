@@ -420,7 +420,7 @@ class MapperExtTest {
         )
 
         val domain = entity.toDomain(category)
-        val roundTrip = domain.toEntity()
+        val roundTrip = domain.toEntity("tmpl-1")
 
         assertEquals(entity, roundTrip)
     }
@@ -438,8 +438,6 @@ class MapperExtTest {
         val entity = BudgetTemplateEntity(
             id = "tmpl-1",
             categoryId = category.id,
-            startMonth = 1,
-            startYear = 2026,
             defaultAmount = 5000L,
             createdAt = 1_000_000L,
             updatedAt = 2_000_000L
@@ -481,7 +479,6 @@ class MapperExtTest {
 
         assertEquals(budgetEntity.id, domain.id)
         assertEquals(catEntity.name, domain.category.name)
-        assertEquals("tmpl-1", domain.templateId)
     }
 
     @Test
@@ -497,8 +494,6 @@ class MapperExtTest {
         val templateEntity = BudgetTemplateEntity(
             id = "tmpl-1",
             categoryId = catEntity.id,
-            startMonth = 1,
-            startYear = 2026,
             defaultAmount = 5000L,
             createdAt = 1_000_000L,
             updatedAt = 2_000_000L

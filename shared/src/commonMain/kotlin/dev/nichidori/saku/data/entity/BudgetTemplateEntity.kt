@@ -23,8 +23,6 @@ import androidx.room.PrimaryKey
 data class BudgetTemplateEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: String,
     @ColumnInfo(name = "category_id") val categoryId: String,
-    @ColumnInfo(name = "start_month") val startMonth: Int,
-    @ColumnInfo(name = "start_year") val startYear: Int,
     @ColumnInfo(name = "default_amount") val defaultAmount: Long,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long?
