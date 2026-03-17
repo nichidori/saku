@@ -99,7 +99,6 @@ class DefaultBudgetViewModel(
                 if (templateId != null) {
                     budgetRepository.updateBudgetTemplate(
                         id = templateId,
-                        category = category,
                         defaultAmount = amount
                     )
                 } else {

@@ -11,7 +11,7 @@ interface BudgetRepository {
     suspend fun getBudgetTemplateById(id: String): BudgetTemplate?
     suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate?
     suspend fun getAllBudgetTemplates(): List<BudgetTemplate>
-    suspend fun updateBudgetTemplate(id: String, category: Category, defaultAmount: Long)
+    suspend fun updateBudgetTemplate(id: String, defaultAmount: Long)
     suspend fun deleteBudgetTemplate(id: String)
 
     // Budget methods

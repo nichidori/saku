@@ -86,11 +86,7 @@ class DefaultBudgetRepositoryTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
 
-        repository.updateBudgetTemplate(
-            template.id,
-            template.category,
-            10_000_000L
-        )
+        repository.updateBudgetTemplate(template.id, 10_000_000L)
 
         val result = repository.getBudgetTemplateById(template.id)
         assertEquals(10_000_000L, result?.defaultAmount)

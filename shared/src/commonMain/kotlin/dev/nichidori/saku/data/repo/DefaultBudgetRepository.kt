@@ -32,6 +32,8 @@ class DefaultBudgetRepository(
         )
         db.useWriterConnection {
             db.budgetTemplateDao().insert(template.toEntity())
+
+            // TODO: fix: also create current month BudgetEntity
         }
     }
 
@@ -53,17 +55,12 @@ class DefaultBudgetRepository(
         }
     }
 
-    override suspend fun updateBudgetTemplate(
-        id: String,
-        category: Category,
-        defaultAmount: Long
-    ) {
+    override suspend fun updateBudgetTemplate(id: String, defaultAmount: Long) {
         db.useWriterConnection {
             it.immediateTransaction {
                 val existing = db.budgetTemplateDao().getByIdWithCategory(id)?.toDomain()
                     ?: throw NoSuchElementException("Budget template not found")
                 val updated = existing.copy(
-                    category = category,
                     defaultAmount = defaultAmount,
                     updatedAt = Clock.System.now()
                 )

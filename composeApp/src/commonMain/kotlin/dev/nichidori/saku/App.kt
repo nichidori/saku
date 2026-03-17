@@ -483,7 +483,7 @@ fun AppPreview() {
         override suspend fun getBudgetTemplateById(id: String): BudgetTemplate? = null
         override suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate? = null
         override suspend fun getAllBudgetTemplates(): List<BudgetTemplate> = emptyList()
-        override suspend fun updateBudgetTemplate(id: String, category: Category, defaultAmount: Long) {}
+        override suspend fun updateBudgetTemplate(id: String, defaultAmount: Long) {}
         override suspend fun deleteBudgetTemplate(id: String) {}
         override suspend fun ensureBudgetsExist(now: YearMonth) {}
         override suspend fun getBudgetById(id: String): Budget? = null
