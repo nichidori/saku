@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
+import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Budget
-import dev.nichidori.saku.domain.model.BudgetTemplate
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +17,14 @@ import kotlinx.coroutines.launch
 data class MonthBudgetUiState(
     val loadStatus: Status<Unit, Exception> = Initial,
     val saveStatus: Status<Unit, Exception> = Initial,
-    val template: BudgetTemplate? = null,
+    val defaultAmount: Long? = null,
     val budget: Budget? = null,
-)
+    val amount: Long? = null,
+) {
+    val canSave: Boolean = amount != null && amount > 0
+    val amountFormatted = amount?.toRupiah().orEmpty()
+    val defaultAmountFormatted = defaultAmount?.toRupiah().orEmpty()
+}
 
 class MonthBudgetViewModel(
     private val budgetRepository: BudgetRepository,
@@ -38,13 +43,14 @@ class MonthBudgetViewModel(
                 _uiState.update { it.copy(loadStatus = Loading) }
                 val budget = budgetRepository.getBudgetById(budgetId)
                     ?: throw NoSuchElementException("Budget not found")
-                val template = budgetRepository.getBudgetTemplateByCategoryId(budget.category.id)
-                
+                val template = budgetRepository.getBudgetTemplateById(budget.templateId)
+
                 _uiState.update {
                     it.copy(
                         loadStatus = Success(Unit),
                         budget = budget,
-                        template = template
+                        defaultAmount = template?.defaultAmount,
+                        amount = budget.baseAmount
                     )
                 }
             } catch (e: Exception) {
@@ -54,17 +60,24 @@ class MonthBudgetViewModel(
         }
     }
 
-    fun save(baseAmount: Long) {
+    fun onAmountChange(newValue: String) {
+        if (newValue.all { it.isDigit() }) {
+            _uiState.update { it.copy(amount = newValue.toLongOrNull()) }
+        }
+    }
+
+    fun save() {
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(saveStatus = Loading) }
-                val currentBudget = _uiState.value.budget
-                    ?: throw IllegalStateException("Budget not loaded")
-                
+
+                val budget = _uiState.value.budget ?: throw Exception("Budget not found")
+                val baseAmount = _uiState.value.amount ?: throw Exception("Amount cannot be empty")
+
                 budgetRepository.updateBudget(
                     id = budgetId,
                     baseAmount = baseAmount,
-                    spentAmount = currentBudget.spentAmount
+                    spentAmount = budget.spentAmount
                 )
                 _uiState.update { it.copy(saveStatus = Success(Unit)) }
             } catch (e: Exception) {

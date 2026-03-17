@@ -20,7 +20,10 @@ import com.composables.icons.lucide.Trash2
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyIconButton
+import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.platform.ToastDuration
+import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Budget
@@ -37,18 +40,42 @@ fun CategoryBudgetPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
     LaunchedEffect(uiState.deleteStatus) {
-        if (uiState.deleteStatus is Success) {
-            onUp()
+        when (val status = uiState.deleteStatus) {
+            is Success<*> -> onUp()
+            is Status.Failure<*> -> showToast(
+                status.error.toString(),
+                duration = ToastDuration.Long
+            )
+            else -> {}
         }
     }
 
+    CategoryBudgetPageContent(
+        uiState = uiState,
+        onUp = onUp,
+        onDelete = viewModel::delete,
+        onDefaultBudgetClick = onDefaultBudgetClick,
+        onMonthBudgetClick = onMonthBudgetClick,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CategoryBudgetPageContent(
+    uiState: CategoryBudgetUiState,
+    onUp: () -> Unit,
+    onDelete: () -> Unit,
+    onDefaultBudgetClick: (String) -> Unit,
+    onMonthBudgetClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = {
             MyAppBar(
                 title = uiState.template?.category?.name ?: "",
                 onUp = onUp,
                 action = {
-                    MyIconButton(onClick = viewModel::delete) {
+                    MyIconButton(onClick = onDelete) {
                         Icon(imageVector = Lucide.Trash2, contentDescription = "Delete Budget")
                     }
                 }
@@ -57,7 +84,7 @@ fun CategoryBudgetPage(
         modifier = modifier
     ) { contentPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(contentPadding).fillMaxSize()
         ) {
