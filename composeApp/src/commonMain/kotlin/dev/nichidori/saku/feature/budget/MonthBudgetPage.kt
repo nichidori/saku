@@ -126,7 +126,7 @@ fun MonthBudgetPageContent(
                         )
                         Text(
                             budget.category.name,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -153,7 +153,7 @@ fun MonthBudgetPageContent(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 val pastBudget = budget.status == BudgetStatus.Past
                 MyTextField(

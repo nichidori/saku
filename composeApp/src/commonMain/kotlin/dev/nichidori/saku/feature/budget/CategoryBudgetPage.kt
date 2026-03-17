@@ -114,7 +114,7 @@ fun CategoryBudgetPageContent(
                     )
                     Text(
                         template.category.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(16.dp))
