@@ -3,7 +3,6 @@ package dev.nichidori.saku
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -14,13 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -31,9 +26,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.composable.MyBox
+import dev.nichidori.saku.core.composable.MyDefaultShape
+import dev.nichidori.saku.core.composable.MyNavBar
+import dev.nichidori.saku.core.composable.NavBarDestination
 import dev.nichidori.saku.core.theme.MyTheme
-import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
@@ -490,7 +487,7 @@ fun AppPreview() {
         override suspend fun deleteBudgetTemplate(id: String) {}
         override suspend fun ensureBudgetsExist(now: YearMonth) {}
         override suspend fun getBudgetById(id: String): Budget? = null
-        override suspend fun getBudgetsByMonthAndYear(month: Int, year: Int): List<Budget> = emptyList()
+        override suspend fun getBudgetsByYearMonth(month: YearMonth): List<Budget> = emptyList()
         override suspend fun getBudgetsByCategory(categoryId: String): List<Budget> = emptyList()
         override suspend fun updateBudget(id: String, baseAmount: Long, spentAmount: Long) {}
         override suspend fun deleteBudget(id: String) {}

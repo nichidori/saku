@@ -13,7 +13,6 @@ import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import kotlinx.datetime.*
 import kotlinx.datetime.DateTimeUnit.Companion.DAY
-import kotlinx.datetime.TimeZone
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -118,8 +117,7 @@ class DefaultBudgetRepository(
                                 id = UUID.randomUUID().toString(),
                                 templateId = template.budgetTemplate.id,
                                 category = category,
-                                month = month.month.number,
-                                year = month.year,
+                                month = month,
                                 baseAmount = template.budgetTemplate.defaultAmount,
                                 spentAmount = spentAmount,
                                 createdAt = Clock.System.now(),
@@ -139,9 +137,11 @@ class DefaultBudgetRepository(
         }
     }
 
-    override suspend fun getBudgetsByMonthAndYear(month: Int, year: Int): List<Budget> {
+    override suspend fun getBudgetsByYearMonth(month: YearMonth): List<Budget> {
         return db.useReaderConnection {
-            db.budgetDao().getByMonthAndYearWithCategory(month, year).map { it.toDomain() }
+            db.budgetDao()
+                .getByMonthAndYearWithCategory(month = month.month.number, year = month.year)
+                .map { it.toDomain() }
         }
     }
 

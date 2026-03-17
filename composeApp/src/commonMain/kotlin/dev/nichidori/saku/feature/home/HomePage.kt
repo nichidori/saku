@@ -440,8 +440,7 @@ fun HomePageContentPreview() {
                     createdAt = Clock.System.now(),
                     updatedAt = null
                 ),
-                month = 3,
-                year = 2026,
+                month = YearMonth(2026, 3),
                 baseAmount = 1000000,
                 spentAmount = 300000,
                 createdAt = Clock.System.now(),

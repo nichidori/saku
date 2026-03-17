@@ -27,6 +27,7 @@ import dev.nichidori.saku.domain.model.status
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.number
 
 @Composable
 fun MonthBudgetPage(
@@ -138,8 +139,8 @@ fun MonthBudgetPageContent(
                         )
                     ) {
                         val date = LocalDate(
-                            year = budget.year,
-                            month = budget.month,
+                            year = budget.month.year,
+                            month = budget.month.month.number,
                             day = 1
                         )
                         val month = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })

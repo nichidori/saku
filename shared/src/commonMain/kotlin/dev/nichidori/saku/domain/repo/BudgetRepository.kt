@@ -17,7 +17,7 @@ interface BudgetRepository {
     // Budget methods
     suspend fun ensureBudgetsExist(now: YearMonth)
     suspend fun getBudgetById(id: String): Budget?
-    suspend fun getBudgetsByMonthAndYear(month: Int, year: Int): List<Budget>
+    suspend fun getBudgetsByYearMonth(month: YearMonth): List<Budget>
     suspend fun getBudgetsByCategory(categoryId: String): List<Budget>
     suspend fun updateBudget(id: String, baseAmount: Long, spentAmount: Long)
     suspend fun deleteBudget(id: String)

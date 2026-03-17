@@ -1,7 +1,7 @@
 package dev.nichidori.saku.domain.model
 
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
+import kotlinx.datetime.YearMonth
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -10,8 +10,7 @@ data class Budget(
     val id: String,
     val templateId: String,
     val category: Category,
-    val month: Int,
-    val year: Int,
+    val month: YearMonth,
     val baseAmount: Long,
     val spentAmount: Long,
     val createdAt: Instant,
@@ -28,14 +27,13 @@ enum class BudgetStatus {
 
 val Budget.status: BudgetStatus
     get() {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-
-        val currentScore = (now.year * 12) + now.month.number
-        val budgetScore = (this.year * 12) + this.month
+        val currentMonth = Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
 
         return when {
-            budgetScore < currentScore -> BudgetStatus.Past
-            budgetScore > currentScore -> BudgetStatus.Future
+            month < currentMonth -> BudgetStatus.Past
+            month > currentMonth -> BudgetStatus.Future
             else -> BudgetStatus.Current
         }
     }

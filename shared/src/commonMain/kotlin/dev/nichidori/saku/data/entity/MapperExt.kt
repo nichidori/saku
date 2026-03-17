@@ -1,6 +1,8 @@
 package dev.nichidori.saku.data.entity
 
 import dev.nichidori.saku.domain.model.*
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.number
 import kotlin.time.Instant
 
 fun AccountEntity.toDomain(): Account = Account(
@@ -205,8 +207,7 @@ fun BudgetEntity.toDomain(category: Category): Budget = Budget(
     id = id,
     templateId = templateId,
     category = category,
-    month = month,
-    year = year,
+    month = YearMonth(year, month),
     baseAmount = baseAmount,
     spentAmount = spentAmount,
     createdAt = Instant.fromEpochMilliseconds(createdAt),
@@ -221,8 +222,8 @@ fun Budget.toEntity(): BudgetEntity = BudgetEntity(
     id = id,
     templateId = templateId,
     categoryId = category.id,
-    month = month,
-    year = year,
+    month = month.month.number,
+    year = month.year,
     baseAmount = baseAmount,
     spentAmount = spentAmount,
     createdAt = createdAt.toEpochMilliseconds(),

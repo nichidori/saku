@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
-import kotlinx.datetime.number
 
 data class HomeUiState(
     val loadStatus: Status<YearMonth, Exception> = Initial,
@@ -53,7 +52,7 @@ class HomeViewModel(
                 val accounts = accountRepository.getAllAccounts()
                 val netWorth = accountRepository.getTotalBalance()
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
-                val budgets = budgetRepository.getBudgetsByMonthAndYear(month.month.number, month.year)
+                val budgets = budgetRepository.getBudgetsByYearMonth(month)
                 _uiState.update {
                     it.copy(
                         loadStatus = Success(month),

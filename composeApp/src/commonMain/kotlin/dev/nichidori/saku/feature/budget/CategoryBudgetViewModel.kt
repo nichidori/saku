@@ -35,8 +35,8 @@ class CategoryBudgetViewModel(
                 val template = budgetRepository.getBudgetTemplateById(templateId)
                     ?: throw NoSuchElementException("Budget template not found")
                 val budgets = budgetRepository.getBudgetsByCategory(template.category.id)
-                    .sortedWith(compareByDescending<Budget> { it.year }.thenByDescending { it.month })
-                
+                    .sortedWith(compareByDescending { it.month })
+
                 _uiState.update {
                     it.copy(
                         loadStatus = Success(Unit),

@@ -39,8 +39,7 @@ class DefaultBudgetRepositoryTest {
         id = "budget-1",
         templateId = "tmpl-1",
         category = category,
-        month = 3,
-        year = 2026,
+        month = YearMonth(2026, 3),
         baseAmount = 5_000_000L,
         spentAmount = 1_000_000L,
         createdAt = Clock.System.now(),
@@ -125,9 +124,9 @@ class DefaultBudgetRepositoryTest {
 
         repository.ensureBudgetsExist(twoMonthsLater)
 
-        val startBudget = repository.getBudgetsByMonthAndYear(startYearMonth.month.number, startYearMonth.year)
-        val nextMonthBudget = repository.getBudgetsByMonthAndYear(nextMonth.month.number, nextMonth.year)
-        val twoMonthsLaterBudget = repository.getBudgetsByMonthAndYear(twoMonthsLater.month.number, twoMonthsLater.year)
+        val startBudget = repository.getBudgetsByYearMonth(startYearMonth)
+        val nextMonthBudget = repository.getBudgetsByYearMonth(nextMonth)
+        val twoMonthsLaterBudget = repository.getBudgetsByYearMonth(twoMonthsLater)
 
         assertEquals(1, startBudget.size)
         assertEquals(1, nextMonthBudget.size)
@@ -178,7 +177,7 @@ class DefaultBudgetRepositoryTest {
 
         repository.ensureBudgetsExist(startYearMonth)
 
-        val startBudget = repository.getBudgetsByMonthAndYear(startYearMonth.month.number, startYearMonth.year)
+        val startBudget = repository.getBudgetsByYearMonth(startYearMonth)
         
         assertEquals(1, startBudget.size)
         assertEquals(50_000L, startBudget.first().spentAmount)
@@ -201,7 +200,7 @@ class DefaultBudgetRepositoryTest {
         db.budgetTemplateDao().insert(template.toEntity())
         db.budgetDao().insert(budget.toEntity())
 
-        val result = repository.getBudgetsByMonthAndYear(3, 2026)
+        val result = repository.getBudgetsByYearMonth(YearMonth(2026, 3))
         assertEquals(1, result.size)
     }
 
