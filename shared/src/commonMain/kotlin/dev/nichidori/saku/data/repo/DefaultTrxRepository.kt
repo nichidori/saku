@@ -4,22 +4,15 @@ import androidx.room.immediateTransaction
 import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
 import androidx.sqlite.SQLiteException
-import kotlinx.datetime.DateTimeUnit.Companion.DAY
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.plus
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
-import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxFilter
-import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
-import java.util.UUID
+import kotlinx.datetime.*
+import kotlinx.datetime.DateTimeUnit.Companion.DAY
+import kotlinx.datetime.TimeZone
+import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -124,15 +117,26 @@ class DefaultTrxRepository(
                         )
 
                         val date = transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val budget = budgetDao.getByMonthAndYearWithCategory(
-                            year = date.year,
-                            month = date.month.number
-                        ).firstOrNull { budget -> budget.category.id == trx.category!!.id }
+                        val budgets = budgetDao.getByMonthAndYearWithCategory(
+                            month = date.month.number,
+                            year = date.year
+                        )
+                        val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
+                        val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
 
                         if (budget != null) {
                             budgetDao.update(
                                 budget.budget.copy(
                                     spentAmount = budget.budget.spentAmount + trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
+
+                        if (parentBudget != null) {
+                            budgetDao.update(
+                                parentBudget.budget.copy(
+                                    spentAmount = parentBudget.budget.spentAmount + trx.amount,
                                     updatedAt = currentTime.toEpochMilliseconds(),
                                 )
                             )
@@ -208,11 +212,11 @@ class DefaultTrxRepository(
 
                 val currentTime = Clock.System.now()
 
-                when (val trx = existing) {
+                when (existing) {
                     is Trx.Income -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount - trx.amount,
+                                currentAmount = oldSource.currentAmount - existing.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -221,21 +225,32 @@ class DefaultTrxRepository(
                     is Trx.Expense -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount + trx.amount,
+                                currentAmount = oldSource.currentAmount + existing.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
 
-                        val oldDate = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val oldBudget = budgetDao.getByMonthAndYearWithCategory(
-                            year = oldDate.year,
-                            month = oldDate.month.number
-                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+                        val oldDate = existing.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val budgets = budgetDao.getByMonthAndYearWithCategory(
+                            month = oldDate.month.number,
+                            year = oldDate.year
+                        )
+                        val oldBudget = budgets.firstOrNull { b -> b.category.id == existing.category?.id }
+                        val parentBudget = budgets.firstOrNull { b -> b.category.id == existing.category?.parent?.id }
 
                         if (oldBudget != null) {
                             budgetDao.update(
                                 oldBudget.budget.copy(
-                                    spentAmount = oldBudget.budget.spentAmount - trx.amount,
+                                    spentAmount = oldBudget.budget.spentAmount - existing.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
+
+                        if (parentBudget != null) {
+                            budgetDao.update(
+                                parentBudget.budget.copy(
+                                    spentAmount = parentBudget.budget.spentAmount - existing.amount,
                                     updatedAt = currentTime.toEpochMilliseconds(),
                                 )
                             )
@@ -245,13 +260,13 @@ class DefaultTrxRepository(
                     is Trx.Transfer -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount + trx.amount,
+                                currentAmount = oldSource.currentAmount + existing.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                         accountDao.update(
                             oldTarget!!.copy(
-                                currentAmount = oldTarget.currentAmount - trx.amount,
+                                currentAmount = oldTarget.currentAmount - existing.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -306,11 +321,11 @@ class DefaultTrxRepository(
                     )
                 }
 
-                when (val trx = updatedTrx) {
+                when (updatedTrx) {
                     is Trx.Income -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount + trx.amount,
+                                currentAmount = newSource.currentAmount + updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -319,21 +334,32 @@ class DefaultTrxRepository(
                     is Trx.Expense -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount - trx.amount,
+                                currentAmount = newSource.currentAmount - updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
-                        
-                        val newDate = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val newBudget = budgetDao.getByMonthAndYearWithCategory(
-                            year = newDate.year,
-                            month = newDate.month.number
-                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+
+                        val newDate = updatedTrx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val budgets = budgetDao.getByMonthAndYearWithCategory(
+                            month = newDate.month.number,
+                            year = newDate.year
+                        )
+                        val newBudget = budgets.firstOrNull { b -> b.category.id == updatedTrx.category?.id }
+                        val parentBudget = budgets.firstOrNull { b -> b.category.id == updatedTrx.category?.parent?.id }
 
                         if (newBudget != null) {
                             budgetDao.update(
                                 newBudget.budget.copy(
-                                    spentAmount = newBudget.budget.spentAmount + trx.amount,
+                                    spentAmount = newBudget.budget.spentAmount + updatedTrx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
+
+                        if (parentBudget != null) {
+                            budgetDao.update(
+                                parentBudget.budget.copy(
+                                    spentAmount = parentBudget.budget.spentAmount + updatedTrx.amount,
                                     updatedAt = currentTime.toEpochMilliseconds(),
                                 )
                             )
@@ -343,13 +369,13 @@ class DefaultTrxRepository(
                     is Trx.Transfer -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount - trx.amount,
+                                currentAmount = newSource.currentAmount - updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                         accountDao.update(
                             newTarget!!.copy(
-                                currentAmount = newTarget.currentAmount + trx.amount,
+                                currentAmount = newTarget.currentAmount + updatedTrx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -394,17 +420,28 @@ class DefaultTrxRepository(
                                 updatedAt = currentTime
                             ).toEntity()
                         )
-                        
+
                         val date = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val budget = budgetDao.getByMonthAndYearWithCategory(
-                            year = date.year,
-                            month = date.month.number
-                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+                        val budgets = budgetDao.getByMonthAndYearWithCategory(
+                            month = date.month.number,
+                            year = date.year
+                        )
+                        val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
+                        val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
 
                         if (budget != null) {
                             budgetDao.update(
                                 budget.budget.copy(
                                     spentAmount = budget.budget.spentAmount - trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
+
+                        if (parentBudget != null) {
+                            budgetDao.update(
+                                parentBudget.budget.copy(
+                                    spentAmount = parentBudget.budget.spentAmount - trx.amount,
                                     updatedAt = currentTime.toEpochMilliseconds(),
                                 )
                             )
