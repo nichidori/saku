@@ -10,19 +10,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 
@@ -119,6 +123,10 @@ fun HomePageContent(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         BudgetSection(
+                            month = when (val status = uiState.loadStatus) {
+                                is Success -> status.data
+                                else -> null
+                            },
                             budgets = uiState.budgets,
                             onBudgetClick = onBudgetClick,
                             onNewBudgetClick = onNewBudgetClick,
@@ -260,6 +268,7 @@ fun AccountCard(
 
 @Composable
 fun BudgetSection(
+    month: YearMonth?,
     budgets: List<Budget>,
     onBudgetClick: (String) -> Unit,
     onNewBudgetClick: () -> Unit,
@@ -272,8 +281,21 @@ fun BudgetSection(
                 .padding(start = 16.dp, end = 8.dp)
                 .fillMaxWidth()
         ) {
+            val monthSuffix = month?.let {
+                val date = LocalDate(
+                    year = it.year,
+                    month = it.month,
+                    day = 1
+                )
+
+                val monthName = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })
+                val year = (date.year % 100).toString().padStart(2, '0')
+
+                "  •  $monthName $year"
+            } ?: ""
+
             Text(
-                "Budget",
+                "Budget$monthSuffix",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
@@ -322,16 +344,18 @@ fun BudgetItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     budget.category.name,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.weight(1f)
                 )
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     "${budget.remainingAmount.toRupiah()} left",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             val progress = if (budget.baseAmount > 0) {
                 (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
             } else {
@@ -343,9 +367,12 @@ fun BudgetItem(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(MyDefaultShape),
-                color = if (progress >= 1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                strokeCap = StrokeCap.Square,
+                color = if (progress >= 1f) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }

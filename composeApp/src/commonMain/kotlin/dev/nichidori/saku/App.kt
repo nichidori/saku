@@ -71,7 +71,7 @@ import kotlin.time.Instant
     @Serializable data class Category(val id: String?) : Route
     @Serializable data class Trx(val id: String?) : Route
     @Serializable data class CategoryBudget(val templateId: String) : Route
-    @Serializable data class DefaultBudget(val templateId: String) : Route
+    @Serializable data class DefaultBudget(val templateId: String?) : Route
     @Serializable data class MonthBudget(val budgetId: String) : Route
 }
 
@@ -187,7 +187,7 @@ fun App(
                     val route = backStackEntry.toRoute<Route.DefaultBudget>()
                     DefaultBudgetPage(
                         viewModel = viewModel {
-                            DefaultBudgetViewModel(budgetRepository, route.templateId)
+                            DefaultBudgetViewModel(categoryRepository, budgetRepository, route.templateId)
                         },
                         onUp = { rootNavController.popBackStack() },
                         onSaveSuccess = { rootNavController.popBackStack() }
@@ -299,7 +299,7 @@ fun MainContainer(
                         rootNavController.navigate(Route.CategoryBudget(templateId))
                     },
                     onNewBudgetClick = {
-                        rootNavController.navigate(Route.CategoryList)
+                        rootNavController.navigate(Route.DefaultBudget(templateId = null))
                     }
                 )
             }
