@@ -17,6 +17,8 @@ import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.TrxRepository
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -27,6 +29,7 @@ class DefaultTrxRepository(
 
     private val trxDao = db.trxDao()
     private val accountDao = db.accountDao()
+    private val budgetDao = db.budgetDao()
 
     override suspend fun addTrx(
         type: TrxType,
@@ -39,10 +42,12 @@ class DefaultTrxRepository(
         note: String
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
-            IllegalArgumentException("Target account cannot be the same as source account")
+            error("Target account cannot be the same as source account")
         }
 
         val newId = UUID.randomUUID().toString()
+        val currentTime = Clock.System.now()
+
         val trx = when (type) {
             TrxType.Income -> Trx.Income(
                 id = newId,
@@ -52,9 +57,10 @@ class DefaultTrxRepository(
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
                 note = note,
-                createdAt = Clock.System.now(),
+                createdAt = currentTime,
                 updatedAt = null
             )
+
             TrxType.Expense -> Trx.Expense(
                 id = newId,
                 transactionAt = transactionAt,
@@ -63,9 +69,10 @@ class DefaultTrxRepository(
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
                 note = note,
-                createdAt = Clock.System.now(),
+                createdAt = currentTime,
                 updatedAt = null
             )
+
             TrxType.Transfer -> Trx.Transfer(
                 id = newId,
                 transactionAt = transactionAt,
@@ -75,7 +82,7 @@ class DefaultTrxRepository(
                 targetAccount = targetAccount ?: error("Target account cannot be null"),
                 category = category,
                 note = note,
-                createdAt = Clock.System.now(),
+                createdAt = currentTime,
                 updatedAt = null
             )
         }
@@ -98,7 +105,6 @@ class DefaultTrxRepository(
                     else -> null
                 }
 
-                val currentTime = Clock.System.now()
                 when (trx) {
                     is Trx.Income -> {
                         accountDao.update(
@@ -108,6 +114,7 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
+
                     is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
@@ -115,7 +122,23 @@ class DefaultTrxRepository(
                                 updatedAt = currentTime
                             ).toEntity()
                         )
+
+                        val date = transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val budget = budgetDao.getByMonthAndYearWithCategory(
+                            year = date.year,
+                            month = date.month.number
+                        ).firstOrNull { budget -> budget.category.id == trx.category!!.id }
+
+                        if (budget != null) {
+                            budgetDao.update(
+                                budget.budget.copy(
+                                    spentAmount = budget.budget.spentAmount + trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
                     }
+
                     is Trx.Transfer -> {
                         accountDao.update(
                             source.copy(
@@ -168,7 +191,7 @@ class DefaultTrxRepository(
         note: String
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
-            IllegalArgumentException("Target account cannot be the same as source account")
+            error("Target account cannot be the same as source account")
         }
 
         db.useWriterConnection {
@@ -185,33 +208,50 @@ class DefaultTrxRepository(
 
                 val currentTime = Clock.System.now()
 
-                when (existing) {
+                when (val trx = existing) {
                     is Trx.Income -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount - existing.amount,
+                                currentAmount = oldSource.currentAmount - trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                     }
+
                     is Trx.Expense -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount + existing.amount,
+                                currentAmount = oldSource.currentAmount + trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
+
+                        val oldDate = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val oldBudget = budgetDao.getByMonthAndYearWithCategory(
+                            year = oldDate.year,
+                            month = oldDate.month.number
+                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+
+                        if (oldBudget != null) {
+                            budgetDao.update(
+                                oldBudget.budget.copy(
+                                    spentAmount = oldBudget.budget.spentAmount - trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
                     }
+
                     is Trx.Transfer -> {
                         accountDao.update(
                             oldSource.copy(
-                                currentAmount = oldSource.currentAmount + existing.amount,
+                                currentAmount = oldSource.currentAmount + trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                         accountDao.update(
                             oldTarget!!.copy(
-                                currentAmount = oldTarget.currentAmount - existing.amount,
+                                currentAmount = oldTarget.currentAmount - trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -223,6 +263,7 @@ class DefaultTrxRepository(
                 val newTarget = when (type) {
                     TrxType.Transfer -> accountDao.getById(targetAccount!!.id)?.toDomain()
                         ?: error("New target account not found")
+
                     else -> null
                 }
 
@@ -238,6 +279,7 @@ class DefaultTrxRepository(
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )
+
                     TrxType.Expense -> Trx.Expense(
                         id = id,
                         transactionAt = transactionAt,
@@ -249,6 +291,7 @@ class DefaultTrxRepository(
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )
+
                     TrxType.Transfer -> Trx.Transfer(
                         id = id,
                         transactionAt = transactionAt,
@@ -263,34 +306,50 @@ class DefaultTrxRepository(
                     )
                 }
 
-                when (updatedTrx) {
+                when (val trx = updatedTrx) {
                     is Trx.Income -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount + updatedTrx.amount,
-                                updatedAt = currentTime
-                            ).toEntity()
-                        )
-                    }
-                    is Trx.Expense -> {
-                        accountDao.update(
-                            newSource.copy(
-                                currentAmount = newSource.currentAmount - updatedTrx.amount,
+                                currentAmount = newSource.currentAmount + trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                     }
 
+                    is Trx.Expense -> {
+                        accountDao.update(
+                            newSource.copy(
+                                currentAmount = newSource.currentAmount - trx.amount,
+                                updatedAt = currentTime
+                            ).toEntity()
+                        )
+                        
+                        val newDate = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val newBudget = budgetDao.getByMonthAndYearWithCategory(
+                            year = newDate.year,
+                            month = newDate.month.number
+                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+
+                        if (newBudget != null) {
+                            budgetDao.update(
+                                newBudget.budget.copy(
+                                    spentAmount = newBudget.budget.spentAmount + trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
+                    }
+
                     is Trx.Transfer -> {
                         accountDao.update(
                             newSource.copy(
-                                currentAmount = newSource.currentAmount - updatedTrx.amount,
+                                currentAmount = newSource.currentAmount - trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
                         accountDao.update(
                             newTarget!!.copy(
-                                currentAmount = newTarget.currentAmount + updatedTrx.amount,
+                                currentAmount = newTarget.currentAmount + trx.amount,
                                 updatedAt = currentTime
                             ).toEntity()
                         )
@@ -313,6 +372,7 @@ class DefaultTrxRepository(
                 val target = when (trx) {
                     is Trx.Transfer -> accountDao.getById(trx.targetAccount.id)?.toDomain()
                         ?: error("Target account not found")
+
                     else -> null
                 }
 
@@ -326,6 +386,7 @@ class DefaultTrxRepository(
                             ).toEntity()
                         )
                     }
+
                     is Trx.Expense -> {
                         accountDao.update(
                             source.copy(
@@ -333,7 +394,23 @@ class DefaultTrxRepository(
                                 updatedAt = currentTime
                             ).toEntity()
                         )
+                        
+                        val date = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                        val budget = budgetDao.getByMonthAndYearWithCategory(
+                            year = date.year,
+                            month = date.month.number
+                        ).firstOrNull { budget -> budget.category.id == trx.category?.id }
+
+                        if (budget != null) {
+                            budgetDao.update(
+                                budget.budget.copy(
+                                    spentAmount = budget.budget.spentAmount - trx.amount,
+                                    updatedAt = currentTime.toEpochMilliseconds(),
+                                )
+                            )
+                        }
                     }
+
                     is Trx.Transfer -> {
                         accountDao.update(
                             source.copy(

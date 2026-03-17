@@ -26,6 +26,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
+import dev.nichidori.saku.data.entity.BudgetEntity
+import dev.nichidori.saku.data.entity.BudgetTemplateEntity
+import kotlinx.datetime.number
+import kotlin.time.Duration.Companion.days
 
 class DefaultTrxRepositoryTest {
 
@@ -709,5 +713,261 @@ class DefaultTrxRepositoryTest {
         assertFailsWith<IllegalStateException> {
             repository.deleteTrx(addedTrx.id)
         }
+    }
+
+    @Test
+    fun addTrx_shouldUpdateBudgetSpentAmountForExpense() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.budgetTemplateDao().insert(
+            BudgetTemplateEntity(
+                id = "template-1",
+                categoryId = expenseCategory.id,
+                defaultAmount = 5000L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+        db.budgetDao().insert(
+            BudgetEntity(
+                id = "budget-1",
+                templateId = "template-1",
+                categoryId = expenseCategory.id,
+                month = localDate.month.number,
+                year = localDate.year,
+                baseAmount = 5000L,
+                spentAmount = 1000L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
+        )
+
+        val updatedBudget = db.budgetDao().getByMonthAndYearWithCategory(
+            year = localDate.year,
+            month = localDate.month.number
+        ).first { it.budget.categoryId == expenseCategory.id }
+
+        assertEquals(3000L, updatedBudget.budget.spentAmount)
+    }
+
+    @Test
+    fun updateTrx_shouldUpdateBudgetSpentAmountForExpense() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.budgetTemplateDao().insert(
+            BudgetTemplateEntity(
+                id = "template-1",
+                categoryId = expenseCategory.id,
+                defaultAmount = 5000L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+        db.budgetDao().insert(
+            BudgetEntity(
+                id = "budget-1",
+                templateId = "template-1",
+                categoryId = expenseCategory.id,
+                month = localDate.month.number,
+                year = localDate.year,
+                baseAmount = 5000L,
+                spentAmount = 0L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 1_000L,
+            description = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 2_500L,
+            description = addedTrx.description,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
+
+        val updatedBudget = db.budgetDao().getByMonthAndYearWithCategory(
+            year = localDate.year,
+            month = localDate.month.number
+        ).first { it.budget.categoryId == expenseCategory.id }
+
+        assertEquals(2500L, updatedBudget.budget.spentAmount)
+    }
+
+    @Test
+    fun updateTrx_shouldUpdateBudgetsWhenDateChangesForExpense() = runTest {
+        val now = Clock.System.now()
+        val currentLocalDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+        val nextMonthDate = now.plus(40.days)
+        val nextLocalDate = nextMonthDate.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.budgetTemplateDao().insert(
+            BudgetTemplateEntity(
+                id = "template-1",
+                categoryId = expenseCategory.id,
+                defaultAmount = 5000L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+        db.budgetDao().insert(
+            BudgetEntity(
+                id = "budget-current",
+                templateId = "template-1",
+                categoryId = expenseCategory.id,
+                month = currentLocalDate.month.number,
+                year = currentLocalDate.year,
+                baseAmount = 5000L,
+                spentAmount = 0L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+
+        // Make sure we only insert if they don't collide, but realistically plus 40 days won't land in the same month and year
+        if (currentLocalDate.month != nextLocalDate.month || currentLocalDate.year != nextLocalDate.year) {
+            db.budgetDao().insert(
+                BudgetEntity(
+                    id = "budget-next",
+                    templateId = "template-1",
+                    categoryId = expenseCategory.id,
+                    month = nextLocalDate.month.number,
+                    year = nextLocalDate.year,
+                    baseAmount = 5000L,
+                    spentAmount = 0L,
+                    createdAt = now.toEpochMilliseconds(),
+                    updatedAt = null
+                )
+            )
+        }
+
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 1_000L,
+            description = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Expense,
+            transactionAt = nextMonthDate,
+            amount = 1_000L,
+            description = addedTrx.description,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
+
+        val currentBudget = db.budgetDao().getByMonthAndYearWithCategory(
+            year = currentLocalDate.year,
+            month = currentLocalDate.month.number
+        ).first { it.budget.categoryId == expenseCategory.id }
+
+        val nextBudget = db.budgetDao().getByMonthAndYearWithCategory(
+            year = nextLocalDate.year,
+            month = nextLocalDate.month.number
+        ).first { it.budget.categoryId == expenseCategory.id }
+
+        if (currentLocalDate.month != nextLocalDate.month || currentLocalDate.year != nextLocalDate.year) {
+            assertEquals(0L, currentBudget.budget.spentAmount)
+            assertEquals(1000L, nextBudget.budget.spentAmount)
+        } else {
+            // Unlikely, but if they fall in the same month, spent amount remains 1000.
+            assertEquals(1000L, currentBudget.budget.spentAmount)
+        }
+    }
+
+    @Test
+    fun deleteTrx_shouldDecreaseBudgetSpentAmountForExpense() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.budgetTemplateDao().insert(
+            BudgetTemplateEntity(
+                id = "template-1",
+                categoryId = expenseCategory.id,
+                defaultAmount = 5000L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+        db.budgetDao().insert(
+            BudgetEntity(
+                id = "budget-1",
+                templateId = "template-1",
+                categoryId = expenseCategory.id,
+                month = localDate.month.number,
+                year = localDate.year,
+                baseAmount = 5000L,
+                spentAmount = 0L,
+                createdAt = now.toEpochMilliseconds(),
+                updatedAt = null
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.deleteTrx(addedTrx.id)
+
+        val updatedBudget = db.budgetDao().getByMonthAndYearWithCategory(
+            year = localDate.year,
+            month = localDate.month.number
+        ).first { it.budget.categoryId == expenseCategory.id }
+
+        assertEquals(0L, updatedBudget.budget.spentAmount)
     }
 }
