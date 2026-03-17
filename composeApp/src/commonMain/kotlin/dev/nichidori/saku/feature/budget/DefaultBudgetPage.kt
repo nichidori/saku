@@ -27,6 +27,7 @@ import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
+import dev.nichidori.saku.domain.model.Category
 
 @Composable
 fun DefaultBudgetPage(
@@ -36,9 +37,6 @@ fun DefaultBudgetPage(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
-    val focusManager = LocalFocusManager.current
-    var showCategoryInput by remember { mutableStateOf(false) }
-    var showAmountInput by remember { mutableStateOf(false) }
 
     uiState.saveStatus.let { status ->
         LaunchedEffect(status) {
@@ -53,6 +51,29 @@ fun DefaultBudgetPage(
             }
         }
     }
+
+    DefaultBudgetPageContent(
+        uiState = uiState,
+        onUp = onUp,
+        onSave = viewModel::save,
+        onCategoryChange = viewModel::onCategoryChange,
+        onAmountChange = viewModel::onAmountChange,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DefaultBudgetPageContent(
+    uiState: DefaultBudgetUiState,
+    onUp: () -> Unit,
+    onSave: () -> Unit,
+    onCategoryChange: (Category) -> Unit,
+    onAmountChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusManager = LocalFocusManager.current
+    var showCategoryInput by remember { mutableStateOf(false) }
+    var showAmountInput by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -93,7 +114,7 @@ fun DefaultBudgetPage(
                     CategorySelector(
                         categories = categories,
                         onSelected = {
-                            viewModel.onCategoryChange(it)
+                            onCategoryChange(it)
                             focusManager.clearFocus()
                         },
                         selectedWhen = { it.id == uiState.category?.id },
@@ -122,7 +143,7 @@ fun DefaultBudgetPage(
                                                 .clickable {
                                                     if (uiState.categoriesByParent[parent]?.isNotEmpty() != true) {
                                                         selectedParent = parent
-                                                        viewModel.onCategoryChange(parent)
+                                                        onCategoryChange(parent)
                                                         focusManager.clearFocus()
                                                     } else {
                                                         selectedParent = parent
@@ -153,12 +174,12 @@ fun DefaultBudgetPage(
                     NumberKeyboard(
                         actionLabel = "Next",
                         onValueClick = {
-                            viewModel.onAmountChange(
+                            onAmountChange(
                                 uiState.amount?.toString().orEmpty() + it.toString()
                             )
                         },
                         onDeleteClick = {
-                            viewModel.onAmountChange(
+                            onAmountChange(
                                 uiState.amount?.toString().orEmpty().dropLast(1)
                             )
                         },
@@ -171,7 +192,7 @@ fun DefaultBudgetPage(
                 else -> {
                     MyButton(
                         text = "Save",
-                        onClick = viewModel::save,
+                        onClick = onSave,
                         enabled = uiState.canSave,
                         modifier = Modifier
                             .navigationBarsPadding()
