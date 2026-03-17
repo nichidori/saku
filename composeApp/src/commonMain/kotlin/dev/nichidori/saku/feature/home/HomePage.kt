@@ -282,7 +282,13 @@ fun BudgetSection(
                 .padding(start = 16.dp, end = 8.dp)
                 .fillMaxWidth()
         ) {
-            val monthSuffix = month?.let {
+            Text(
+                "Budget",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+
+            month?.let {
                 val date = LocalDate(
                     year = it.year,
                     month = it.month,
@@ -292,15 +298,13 @@ fun BudgetSection(
                 val monthName = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })
                 val year = (date.year % 100).toString().padStart(2, '0')
 
-                "  •  $monthName $year"
-            } ?: ""
-
-            Text(
-                "Budget$monthSuffix",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
+                Text(
+                    "  •  $monthName $year",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
             MyIconButton(onClick = onNewBudgetClick) {
                 Icon(
                     imageVector = Lucide.Plus,
