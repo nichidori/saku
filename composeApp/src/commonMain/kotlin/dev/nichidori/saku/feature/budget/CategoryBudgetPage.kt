@@ -44,6 +44,10 @@ fun CategoryBudgetPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
+    LaunchedEffect(Unit) {
+        viewModel.load()
+    }
+
     LaunchedEffect(uiState.deleteStatus) {
         when (val status = uiState.deleteStatus) {
             is Success<*> -> onUp()

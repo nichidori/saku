@@ -28,10 +28,6 @@ class CategoryBudgetViewModel(
     private val _uiState = MutableStateFlow(CategoryBudgetUiState())
     val uiState: StateFlow<CategoryBudgetUiState> = _uiState.asStateFlow()
 
-    init {
-        load()
-    }
-
     fun load() {
         viewModelScope.launch {
             try {
