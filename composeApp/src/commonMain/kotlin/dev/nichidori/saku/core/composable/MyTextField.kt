@@ -4,6 +4,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -91,7 +92,7 @@ fun MyTextField(
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
                 ),
-                contentPadding = TextFieldDefaults.contentPaddingWithLabel(start = 0.dp, end = 0.dp)
+                contentPadding = TextFieldDefaults.contentPaddingWithLabel(start = 4.dp, end = 0.dp)
             )
         }
     )
