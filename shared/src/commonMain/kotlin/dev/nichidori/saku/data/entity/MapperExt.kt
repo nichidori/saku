@@ -203,6 +203,7 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
 
 fun BudgetEntity.toDomain(category: Category): Budget = Budget(
     id = id,
+    templateId = templateId,
     category = category,
     month = month,
     year = year,
@@ -216,7 +217,7 @@ fun BudgetWithCategoryEntity.toDomain(): Budget {
     return budget.toDomain(category.toDomain())
 }
 
-fun Budget.toEntity(templateId: String): BudgetEntity = BudgetEntity(
+fun Budget.toEntity(): BudgetEntity = BudgetEntity(
     id = id,
     templateId = templateId,
     categoryId = category.id,

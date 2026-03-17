@@ -11,6 +11,7 @@ import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.getDatabaseBuilder
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.data.repo.DefaultAccountRepository
+import dev.nichidori.saku.data.repo.DefaultBudgetRepository
 import dev.nichidori.saku.data.repo.DefaultCategoryRepository
 import dev.nichidori.saku.data.repo.DefaultTrxRepository
 
@@ -37,6 +38,7 @@ class MainActivity : ComponentActivity() {
                 accountRepository = DefaultAccountRepository(db = db),
                 categoryRepository = DefaultCategoryRepository(db = db),
                 trxRepository = DefaultTrxRepository(db = db),
+                budgetRepository = DefaultBudgetRepository(db = db)
             )
         }
     }

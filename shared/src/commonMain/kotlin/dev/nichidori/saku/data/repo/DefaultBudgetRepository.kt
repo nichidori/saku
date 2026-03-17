@@ -116,6 +116,7 @@ class DefaultBudgetRepository(
 
                             val budget = Budget(
                                 id = UUID.randomUUID().toString(),
+                                templateId = template.budgetTemplate.id,
                                 category = category,
                                 month = month.month.number,
                                 year = month.year,
@@ -124,7 +125,7 @@ class DefaultBudgetRepository(
                                 createdAt = Clock.System.now(),
                                 updatedAt = null
                             )
-                            db.budgetDao().insert(budget.toEntity(templateId = template.budgetTemplate.id))
+                            db.budgetDao().insert(budget.toEntity())
                         }
                     }
                 }
@@ -165,7 +166,7 @@ class DefaultBudgetRepository(
                     spentAmount = spentAmount,
                     updatedAt = Clock.System.now()
                 )
-                db.budgetDao().update(updatedBudget.toEntity(existingBudget.budget.templateId))
+                db.budgetDao().update(updatedBudget.toEntity())
             }
         }
     }

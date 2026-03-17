@@ -4,6 +4,7 @@ import kotlin.time.Instant
 
 data class Budget(
     val id: String,
+    val templateId: String,
     val category: Category,
     val month: Int,
     val year: Int,
@@ -11,4 +12,6 @@ data class Budget(
     val spentAmount: Long,
     val createdAt: Instant,
     val updatedAt: Instant?
-)
+) {
+    val remainingAmount = baseAmount - spentAmount;
+}

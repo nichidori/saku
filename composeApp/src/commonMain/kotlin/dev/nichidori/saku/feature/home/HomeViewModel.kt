@@ -3,16 +3,15 @@ package dev.nichidori.saku.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Initial
-import dev.nichidori.saku.core.model.Status.Loading
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Account
+import dev.nichidori.saku.domain.model.Budget
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
 import dev.nichidori.saku.domain.repo.AccountRepository
+import dev.nichidori.saku.domain.repo.BudgetRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,12 +19,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
+import kotlinx.datetime.number
 
 data class HomeUiState(
     val loadStatus: Status<YearMonth, Exception> = Initial,
     val netWorth: Long = 0,
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
+    val budgets: List<Budget> = emptyList(),
     val trxs: List<Trx> = emptyList(),
     val showBalance: Boolean = false,
 ) {
@@ -36,7 +37,8 @@ fun Account.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah()
 
 class HomeViewModel(
     private val accountRepository: AccountRepository,
-    private val trxRepository: TrxRepository
+    private val trxRepository: TrxRepository,
+    private val budgetRepository: BudgetRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -47,14 +49,17 @@ class HomeViewModel(
                 _uiState.update {
                     it.copy(loadStatus = Loading, trxs = listOf())
                 }
+                budgetRepository.ensureBudgetsExist(month)
                 val accounts = accountRepository.getAllAccounts()
                 val netWorth = accountRepository.getTotalBalance()
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
+                val budgets = budgetRepository.getBudgetsByMonthAndYear(month.month.number, month.year)
                 _uiState.update {
                     it.copy(
                         loadStatus = Success(month),
                         netWorth = netWorth,
                         accounts = accounts,
+                        budgets = budgets,
                         trxs = trxs,
                     )
                 }

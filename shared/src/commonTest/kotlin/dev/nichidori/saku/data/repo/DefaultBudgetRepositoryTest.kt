@@ -37,6 +37,7 @@ class DefaultBudgetRepositoryTest {
 
     private val budget = Budget(
         id = "budget-1",
+        templateId = "tmpl-1",
         category = category,
         month = 3,
         year = 2026,
@@ -187,7 +188,7 @@ class DefaultBudgetRepositoryTest {
     fun getBudgetById_shouldReturnCorrectBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity("tmpl-1"))
+        db.budgetDao().insert(budget.toEntity())
 
         val result = repository.getBudgetById(budget.id)
         assertNotNull(result)
@@ -198,7 +199,7 @@ class DefaultBudgetRepositoryTest {
     fun getBudgetsByMonthAndYear_shouldReturnMatchingBudgets() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity("tmpl-1"))
+        db.budgetDao().insert(budget.toEntity())
 
         val result = repository.getBudgetsByMonthAndYear(3, 2026)
         assertEquals(1, result.size)
@@ -208,7 +209,7 @@ class DefaultBudgetRepositoryTest {
     fun getBudgetsByCategory_shouldReturnMatchingBudgets() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity("tmpl-1"))
+        db.budgetDao().insert(budget.toEntity())
 
         val result = repository.getBudgetsByCategory(category.id)
         assertEquals(1, result.size)
@@ -218,7 +219,7 @@ class DefaultBudgetRepositoryTest {
     fun updateBudget_shouldUpdateExistingBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity("tmpl-1"))
+        db.budgetDao().insert(budget.toEntity())
 
         repository.updateBudget(
             budget.id,
@@ -236,7 +237,7 @@ class DefaultBudgetRepositoryTest {
     fun deleteBudget_shouldRemoveBudget() = runTest {
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(template.toEntity())
-        db.budgetDao().insert(budget.toEntity("tmpl-1"))
+        db.budgetDao().insert(budget.toEntity())
 
         repository.deleteBudget(budget.id)
 

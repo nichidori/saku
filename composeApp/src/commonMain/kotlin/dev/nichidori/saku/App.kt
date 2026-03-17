@@ -33,13 +33,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.theme.MyTheme
+import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
+import dev.nichidori.saku.domain.repo.BudgetRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import dev.nichidori.saku.feature.account.AccountPage
 import dev.nichidori.saku.feature.account.AccountViewModel
+import dev.nichidori.saku.feature.budget.*
 import dev.nichidori.saku.feature.category.CategoryPage
 import dev.nichidori.saku.feature.category.CategoryViewModel
 import dev.nichidori.saku.feature.categoryList.CategoryListPage
@@ -52,6 +55,7 @@ import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
 import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
+import kotlinx.datetime.YearMonth
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
@@ -66,13 +70,17 @@ import kotlin.time.Instant
     @Serializable data class Account(val id: String?) : Route
     @Serializable data class Category(val id: String?) : Route
     @Serializable data class Trx(val id: String?) : Route
+    @Serializable data class CategoryBudget(val templateId: String) : Route
+    @Serializable data class DefaultBudget(val templateId: String) : Route
+    @Serializable data class MonthBudget(val budgetId: String) : Route
 }
 
 @Composable
 fun App(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
-    trxRepository: TrxRepository
+    trxRepository: TrxRepository,
+    budgetRepository: BudgetRepository
 ) {
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
@@ -108,7 +116,8 @@ fun App(
                         rootNavController = rootNavController,
                         accountRepository = accountRepository,
                         categoryRepository = categoryRepository,
-                        trxRepository = trxRepository
+                        trxRepository = trxRepository,
+                        budgetRepository = budgetRepository
                     )
                 }
                 composable<Route.CategoryList> {
@@ -163,6 +172,37 @@ fun App(
                         onDeleteSuccess = { rootNavController.popBackStack() },
                     )
                 }
+                composable<Route.CategoryBudget> { backStackEntry ->
+                    val route = backStackEntry.toRoute<Route.CategoryBudget>()
+                    CategoryBudgetPage(
+                        viewModel = viewModel {
+                            CategoryBudgetViewModel(budgetRepository, route.templateId)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onDefaultBudgetClick = { rootNavController.navigate(Route.DefaultBudget(it)) },
+                        onMonthBudgetClick = { rootNavController.navigate(Route.MonthBudget(it)) }
+                    )
+                }
+                composable<Route.DefaultBudget> { backStackEntry ->
+                    val route = backStackEntry.toRoute<Route.DefaultBudget>()
+                    DefaultBudgetPage(
+                        viewModel = viewModel {
+                            DefaultBudgetViewModel(budgetRepository, route.templateId)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onSaveSuccess = { rootNavController.popBackStack() }
+                    )
+                }
+                composable<Route.MonthBudget> { backStackEntry ->
+                    val route = backStackEntry.toRoute<Route.MonthBudget>()
+                    MonthBudgetPage(
+                        viewModel = viewModel {
+                            MonthBudgetViewModel(budgetRepository, route.budgetId)
+                        },
+                        onUp = { rootNavController.popBackStack() },
+                        onSaveSuccess = { rootNavController.popBackStack() }
+                    )
+                }
             }
         }
     }
@@ -175,6 +215,7 @@ fun MainContainer(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
+    budgetRepository: BudgetRepository,
 ) {
     val innerNavController = rememberNavController()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -243,7 +284,7 @@ fun MainContainer(
             composable<Route.Home> {
                 HomePage(
                     viewModel = viewModel {
-                        HomeViewModel(accountRepository, trxRepository)
+                        HomeViewModel(accountRepository, trxRepository, budgetRepository)
                     },
                     onCategoryClick = {
                         rootNavController.navigate(Route.CategoryList)
@@ -253,6 +294,12 @@ fun MainContainer(
                     },
                     onNewAccountClick = {
                         rootNavController.navigate(Route.Account(id = null))
+                    },
+                    onBudgetClick = { templateId ->
+                        rootNavController.navigate(Route.CategoryBudget(templateId))
+                    },
+                    onNewBudgetClick = {
+                        rootNavController.navigate(Route.CategoryList)
                     }
                 )
             }
@@ -434,10 +481,25 @@ fun AppPreview() {
 
         override suspend fun deleteTrx(id: String) {}
     }
+    val budgetRepository = object : BudgetRepository {
+        override suspend fun addBudgetTemplate(category: Category, defaultAmount: Long) {}
+        override suspend fun getBudgetTemplateById(id: String): BudgetTemplate? = null
+        override suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate? = null
+        override suspend fun getAllBudgetTemplates(): List<BudgetTemplate> = emptyList()
+        override suspend fun updateBudgetTemplate(id: String, category: Category, defaultAmount: Long) {}
+        override suspend fun deleteBudgetTemplate(id: String) {}
+        override suspend fun ensureBudgetsExist(now: YearMonth) {}
+        override suspend fun getBudgetById(id: String): Budget? = null
+        override suspend fun getBudgetsByMonthAndYear(month: Int, year: Int): List<Budget> = emptyList()
+        override suspend fun getBudgetsByCategory(categoryId: String): List<Budget> = emptyList()
+        override suspend fun updateBudget(id: String, baseAmount: Long, spentAmount: Long) {}
+        override suspend fun deleteBudget(id: String) {}
+    }
     App(
         accountRepository = accountRepository,
         categoryRepository = categoryRepository,
-        trxRepository = trxRepository
+        trxRepository = trxRepository,
+        budgetRepository = budgetRepository
     )
 }
 

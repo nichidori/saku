@@ -12,6 +12,7 @@ import androidx.room.Room
 import dev.nichidori.saku.data.getDatabaseBuilder
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.data.repo.DefaultAccountRepository
+import dev.nichidori.saku.data.repo.DefaultBudgetRepository
 import dev.nichidori.saku.data.repo.DefaultCategoryRepository
 import dev.nichidori.saku.data.repo.DefaultTrxRepository
 
@@ -42,6 +43,7 @@ fun main() = application {
             accountRepository = DefaultAccountRepository(db = db),
             categoryRepository = DefaultCategoryRepository(db = db),
             trxRepository = DefaultTrxRepository(db = db),
+            budgetRepository = DefaultBudgetRepository(db = db)
         )
     }
 }

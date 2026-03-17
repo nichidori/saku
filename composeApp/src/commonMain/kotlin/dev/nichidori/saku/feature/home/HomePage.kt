@@ -3,10 +3,7 @@ package dev.nichidori.saku.feature.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +20,7 @@ import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
+import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -34,6 +32,8 @@ fun HomePage(
     onCategoryClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
+    onBudgetClick: (String) -> Unit,
+    onNewBudgetClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
@@ -48,6 +48,8 @@ fun HomePage(
         onCategoryClick = onCategoryClick,
         onAccountClick = onAccountClick,
         onNewAccountClick = onNewAccountClick,
+        onBudgetClick = onBudgetClick,
+        onNewBudgetClick = onNewBudgetClick,
         onBalanceToggle = viewModel::onBalanceToggle,
         modifier = modifier
     )
@@ -59,6 +61,8 @@ fun HomePageContent(
     onCategoryClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
+    onBudgetClick: (String) -> Unit,
+    onNewBudgetClick: () -> Unit,
     onBalanceToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -106,16 +110,116 @@ fun HomePageContent(
             }
             item {
                 when (uiState.loadStatus) {
-                    is Success<*>, is Failure<*> -> AccountSection(
-                        accounts = uiState.accounts,
-                        showBalance = uiState.showBalance,
-                        onAccountClick = onAccountClick,
-                        onNewAccountClick = onNewAccountClick,
-                    )
+                    is Success<*>, is Failure<*> -> {
+                        AccountSection(
+                            accounts = uiState.accounts,
+                            showBalance = uiState.showBalance,
+                            onAccountClick = onAccountClick,
+                            onNewAccountClick = onNewAccountClick,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        BudgetSection(
+                            budgets = uiState.budgets,
+                            onBudgetClick = onBudgetClick,
+                            onNewBudgetClick = onNewBudgetClick,
+                        )
+                    }
 
                     else -> Unit
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BudgetSection(
+    budgets: List<Budget>,
+    onBudgetClick: (String) -> Unit,
+    onNewBudgetClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(start = 16.dp, end = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                "Budget",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            MyIconButton(onClick = onNewBudgetClick) {
+                Icon(
+                    imageVector = Lucide.Plus,
+                    contentDescription = "New Budget"
+                )
+            }
+        }
+        if (budgets.isNotEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                budgets.forEach { budget ->
+                    BudgetItem(
+                        budget = budget,
+                        onClick = { onBudgetClick(budget.templateId) }
+                    )
+                }
+            }
+        } else {
+            MyNoData(
+                message = "No budgets yet",
+                contentDescription = "No budgets",
+                modifier = Modifier.height(200.dp).fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun BudgetItem(
+    budget: Budget,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    MyBox(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    budget.category.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    "${budget.remainingAmount.toRupiah()} left",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            val progress = if (budget.baseAmount > 0) {
+                (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(MyDefaultShape),
+                color = if (progress >= 1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
         }
     }
 }
@@ -291,6 +395,19 @@ fun HomePageContentPreview() {
                 updatedAt = null
             )
         ),
+        budgets = listOf(
+            Budget(
+                id = "b1",
+                templateId = "t1",
+                category = Category(id = "c1", name = "Food", type = TrxType.Expense, createdAt = Clock.System.now(), updatedAt = null),
+                month = 3,
+                year = 2026,
+                baseAmount = 1000000,
+                spentAmount = 300000,
+                createdAt = Clock.System.now(),
+                updatedAt = null
+            )
+        ),
         trxs = listOf(
             sampleTrx,
             Trx.Expense(
@@ -317,6 +434,8 @@ fun HomePageContentPreview() {
         onCategoryClick = {},
         onAccountClick = {},
         onNewAccountClick = {},
+        onBudgetClick = {},
+        onNewBudgetClick = {},
         onBalanceToggle = {}
     )
 }

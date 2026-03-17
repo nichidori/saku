@@ -420,7 +420,7 @@ class MapperExtTest {
         )
 
         val domain = entity.toDomain(category)
-        val roundTrip = domain.toEntity("tmpl-1")
+        val roundTrip = domain.toEntity()
 
         assertEquals(entity, roundTrip)
     }
