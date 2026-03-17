@@ -34,11 +34,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-val MIGRATION_2_3 = object : Migration(2, 4) {
+val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(connection: SQLiteConnection) {
         // Create budget_template
         connection.execSQL(
-            "CREATE TABLE IF NOT EXISTS `budget_template` (`id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `start_month` INTEGER NOT NULL, `start_year` INTEGER NOT NULL, `default_amount` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+            "CREATE TABLE IF NOT EXISTS `budget_template` (`id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `default_amount` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
         )
         connection.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_template_category_id` ON `budget_template` (`category_id`)")
 
