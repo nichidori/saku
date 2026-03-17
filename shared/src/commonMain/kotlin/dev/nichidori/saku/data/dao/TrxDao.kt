@@ -52,12 +52,13 @@ interface TrxDao {
 
     @Query(
         """
-        SELECT SUM(amount) FROM trx
-        WHERE transaction_at >= :startTime
-          AND transaction_at < :endTime
-          AND category_id = :categoryId
-          AND type = :type
-        """
+    SELECT SUM(t.amount) FROM trx t
+    INNER JOIN category c ON t.category_id = c.id
+    WHERE t.transaction_at >= :startTime
+    AND t.transaction_at < :endTime
+    AND t.type = :type
+    AND (t.category_id = :categoryId OR c.parent_id = :categoryId)
+"""
     )
     suspend fun getTotalAmount(startTime: Long, endTime: Long, categoryId: String, type: TrxTypeEntity): Long?
 }

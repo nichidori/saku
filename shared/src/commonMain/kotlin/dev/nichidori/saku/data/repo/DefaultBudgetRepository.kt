@@ -35,9 +35,22 @@ class DefaultBudgetRepository(
                 db.budgetTemplateDao().insert(template.toEntity())
 
                 val currentTime = Clock.System.now()
+                val timeZone = TimeZone.currentSystemDefault()
                 val month = currentTime
-                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                    .toLocalDateTime(timeZone = timeZone)
                     .let { date -> YearMonth(date.year, date.month) }
+
+                val spentAmount = db.trxDao().getTotalAmount(
+                    startTime = month.firstDay
+                        .atStartOfDayIn(timeZone = timeZone)
+                        .toEpochMilliseconds(),
+                    endTime = month.lastDay
+                        .plus(1, DAY)
+                        .atStartOfDayIn(timeZone = timeZone)
+                        .toEpochMilliseconds(),
+                    categoryId = category.id,
+                    type = TrxTypeEntity.Expense,
+                ) ?: 0
 
                 val budget = Budget(
                     id = UUID.randomUUID().toString(),
@@ -45,7 +58,7 @@ class DefaultBudgetRepository(
                     category = category,
                     month = month,
                     baseAmount = template.defaultAmount,
-                    spentAmount = 0,
+                    spentAmount = spentAmount,
                     createdAt = currentTime,
                     updatedAt = null
                 )

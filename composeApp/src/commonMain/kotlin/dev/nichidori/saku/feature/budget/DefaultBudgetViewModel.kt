@@ -20,12 +20,15 @@ data class DefaultBudgetUiState(
     val loadStatus: Status<Unit, Exception> = Initial,
     val saveStatus: Status<Unit, Exception> = Initial,
     val categoriesByParent: Map<Category, List<Category>> = emptyMap(),
+    val existingBudgetCategoryIds: Set<String> = emptySet(),
     val category: Category? = null,
     val amount: Long? = null,
     val newBudget: Boolean? = null,
 ) {
     val canSave = category != null && amount != null && amount > 0
     val amountFormatted = amount?.toRupiah().orEmpty()
+
+    fun canSelectCategory(categoryId: String) = categoryId !in existingBudgetCategoryIds
 }
 
 class DefaultBudgetViewModel(
@@ -57,17 +60,22 @@ class DefaultBudgetViewModel(
                         )
                     }
                 } else {
-                    val categories = categoryRepository.getAllCategories()
-                    val (parents, children) = categories.partition { it.parent == null }
-                    val childrenByParentId = children.groupBy { it.parent?.id }
-                    val expensesByParent = parents
+                    val (parents, children) = categoryRepository.getAllCategories()
                         .filter { it.type == TrxType.Expense }
-                        .associateWith { childrenByParentId[it.id].orEmpty() }
+                        .partition { it.parent == null }
+                    val expensesByParent = parents.associateWith { parent ->
+                        children.filter { it.parent?.id == parent.id }
+                    }
+
+                    val existingBudgetCategoryIds = budgetRepository.getAllBudgetTemplates()
+                        .map { it.category.id }
+                        .toHashSet()
 
                     _uiState.update {
                         it.copy(
                             loadStatus = Success(Unit),
                             categoriesByParent = expensesByParent,
+                            existingBudgetCategoryIds = existingBudgetCategoryIds,
                         )
                     }
                 }

@@ -118,6 +118,7 @@ fun DefaultBudgetPageContent(
                             focusManager.clearFocus()
                         },
                         selectedWhen = { it.id == uiState.category?.id },
+                        enabledWhen = { uiState.canSelectCategory(it.id) },
                         header = {
                             if (hasNestedCategories) {
                                 LazyRow(
@@ -127,6 +128,7 @@ fun DefaultBudgetPageContent(
                                         .padding(end = 12.dp)
                                 ) {
                                     items(uiState.categoriesByParent.keys.toList()) { parent ->
+                                        // TODO: Enable parent selection, even if it has children
                                         Box(
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier
