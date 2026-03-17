@@ -318,7 +318,10 @@ fun TrxListContent(
                 item {
                     Column {
                         if (index > 0) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            )
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -419,7 +422,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             }
             val primaryText = trx.description.ifBlank { accountInfo }
             val secondaryText = if (trx.description.isBlank()) trx.category?.name
-                else accountInfo + (trx.category?.name?.let { "  •  $it" } ?: "")
+            else accountInfo + (trx.category?.name?.let { "  •  $it" } ?: "")
             Text(
                 text = primaryText,
                 style = MaterialTheme.typography.titleSmall,
