@@ -133,98 +133,6 @@ fun HomePageContent(
 }
 
 @Composable
-fun BudgetSection(
-    budgets: List<Budget>,
-    onBudgetClick: (String) -> Unit,
-    onNewBudgetClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(start = 16.dp, end = 8.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                "Budget",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-            MyIconButton(onClick = onNewBudgetClick) {
-                Icon(
-                    imageVector = Lucide.Plus,
-                    contentDescription = "New Budget"
-                )
-            }
-        }
-        if (budgets.isNotEmpty()) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                budgets.forEach { budget ->
-                    BudgetItem(
-                        budget = budget,
-                        onClick = { onBudgetClick(budget.templateId) }
-                    )
-                }
-            }
-        } else {
-            MyNoData(
-                message = "No budgets yet",
-                contentDescription = "No budgets",
-                modifier = Modifier.height(200.dp).fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-fun BudgetItem(
-    budget: Budget,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    MyBox(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    budget.category.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    "${budget.remainingAmount.toRupiah()} left",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            val progress = if (budget.baseAmount > 0) {
-                (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
-            } else {
-                0f
-            }
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(MyDefaultShape),
-                color = if (progress >= 1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
 fun TrendCard(
     title: String,
     value: String,
@@ -318,10 +226,10 @@ fun AccountSection(
                 }
             }
         } else {
-            MyNoData(
-                message = "No accounts yet",
-                contentDescription = "No accounts",
-                modifier = Modifier.height(200.dp).fillMaxWidth()
+            Text(
+                "No accounts yet.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
     }
@@ -345,6 +253,98 @@ fun AccountCard(
                 account.balanceFormatted(show = showBalance),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+fun BudgetSection(
+    budgets: List<Budget>,
+    onBudgetClick: (String) -> Unit,
+    onNewBudgetClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(start = 16.dp, end = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                "Budget",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            MyIconButton(onClick = onNewBudgetClick) {
+                Icon(
+                    imageVector = Lucide.Plus,
+                    contentDescription = "New Budget"
+                )
+            }
+        }
+        if (budgets.isNotEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                budgets.forEach { budget ->
+                    BudgetItem(
+                        budget = budget,
+                        onClick = { onBudgetClick(budget.templateId) }
+                    )
+                }
+            }
+        } else {
+            Text(
+                "No budgets yet.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun BudgetItem(
+    budget: Budget,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    MyBox(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    budget.category.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    "${budget.remainingAmount.toRupiah()} left",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            val progress = if (budget.baseAmount > 0) {
+                (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(MyDefaultShape),
+                color = if (progress >= 1f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         }
     }
@@ -399,7 +399,13 @@ fun HomePageContentPreview() {
             Budget(
                 id = "b1",
                 templateId = "t1",
-                category = Category(id = "c1", name = "Food", type = TrxType.Expense, createdAt = Clock.System.now(), updatedAt = null),
+                category = Category(
+                    id = "c1",
+                    name = "Food",
+                    type = TrxType.Expense,
+                    createdAt = Clock.System.now(),
+                    updatedAt = null
+                ),
                 month = 3,
                 year = 2026,
                 baseAmount = 1000000,
