@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChevronLeft
@@ -47,15 +46,14 @@ fun MyAppBar(
             Icon(
                 imageVector = Lucide.ArrowLeft,
                 contentDescription = "Back",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.padding(top = 2.dp).size(20.dp)
             )
         }
         title?.let {
             Spacer(modifier = Modifier.width(2.dp))
             Text(
                 text = it,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
             )
         }
         Spacer(modifier = Modifier.weight(1f))
