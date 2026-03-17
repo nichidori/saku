@@ -4,10 +4,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,8 +18,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("ModifierParameter")
 @Composable
 fun MyTextField(
@@ -39,31 +42,18 @@ fun MyTextField(
         MaterialTheme.colorScheme.outline
     }
 
-    TextField(
+    BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        label = {
-            Text(
-                text = label,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        keyboardOptions = keyboardOptions,
         enabled = enabled,
         readOnly = readOnly,
         singleLine = true,
-        shape = MyDefaultShape,
-        trailingIcon = trailingIcon,
-        interactionSource = interactionSource,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
+        keyboardOptions = keyboardOptions,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
             .height(TextFieldDefaults.MinHeight)
@@ -76,6 +66,33 @@ fun MyTextField(
                     end = Offset(size.width, y),
                     strokeWidth = strokeWidth
                 )
-            }
+            },
+        decorationBox = { innerTextField ->
+            TextFieldDefaults.DecorationBox(
+                value = value,
+                innerTextField = innerTextField,
+                enabled = enabled,
+                singleLine = true,
+                visualTransformation = VisualTransformation.None,
+                interactionSource = interactionSource,
+                label = {
+                    Text(
+                        text = label,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                trailingIcon = trailingIcon,
+                shape = MyDefaultShape,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                ),
+                contentPadding = TextFieldDefaults.contentPaddingWithLabel(start = 0.dp, end = 0.dp)
+            )
+        }
     )
 }
