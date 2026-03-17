@@ -31,9 +31,26 @@ class DefaultBudgetRepository(
             updatedAt = null
         )
         db.useWriterConnection {
-            db.budgetTemplateDao().insert(template.toEntity())
+            it.immediateTransaction {
+                db.budgetTemplateDao().insert(template.toEntity())
 
-            // TODO: fix: also create current month BudgetEntity
+                val currentTime = Clock.System.now()
+                val month = currentTime
+                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                    .let { date -> YearMonth(date.year, date.month) }
+
+                val budget = Budget(
+                    id = UUID.randomUUID().toString(),
+                    templateId = template.id,
+                    category = category,
+                    month = month,
+                    baseAmount = template.defaultAmount,
+                    spentAmount = 0,
+                    createdAt = currentTime,
+                    updatedAt = null
+                )
+                db.budgetDao().insert(budget.toEntity())
+            }
         }
     }
 
