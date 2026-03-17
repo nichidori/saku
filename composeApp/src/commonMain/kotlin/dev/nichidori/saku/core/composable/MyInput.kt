@@ -191,12 +191,12 @@ fun KeyboardKey(
             )
             .padding(16.dp)
     ) {
-            Text(
-                label,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = foregroundColor ?: MaterialTheme.colorScheme.onSurface
-            )
+        Text(
+            label,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = foregroundColor ?: MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -574,7 +574,10 @@ fun MyDateTimePicker(
                         color = MaterialTheme.colorScheme.onBackground,
                     ),
                 ),
-                modifier = Modifier.fillMaxWidth()
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                ),
+                modifier = Modifier.fillMaxWidth().fillMaxHeight()
             )
         }
     }
