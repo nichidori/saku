@@ -240,6 +240,7 @@ fun TrxListPage(
                 Text(
                     "Transactions",
                     style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
