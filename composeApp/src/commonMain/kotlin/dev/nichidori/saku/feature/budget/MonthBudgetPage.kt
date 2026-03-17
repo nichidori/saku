@@ -1,5 +1,6 @@
 package dev.nichidori.saku.feature.budget
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,22 +8,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.nichidori.saku.core.composable.MyAppBar
-import dev.nichidori.saku.core.composable.MyButton
-import dev.nichidori.saku.core.composable.MyTextField
-import dev.nichidori.saku.core.composable.NumberKeyboard
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
-import kotlinx.datetime.Month
+import dev.nichidori.saku.domain.model.BudgetStatus
+import dev.nichidori.saku.domain.model.status
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
 
 @Composable
 fun MonthBudgetPage(
@@ -40,6 +44,7 @@ fun MonthBudgetPage(
                 status.error.toString(),
                 duration = ToastDuration.Long
             )
+
             else -> {}
         }
     }
@@ -67,7 +72,7 @@ fun MonthBudgetPageContent(
     Scaffold(
         topBar = {
             MyAppBar(
-                title = uiState.budget?.let { "${Month(it.month).name.take(3)} ${it.year}" } ?: "Budget",
+                title = "Monthly Budget",
                 onUp = onUp
             )
         },
@@ -113,25 +118,71 @@ fun MonthBudgetPageContent(
                 .padding(bottom = 16.dp)
         ) {
             uiState.budget?.let { budget ->
-                Text(
-                    budget.category.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Default: ${uiState.defaultAmountFormatted}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text(
+                            "Category",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                        Text(
+                            budget.category.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp).weight(1f))
+                    MyBox(
+                        modifier = Modifier.background(
+                            color = if (budget.status.isActive) MaterialTheme.colorScheme.secondary
+                            else Color.Transparent
+                        )
+                    ) {
+                        val date = LocalDate(
+                            year = budget.year,
+                            month = budget.month,
+                            day = 1
+                        )
+                        val month = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })
+                        val year = (date.year % 100).toString().padStart(2, '0')
+
+                        Text(
+                            "$month $year",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
+
+                val pastBudget = budget.status == BudgetStatus.Past
                 MyTextField(
                     value = uiState.amountFormatted,
                     onValueChange = {},
-                    label = "Budget Amount",
+                    label = "Amount",
+                    enabled = !pastBudget,
                     readOnly = true,
+                    trailingIcon = if (!pastBudget) {
+                        {
+                            MyTextButton(
+                                text = "Default",
+                                onClick = {
+                                    onAmountChange(uiState.defaultAmount?.toString() ?: "")
+                                },
+                                enabled = uiState.canDefault,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                        }
+                    } else null,
                     modifier = Modifier.onFocusChanged { showAmountInput = it.isFocused }
                 )
+                if (pastBudget) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Past budget cannot be changed.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }

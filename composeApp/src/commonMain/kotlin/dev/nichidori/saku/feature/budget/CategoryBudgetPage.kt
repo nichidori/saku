@@ -1,5 +1,6 @@
 package dev.nichidori.saku.feature.budget
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,10 +14,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyIconButton
@@ -27,7 +29,10 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Budget
-import kotlinx.datetime.Month
+import dev.nichidori.saku.domain.model.status
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
 
 @Composable
 fun CategoryBudgetPage(
@@ -46,6 +51,7 @@ fun CategoryBudgetPage(
                 status.error.toString(),
                 duration = ToastDuration.Long
             )
+
             else -> {}
         }
     }
@@ -72,12 +78,20 @@ fun CategoryBudgetPageContent(
     Scaffold(
         topBar = {
             MyAppBar(
-                title = uiState.template?.category?.name ?: "",
+                title = "Budget",
                 onUp = onUp,
                 action = {
-                    MyIconButton(onClick = onDelete) {
-                        Icon(imageVector = Lucide.Trash2, contentDescription = "Delete Budget")
-                    }
+                    MyIconButton(
+                        content = {
+                            Icon(
+                                imageVector = Lucide.Trash,
+                                contentDescription = "Delete budget",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        onClick = onDelete,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                 }
             )
         },
@@ -91,23 +105,33 @@ fun CategoryBudgetPageContent(
             uiState.template?.let { template ->
                 item {
                     Text(
-                        "Default Budget",
-                        style = MaterialTheme.typography.titleSmall,
+                        "Category",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Text(
+                        template.category.name,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     MyBox(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onDefaultBudgetClick(template.id) }
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Default", modifier = Modifier.weight(1f))
+                            Text(
+                                "Default",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 template.defaultAmount.toRupiah(),
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -119,7 +143,7 @@ fun CategoryBudgetPageContent(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Monthly Budgets",
+                        "Monthly Budget",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -144,34 +168,35 @@ fun MonthBudgetItem(
 ) {
     MyBox(
         modifier = modifier
+            .background(
+                color = if (budget.status.isActive) MaterialTheme.colorScheme.secondary
+                else Color.Transparent
+            )
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "${Month(budget.month).name.take(3)} ${budget.year}",
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    budget.baseAmount.toRupiah(),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Remaining",
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    budget.remainingAmount.toRupiah(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(12.dp)
+        ) {
+            val date = LocalDate(
+                year = budget.year,
+                month = budget.month,
+                day = 1
+            )
+            val month = date.format(LocalDate.Format { monthName(MonthNames.ENGLISH_ABBREVIATED) })
+            val year = (date.year % 100).toString().padStart(2, '0')
+
+            Text(
+                "$month $year",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                budget.baseAmount.toRupiah(),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

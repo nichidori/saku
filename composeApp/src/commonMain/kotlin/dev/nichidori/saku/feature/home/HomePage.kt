@@ -349,10 +349,10 @@ fun BudgetItem(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    "${budget.remainingAmount.toRupiah()} left",
+                    budget.remainingAmount.toRupiah(),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))

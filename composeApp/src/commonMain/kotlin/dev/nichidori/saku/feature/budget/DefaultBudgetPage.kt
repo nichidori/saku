@@ -227,8 +227,12 @@ fun DefaultBudgetPageContent(
 
                 false -> {
                     Text(
+                        "Category",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Text(
                         uiState.category?.name ?: "",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -237,13 +241,15 @@ fun DefaultBudgetPageContent(
                 else -> Unit
             }
 
-            MyTextField(
-                value = uiState.amountFormatted,
-                onValueChange = {},
-                label = "Default Amount",
-                readOnly = true,
-                modifier = Modifier.onFocusChanged { showAmountInput = it.isFocused }
-            )
+            if (uiState.loadStatus.isCompleted) {
+                MyTextField(
+                    value = uiState.amountFormatted,
+                    onValueChange = {},
+                    label = "Amount",
+                    readOnly = true,
+                    modifier = Modifier.onFocusChanged { showAmountInput = it.isFocused }
+                )
+            }
         }
     }
 }

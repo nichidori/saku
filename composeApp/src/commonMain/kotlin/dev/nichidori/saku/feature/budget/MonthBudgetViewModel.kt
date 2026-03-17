@@ -7,6 +7,8 @@ import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Budget
+import dev.nichidori.saku.domain.model.BudgetStatus
+import dev.nichidori.saku.domain.model.status
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,9 +23,9 @@ data class MonthBudgetUiState(
     val budget: Budget? = null,
     val amount: Long? = null,
 ) {
-    val canSave: Boolean = amount != null && amount > 0
+    val canDefault = amount != defaultAmount
+    val canSave = budget != null && budget.status != BudgetStatus.Past && amount != null && amount > 0
     val amountFormatted = amount?.toRupiah().orEmpty()
-    val defaultAmountFormatted = defaultAmount?.toRupiah().orEmpty()
 }
 
 class MonthBudgetViewModel(
