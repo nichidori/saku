@@ -1,16 +1,10 @@
 package dev.nichidori.saku.core.composable
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-
-import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun MyButton(
@@ -41,7 +35,7 @@ fun MyTextButton(
         enabled = enabled,
         modifier = modifier,
     ) {
-        Text(text)
+        Text(text, fontWeight = FontWeight.Bold)
     }
 }
 
