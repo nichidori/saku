@@ -238,6 +238,7 @@ fun AccountSection(
             Text(
                 "No accounts yet.",
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
@@ -328,6 +329,7 @@ fun BudgetSection(
             Text(
                 "No budgets yet.",
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
