@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
 
 data class HomeUiState(
-    val loadStatus: Status<YearMonth, Exception> = Initial,
+    val loadStatus: Status<Unit, Exception> = Initial,
+    val month: YearMonth? = null,
     val netWorth: Long = 0,
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
@@ -55,7 +56,8 @@ class HomeViewModel(
                 val budgets = budgetRepository.getBudgetsByYearMonth(month)
                 _uiState.update {
                     it.copy(
-                        loadStatus = Success(month),
+                        loadStatus = Success(Unit),
+                        month = month,
                         netWorth = netWorth,
                         accounts = accounts,
                         budgets = budgets,

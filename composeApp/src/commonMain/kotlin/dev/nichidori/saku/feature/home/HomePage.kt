@@ -6,13 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,7 +18,6 @@ import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.model.Status.Failure
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
@@ -119,29 +113,23 @@ fun HomePageContent(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
-            item {
-                when (uiState.loadStatus) {
-                    is Success<*>, is Failure<*> -> {
-                        AccountSection(
-                            accounts = uiState.accounts,
-                            showBalance = uiState.showBalance,
-                            onAccountClick = onAccountClick,
-                            onNewAccountClick = onNewAccountClick,
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        BudgetSection(
-                            month = when (val status = uiState.loadStatus) {
-                                is Success -> status.data
-                                else -> null
-                            },
-                            budgets = uiState.budgets,
-                            onBudgetClick = onBudgetClick,
-                            onNewBudgetClick = onNewBudgetClick,
-                        )
-                    }
-
-                    else -> Unit
-                }
+            if (uiState.loadStatus.isCompleted
+                || uiState.accounts.isNotEmpty()
+                || uiState.budgets.isNotEmpty()
+            ) item {
+                AccountSection(
+                    accounts = uiState.accounts,
+                    showBalance = uiState.showBalance,
+                    onAccountClick = onAccountClick,
+                    onNewAccountClick = onNewAccountClick,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                BudgetSection(
+                    month = uiState.month,
+                    budgets = uiState.budgets,
+                    onBudgetClick = onBudgetClick,
+                    onNewBudgetClick = onNewBudgetClick,
+                )
             }
         }
     }
@@ -371,7 +359,7 @@ fun BudgetItem(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            var progress by remember { mutableFloatStateOf(0f) }
+            var progress by rememberSaveable { mutableFloatStateOf(0f) }
             val animatedProgress by animateFloatAsState(
                 targetValue = progress,
                 animationSpec = tween(durationMillis = 500)
@@ -431,7 +419,8 @@ fun HomePageContentPreview() {
         updatedAt = null
     )
     val uiState = HomeUiState(
-        loadStatus = Success(Clock.System.now().toYearMonth()),
+        loadStatus = Success(Unit),
+        month = YearMonth(2026, 3),
         netWorth = 10000000,
         netWorthTrend = listOf(1f, 1.2f, 1.1f, 1.3f),
         accounts = listOf(
