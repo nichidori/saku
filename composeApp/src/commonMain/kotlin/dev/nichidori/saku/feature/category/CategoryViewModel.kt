@@ -3,10 +3,7 @@ package dev.nichidori.saku.feature.category
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Initial
-import dev.nichidori.saku.core.model.Status.Loading
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
@@ -36,9 +33,10 @@ data class CategoryUiState(
 
 class CategoryViewModel(
     private val categoryRepository: CategoryRepository,
-    private val id: String?
+    private val id: String?,
+    initialType: TrxType? = null,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(CategoryUiState())
+    private val _uiState = MutableStateFlow(CategoryUiState(type = initialType ?: TrxType.Expense))
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
 
     val types = TrxType.entries

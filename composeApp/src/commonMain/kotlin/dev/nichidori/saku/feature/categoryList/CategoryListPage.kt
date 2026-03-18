@@ -34,7 +34,7 @@ import dev.nichidori.saku.domain.model.TrxType
 fun CategoryListPage(
     viewModel: CategoryListViewModel,
     onUp: () -> Unit,
-    onNewCategoryClick: () -> Unit,
+    onNewCategoryClick: (TrxType) -> Unit,
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -59,7 +59,7 @@ fun CategoryListContent(
     uiState: CategoryListUiState,
     onUp: () -> Unit,
     onSelectedTypeChange: (TrxType) -> Unit,
-    onNewCategoryClick: () -> Unit,
+    onNewCategoryClick: (TrxType) -> Unit,
     onCategoryClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -69,7 +69,9 @@ fun CategoryListContent(
                 title = "Categories",
                 onUp = onUp,
                 action = {
-                    MyIconButton(onClick = onNewCategoryClick) {
+                    MyIconButton(
+                        onClick = { onNewCategoryClick(uiState.selectedType) }
+                    ) {
                         Icon(
                             imageVector = Lucide.Plus,
                             contentDescription = "Add category"
@@ -104,7 +106,7 @@ fun CategoryListContent(
                         item {
                             CategoryCard(
                                 category = parent,
-                                onClick = onCategoryClick,
+                                onClick = { onCategoryClick(it) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = if (i != 0) 16.dp else 0.dp)
@@ -119,7 +121,7 @@ fun CategoryListContent(
                                 )
                                 CategoryCard(
                                     category = child,
-                                    onClick = onCategoryClick,
+                                    onClick = { onCategoryClick(it) },
                                     modifier = Modifier
                                         .weight(1f)
                                         .padding(top = 16.dp)

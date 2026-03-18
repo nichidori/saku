@@ -30,6 +30,7 @@ import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyNavBar
 import dev.nichidori.saku.core.composable.NavBarDestination
+import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
@@ -55,6 +56,7 @@ import dev.nichidori.saku.feature.trxList.TrxListViewModel
 import kotlinx.datetime.YearMonth
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.reflect.typeOf
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -65,7 +67,7 @@ import kotlin.time.Instant
     @Serializable data object CategoryList : Route
     @Serializable data object TrxList : Route
     @Serializable data class Account(val id: String?) : Route
-    @Serializable data class Category(val id: String?) : Route
+    @Serializable data class Category(val id: String?, val type: TrxType = TrxType.Expense) : Route
     @Serializable data class Trx(val id: String?) : Route
     @Serializable data class CategoryBudget(val templateId: String) : Route
     @Serializable data class DefaultBudget(val templateId: String?) : Route
@@ -123,8 +125,8 @@ fun App(
                             CategoryListViewModel(categoryRepository)
                         },
                         onUp = { rootNavController.popBackStack() },
-                        onNewCategoryClick = {
-                            rootNavController.navigate(Route.Category(id = null))
+                        onNewCategoryClick = { type ->
+                            rootNavController.navigate(Route.Category(id = null, type = type))
                         },
                         onCategoryClick = { id ->
                             rootNavController.navigate(Route.Category(id))
@@ -142,11 +144,13 @@ fun App(
                         onDeleteSuccess = { rootNavController.popBackStack() }
                     )
                 }
-                composable<Route.Category> { backStackEntry ->
+                composable<Route.Category>(
+                    typeMap = mapOf(typeOf<TrxType>() to TrxTypeNavType)
+                ) { backStackEntry ->
                     val category = backStackEntry.toRoute<Route.Category>()
                     CategoryPage(
                         viewModel = viewModel {
-                            CategoryViewModel(categoryRepository, category.id)
+                            CategoryViewModel(categoryRepository, category.id, category.type)
                         },
                         onUp = { rootNavController.popBackStack() },
                         onSaveSuccess = { rootNavController.popBackStack() },
