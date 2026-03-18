@@ -1,5 +1,7 @@
 package dev.nichidori.saku.feature.home
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,6 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -351,8 +357,9 @@ fun BudgetItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     budget.category.name,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.weight(1f)
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
@@ -363,20 +370,30 @@ fun BudgetItem(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            val progress = if (budget.baseAmount > 0) {
-                (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
-            } else {
-                0f
+
+            var progress by remember { mutableFloatStateOf(0f) }
+            val animatedProgress by animateFloatAsState(
+                targetValue = progress,
+                animationSpec = tween(durationMillis = 500)
+            )
+
+            LaunchedEffect(budget.baseAmount, budget.spentAmount) {
+                progress = if (budget.baseAmount > 0) {
+                    (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
             }
+
             LinearProgressIndicator(
-                progress = { progress },
+                progress = { animatedProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(MyDefaultShape),
                 strokeCap = StrokeCap.Square,
                 color = if (progress >= 1f) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.secondary,
+                else MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
             Spacer(modifier = Modifier.height(4.dp))
