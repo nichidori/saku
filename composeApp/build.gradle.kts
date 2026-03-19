@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
@@ -46,6 +45,7 @@ kotlin {
             implementation(libs.icons.lucide)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.navigation.compose)
+            implementation(libs.navigationevent.compose)
             implementation(projects.shared)
         }
         commonTest.dependencies {

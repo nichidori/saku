@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew composeApp:desktopRunHot --auto -PmainClass=dev.nichidori.saku.MainKt
+./gradlew composeApp:hotRunDesktop --auto -PmainClass=dev.nichidori.saku.MainKt
