@@ -37,6 +37,7 @@ if [ "$CURRENT_VERSION_NAME" != "$NEW_VERSION_NAME" ]; then
     git commit -m "build: update version to ${NEW_VERSION_NAME}+${NEW_VERSION_CODE}"
     git tag "v${NEW_VERSION_NAME}"
 else
+    NEW_VERSION_CODE=$(grep -E 'versionCode = [0-9]+' "$GRADLE_FILE" | tr -dc '0-9')
     echo "Version $NEW_VERSION_NAME is already set. Skipping version update and commit."
 fi
 
