@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,6 +60,7 @@ fun HomePage(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePageContent(
     uiState: HomeUiState,
@@ -70,33 +72,35 @@ fun HomePageContent(
     onBalanceToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
         topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 8.dp)
-                    .height(60.dp)
-            ) {
-                Text(
-                    "Saku",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                MyIconButton(
-                    onClick = onCategoryClick
-                ) {
-                    Icon(imageVector = Lucide.Menu, contentDescription = "Open category list")
+            TopAppBar(
+                title = {
+                    Text(
+                        "Saku",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
+                expandedHeight = 48.dp,
+                actions = {
+                    IconButton(onClick = onCategoryClick) {
+                        Icon(imageVector = Lucide.Menu, contentDescription = "Open category list")
+                    }
                 }
-            }
+            )
         },
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { contentPadding ->
         LazyColumn(
             contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
-            modifier = Modifier.padding(contentPadding)
+            modifier = Modifier.fillMaxSize().padding(contentPadding)
         ) {
             item {
                 TrendCard(

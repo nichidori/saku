@@ -1,6 +1,7 @@
 package dev.nichidori.saku.feature.trxList
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -49,6 +50,7 @@ fun TrxListPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var showFilterOption by remember { mutableStateOf(false) }
 
     val earliestMonth = YearMonth(2025, 1)
@@ -230,32 +232,35 @@ fun TrxListPage(
     }
 
     Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 8.dp)
-                    .height(60.dp)
-            ) {
-                Text(
-                    "Transactions",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                MyIconButton(
-                    onClick = {
-                        showFilterOption = true
-                        viewModel.loadAccounts()
-                        viewModel.loadCategories()
-                    }
-                ) {
-                    Box(modifier = Modifier.padding(2.dp)) {
-                        Icon(
-                            imageVector = Lucide.ListFilter,
-                            contentDescription = "Filter transactions"
-                        )
+            TopAppBar(
+                title = {
+                    Text(
+                        "Transactions",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
+                expandedHeight = 48.dp,
+                actions = {
+                    Box {
+                        IconButton(
+                            onClick = {
+                                showFilterOption = true
+                                viewModel.loadAccounts()
+                                viewModel.loadCategories()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Lucide.ListFilter,
+                                contentDescription = "Filter transactions"
+                            )
+                        }
 
                         if (uiState.hasFilter) {
                             Box(
@@ -270,11 +275,11 @@ fun TrxListPage(
                         }
                     }
                 }
-            }
+            )
         },
-        modifier = modifier,
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
+            Spacer(modifier = Modifier.height(8.dp))
             MyMonthChipRow(
                 selectedMonth = initialMonth,
                 earliestMonth = earliestMonth,

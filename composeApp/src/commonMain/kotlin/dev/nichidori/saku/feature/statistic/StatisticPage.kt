@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -62,6 +63,7 @@ fun StatisticPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
     var showGroupByOptions by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     if (showGroupByOptions) {
         ModalBottomSheet(
@@ -154,32 +156,35 @@ fun StatisticPage(
     }
 
     Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 8.dp)
-                    .height(60.dp)
-            ) {
-                Text(
-                    "Statistic",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                MyIconButton(onClick = { showGroupByOptions = true }) {
-                    Icon(
-                        imageVector = Lucide.SlidersHorizontal,
-                        contentDescription = "Group By",
-                        modifier = Modifier.size(20.dp),
+            TopAppBar(
+                title = {
+                    Text(
+                        "Statistic",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
                     )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
+                expandedHeight = 48.dp,
+                actions = {
+                    IconButton(onClick = { showGroupByOptions = true }) {
+                        Icon(
+                            imageVector = Lucide.SlidersHorizontal,
+                            contentDescription = "Group By",
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
                 }
-            }
+            )
         },
-        modifier = modifier,
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
+            Spacer(modifier = Modifier.height(8.dp))
             MyMonthChipRow(
                 selectedMonth = initialMonth,
                 earliestMonth = earliestMonth,
