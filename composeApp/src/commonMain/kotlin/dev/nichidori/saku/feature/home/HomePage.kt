@@ -2,6 +2,7 @@ package dev.nichidori.saku.feature.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,10 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
@@ -48,41 +52,128 @@ fun HomePage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
+    val menuWidth = 240.dp
+    val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
+    var showMenu by remember { mutableStateOf(false) }
+    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
+
+    val menuTranslation by animateFloatAsState(
+        targetValue = if (showMenu) 0f else menuOffsetPx,
+        animationSpec = tween(durationMillis = 300),
+        label = "menuTranslation"
+    )
+
+    val contentTranslation by animateFloatAsState(
+        targetValue = if (showMenu) -menuOffsetPx else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "contentTranslation"
+    )
+
     LaunchedEffect(Unit) {
         val month = Clock.System.now().toYearMonth()
         viewModel.load(month = month)
     }
 
-    HomePageContent(
-        uiState = uiState,
-        onCategoryClick = onCategoryClick,
-        onAccountClick = onAccountClick,
-        onNewAccountClick = onNewAccountClick,
-        onBudgetClick = onBudgetClick,
-        onNewBudgetClick = onNewBudgetClick,
-        onBalanceToggle = viewModel::onBalanceToggle,
-        darkTheme = darkTheme,
-        onThemeToggle = onThemeToggle,
-        modifier = modifier
-    )
+    Box {
+        HomePageContent(
+            uiState = uiState,
+            onMenuClick = { showMenu = !showMenu },
+            onAccountClick = onAccountClick,
+            onNewAccountClick = onNewAccountClick,
+            onBudgetClick = onBudgetClick,
+            onNewBudgetClick = onNewBudgetClick,
+            onBalanceToggle = viewModel::onBalanceToggle,
+            modifier = modifier.graphicsLayer { translationX = contentTranslation }
+        )
+
+        if (showMenu) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.25f))
+                    .clickable { showMenu = false }
+                    .graphicsLayer { translationX = contentTranslation }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .fillMaxHeight()
+                .width(menuWidth)
+                .graphicsLayer { translationX = menuTranslation }
+                .background(color = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onCategoryClick() }
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        "Categories",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Lucide.ChevronRight,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeToggle(themeToggleOffset) }
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Dark Mode",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = if (darkTheme) Lucide.Sun else Lucide.Moon,
+                            contentDescription = "Toggle theme",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .onGloballyPositioned { coords ->
+                                    val pos = coords.positionInRoot()
+                                    val size = coords.size
+                                    themeToggleOffset = Offset(
+                                        x = pos.x + size.width / 2f,
+                                        y = pos.y + size.height / 2f,
+                                    )
+                                }
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePageContent(
     uiState: HomeUiState,
-    onCategoryClick: () -> Unit,
+    onMenuClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     onBudgetClick: (String) -> Unit,
     onNewBudgetClick: () -> Unit,
     onBalanceToggle: () -> Unit,
-    darkTheme: Boolean,
-    onThemeToggle: (Offset) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
     Scaffold(
         topBar = {
@@ -100,24 +191,8 @@ fun HomePageContent(
                 ),
                 expandedHeight = 48.dp,
                 actions = {
-                    IconButton(
-                        onClick = { onThemeToggle(themeToggleOffset) },
-                        modifier = Modifier.onGloballyPositioned { coords ->
-                            val pos = coords.positionInRoot()
-                            val size = coords.size
-                            themeToggleOffset = Offset(
-                                x = pos.x + size.width / 2f,
-                                y = pos.y + size.height / 2f,
-                            )
-                        }
-                    ) {
-                        Icon(
-                            imageVector = if (darkTheme) Lucide.Sun else Lucide.Moon,
-                            contentDescription = "Toggle theme"
-                        )
-                    }
-                    IconButton(onClick = onCategoryClick) {
-                        Icon(imageVector = Lucide.Menu, contentDescription = "Open category list")
+                    IconButton(onClick = onMenuClick) {
+                        Icon(imageVector = Lucide.Menu, contentDescription = "Open menu")
                     }
                 }
             )
@@ -506,14 +581,12 @@ fun HomePageContentPreview() {
     )
     HomePageContent(
         uiState = uiState,
-        onCategoryClick = {},
+        onMenuClick = {},
         onAccountClick = {},
         onNewAccountClick = {},
         onBudgetClick = {},
         onNewBudgetClick = {},
         onBalanceToggle = {},
-        darkTheme = false,
-        onThemeToggle = { }
     )
 }
 
