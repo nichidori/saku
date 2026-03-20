@@ -3,7 +3,6 @@ package dev.nichidori.saku.core.theme
 import androidx.compose.ui.graphics.Color
 
 val Ink           = Color(0xFF111111)
-val Washi         = Color(0xFFFAF8F1)
 val Solar         = Color(0xFFE8D44D)
 val Kinari        = Color(0xFFFFF9C4)
 val Asahi         = Color(0xFFFFAB00)
@@ -11,7 +10,7 @@ val Ash           = Color(0xFF5E5E5E)
 val Smoke         = Color(0xFFC6C6C6)
 
 val primaryLight                = Ink
-val onPrimaryLight              = Washi
+val onPrimaryLight              = Color(0xFFFFFFFF)
 val primaryContainerLight       = Color(0xFF1B1B1B)
 val onPrimaryContainerLight     = Smoke
 val secondaryLight              = Solar
@@ -26,9 +25,9 @@ val errorLight                  = Color(0xFFBA1A1A)
 val onErrorLight                = Color(0xFFFFFFFF)
 val errorContainerLight         = Color(0xFFFFDAD6)
 val onErrorContainerLight       = Color(0xFF93000A)
-val backgroundLight             = Washi
+val backgroundLight             = Color(0xFFFFFFFF)
 val onBackgroundLight           = Ink
-val surfaceLight                = Washi
+val surfaceLight                = Color(0xFFFFFFFF)
 val onSurfaceLight              = Ink
 val surfaceVariantLight         = Color(0xFFE4E2E2)
 val onSurfaceVariantLight       = Color(0xFF474747)
@@ -39,7 +38,7 @@ val inverseSurfaceLight         = Color(0xFF2D2D2D)
 val inverseOnSurfaceLight       = Color(0xFFF1F1F1)
 val inversePrimaryLight         = Smoke
 val surfaceDimLight             = Color(0xFFD9D9D9)
-val surfaceBrightLight          = Washi
+val surfaceBrightLight          = Color(0xFFFFFFFF)
 val surfaceContainerLowestLight = Color(0xFFFFFFFF)
 val surfaceContainerLowLight    = Color(0xFFF4F4F4)
 val surfaceContainerLight       = Color(0xFFEEEEEE)
