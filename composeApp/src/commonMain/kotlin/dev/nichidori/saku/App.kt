@@ -469,8 +469,8 @@ fun SettingsMenu(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.25f))
-                    .clickable { onMenuClose() }
                     .graphicsLayer { translationX = contentTranslation }
+                    .clickable { onMenuClose() }
             )
         }
 
