@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -26,10 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import dev.nichidori.saku.core.composable.MyBox
-import dev.nichidori.saku.core.composable.MyDefaultShape
-import dev.nichidori.saku.core.composable.MyNavBar
-import dev.nichidori.saku.core.composable.NavBarDestination
+import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
@@ -84,125 +82,142 @@ fun App(
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
 
-    MyTheme {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        focusManager.clearFocus()
-                    }
-                },
-        ) {
-            NavHost(
-                rootNavController,
-                startDestination = Route.Main,
-                enterTransition = {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
-                },
-                exitTransition = {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start)
-                },
-                popEnterTransition = {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
-                }
-            ) {
-                composable<Route.Main> {
-                    MainContainer(
-                        rootNavController = rootNavController,
-                        accountRepository = accountRepository,
-                        categoryRepository = categoryRepository,
-                        trxRepository = trxRepository,
-                        budgetRepository = budgetRepository
-                    )
-                }
-                composable<Route.CategoryList> {
-                    CategoryListPage(
-                        viewModel = viewModel {
-                            CategoryListViewModel(categoryRepository)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onNewCategoryClick = { type ->
-                            rootNavController.navigate(Route.Category(id = null, type = type))
-                        },
-                        onCategoryClick = { id ->
-                            rootNavController.navigate(Route.Category(id))
+    var isDark by rememberSaveable { mutableStateOf(false) }
+    var request by remember { mutableStateOf<ThemeSwitcherRequest?>(null) }
+    var counter by remember { mutableLongStateOf(0L) }
+
+    MyThemeSwitcher(
+        isDark = isDark,
+        request = request,
+    ) { darkTheme ->
+        MyTheme(darkTheme = darkTheme) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            focusManager.clearFocus()
                         }
-                    )
-                }
-                composable<Route.Account> { backStackEntry ->
-                    val account = backStackEntry.toRoute<Route.Account>()
-                    AccountPage(
-                        viewModel = viewModel {
-                            AccountViewModel(accountRepository, account.id)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() },
-                        onDeleteSuccess = { rootNavController.popBackStack() }
-                    )
-                }
-                composable<Route.Category>(
-                    typeMap = mapOf(typeOf<TrxType>() to TrxTypeNavType)
-                ) { backStackEntry ->
-                    val category = backStackEntry.toRoute<Route.Category>()
-                    CategoryPage(
-                        viewModel = viewModel {
-                            CategoryViewModel(categoryRepository, category.id, category.type)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() },
-                        onDeleteSuccess = { rootNavController.popBackStack() }
-                    )
-                }
-                composable<Route.Trx> { backStackEntry ->
-                    val trx = backStackEntry.toRoute<Route.Trx>()
-                    TrxPage(
-                        viewModel = viewModel {
-                            TrxViewModel(
-                                accountRepository,
-                                categoryRepository,
-                                trxRepository,
-                                trx.id
-                            )
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() },
-                        onDeleteSuccess = { rootNavController.popBackStack() },
-                    )
-                }
-                composable<Route.CategoryBudget> { backStackEntry ->
-                    val route = backStackEntry.toRoute<Route.CategoryBudget>()
-                    CategoryBudgetPage(
-                        viewModel = viewModel {
-                            CategoryBudgetViewModel(budgetRepository, route.templateId)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onDefaultBudgetClick = { rootNavController.navigate(Route.DefaultBudget(it)) },
-                        onMonthBudgetClick = { rootNavController.navigate(Route.MonthBudget(it)) }
-                    )
-                }
-                composable<Route.DefaultBudget> { backStackEntry ->
-                    val route = backStackEntry.toRoute<Route.DefaultBudget>()
-                    DefaultBudgetPage(
-                        viewModel = viewModel {
-                            DefaultBudgetViewModel(categoryRepository, budgetRepository, route.templateId)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() }
-                    )
-                }
-                composable<Route.MonthBudget> { backStackEntry ->
-                    val route = backStackEntry.toRoute<Route.MonthBudget>()
-                    MonthBudgetPage(
-                        viewModel = viewModel {
-                            MonthBudgetViewModel(budgetRepository, route.budgetId)
-                        },
-                        onUp = { rootNavController.popBackStack() },
-                        onSaveSuccess = { rootNavController.popBackStack() }
-                    )
+                    },
+            ) {
+                NavHost(
+                    rootNavController,
+                    startDestination = Route.Main,
+                    enterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
+                    },
+                    exitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start)
+                    },
+                    popEnterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                    },
+                    popExitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                    }
+                ) {
+                    composable<Route.Main> {
+                        MainContainer(
+                            rootNavController = rootNavController,
+                            accountRepository = accountRepository,
+                            categoryRepository = categoryRepository,
+                            trxRepository = trxRepository,
+                            budgetRepository = budgetRepository,
+                            darkTheme = darkTheme,
+                            onThemeToggle = { origin ->
+                                isDark = !isDark
+                                request = ThemeSwitcherRequest(
+                                    id = ++counter,
+                                    origin = origin,
+                                )
+                            }
+                        )
+                    }
+                    composable<Route.CategoryList> {
+                        CategoryListPage(
+                            viewModel = viewModel {
+                                CategoryListViewModel(categoryRepository)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onNewCategoryClick = { type ->
+                                rootNavController.navigate(Route.Category(id = null, type = type))
+                            },
+                            onCategoryClick = { id ->
+                                rootNavController.navigate(Route.Category(id))
+                            }
+                        )
+                    }
+                    composable<Route.Account> { backStackEntry ->
+                        val account = backStackEntry.toRoute<Route.Account>()
+                        AccountPage(
+                            viewModel = viewModel {
+                                AccountViewModel(accountRepository, account.id)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() },
+                            onDeleteSuccess = { rootNavController.popBackStack() }
+                        )
+                    }
+                    composable<Route.Category>(
+                        typeMap = mapOf(typeOf<TrxType>() to TrxTypeNavType)
+                    ) { backStackEntry ->
+                        val category = backStackEntry.toRoute<Route.Category>()
+                        CategoryPage(
+                            viewModel = viewModel {
+                                CategoryViewModel(categoryRepository, category.id, category.type)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() },
+                            onDeleteSuccess = { rootNavController.popBackStack() }
+                        )
+                    }
+                    composable<Route.Trx> { backStackEntry ->
+                        val trx = backStackEntry.toRoute<Route.Trx>()
+                        TrxPage(
+                            viewModel = viewModel {
+                                TrxViewModel(
+                                    accountRepository,
+                                    categoryRepository,
+                                    trxRepository,
+                                    trx.id
+                                )
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() },
+                            onDeleteSuccess = { rootNavController.popBackStack() },
+                        )
+                    }
+                    composable<Route.CategoryBudget> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Route.CategoryBudget>()
+                        CategoryBudgetPage(
+                            viewModel = viewModel {
+                                CategoryBudgetViewModel(budgetRepository, route.templateId)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onDefaultBudgetClick = { rootNavController.navigate(Route.DefaultBudget(it)) },
+                            onMonthBudgetClick = { rootNavController.navigate(Route.MonthBudget(it)) }
+                        )
+                    }
+                    composable<Route.DefaultBudget> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Route.DefaultBudget>()
+                        DefaultBudgetPage(
+                            viewModel = viewModel {
+                                DefaultBudgetViewModel(categoryRepository, budgetRepository, route.templateId)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() }
+                        )
+                    }
+                    composable<Route.MonthBudget> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Route.MonthBudget>()
+                        MonthBudgetPage(
+                            viewModel = viewModel {
+                                MonthBudgetViewModel(budgetRepository, route.budgetId)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
@@ -217,6 +232,8 @@ fun MainContainer(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
+    darkTheme: Boolean,
+    onThemeToggle: (Offset) -> Unit,
 ) {
     val innerNavController = rememberNavController()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -301,7 +318,9 @@ fun MainContainer(
                     },
                     onNewBudgetClick = {
                         rootNavController.navigate(Route.DefaultBudget(templateId = null))
-                    }
+                    },
+                    darkTheme = darkTheme,
+                    onThemeToggle = onThemeToggle
                 )
             }
             composable<Route.TrxList> {

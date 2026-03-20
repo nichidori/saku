@@ -88,7 +88,7 @@ fun MyTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = lightScheme,
+        colorScheme = if (darkTheme) darkScheme else lightScheme,
         typography = MyTypography,
         content = content
     )
