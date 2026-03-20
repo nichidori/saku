@@ -497,8 +497,7 @@ fun BudgetItem(
                     .height(8.dp)
                     .clip(MyDefaultShape),
                 strokeCap = StrokeCap.Square,
-                color = if (progress >= 1f) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
             Spacer(modifier = Modifier.height(4.dp))
