@@ -8,24 +8,10 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +20,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ChartPie
-import com.composables.icons.lucide.House
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Pencil
-import com.composables.icons.lucide.ReceiptText
+import com.composables.icons.lucide.*
 
 enum class NavBarDestination { Home, Trx, Statistic }
 
@@ -57,7 +39,7 @@ fun MyNavBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.primary)
+            .background(color = MaterialTheme.colorScheme.primaryContainer)
             .padding(horizontal = 32.dp, vertical = 12.dp)
             .padding(
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -105,9 +87,9 @@ private fun NavBarItem(
         imageVector = imageVector,
         contentDescription = contentDescription,
         tint = if (isSelected) {
-            MaterialTheme.colorScheme.onPrimary
+            MaterialTheme.colorScheme.onPrimaryContainer
         } else {
-            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
         },
         modifier = modifier
             .size(48.dp)
@@ -131,10 +113,6 @@ private fun NavBarActionButton(
     Box(
         modifier = modifier
             .size(48.dp)
-            .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MyDefaultShape
-            )
             .clip(MyDefaultShape)
             .indication(interactionSource, LocalIndication.current)
             .pointerInput(Unit) {
