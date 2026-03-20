@@ -170,7 +170,6 @@ fun StatisticPage(
                 colors = TopAppBarDefaults.topAppBarColors(
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                 ),
-                expandedHeight = 48.dp,
                 actions = {
                     IconButton(onClick = { showGroupByOptions = true }) {
                         Icon(
