@@ -4,11 +4,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.room.Room
+import dev.nichidori.saku.data.createDataStore
 import dev.nichidori.saku.data.getDatabaseBuilder
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.data.repo.DefaultAccountRepository
@@ -39,11 +39,13 @@ fun main() = application {
                 getDatabaseBuilder()
             }
         )
+        val dataStore = createDataStore()
         App(
             accountRepository = DefaultAccountRepository(db = db),
             categoryRepository = DefaultCategoryRepository(db = db),
             trxRepository = DefaultTrxRepository(db = db),
-            budgetRepository = DefaultBudgetRepository(db = db)
+            budgetRepository = DefaultBudgetRepository(db = db),
+            dataStore = dataStore
         )
     }
 }

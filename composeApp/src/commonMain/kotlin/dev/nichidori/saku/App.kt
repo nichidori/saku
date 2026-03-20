@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.ZeroCornerSize
@@ -24,6 +25,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -38,6 +42,7 @@ import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
+import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
@@ -108,20 +113,32 @@ fun App(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
-    darkTheme: Boolean = false,
+    dataStore: DataStore<Preferences>,
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
+    val appViewModel: AppViewModel = viewModel {
+        AppViewModel(dataStore = dataStore)
+    }
+
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
 
-    var dark by rememberSaveable { mutableStateOf(darkTheme) }
+    val appUiState by appViewModel.uiState.collectAsStateWithLifecycleIfAvailable()
+
     var request by remember { mutableStateOf<ThemeSwitcherRequest?>(null) }
     var counter by remember { mutableLongStateOf(0L) }
     var showMenu by remember { mutableStateOf(false) }
     var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
+    LaunchedEffect(appUiState.darkTheme) {
+        request = ThemeSwitcherRequest(
+            id = ++counter,
+            origin = themeToggleOffset,
+        )
+    }
+
     MyThemeSwitcher(
-        dark = dark,
+        dark = appUiState.darkTheme,
         request = request,
         onDarkTheme = onDarkTheme,
     ) { darkTheme ->
@@ -161,11 +178,7 @@ fun App(
                                 rootNavController.navigate(Route.CategoryList)
                             },
                             onThemeToggleRequest = {
-                                dark = !dark
-                                request = ThemeSwitcherRequest(
-                                    id = ++counter,
-                                    origin = themeToggleOffset,
-                                )
+                                appViewModel.toggleDarkTheme()
                             },
                             onThemeToggleOffsetChange = { themeToggleOffset = it },
                             appVersion = { getAppVersion() }
@@ -434,7 +447,6 @@ fun SettingsMenu(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val menuWidth = maxWidth.coerceIn(240.dp, 320.dp) - 20.dp
@@ -725,11 +737,18 @@ fun AppPreview() {
         override suspend fun updateBudget(id: String, baseAmount: Long, spentAmount: Long) {}
         override suspend fun deleteBudget(id: String) {}
     }
+
+    @Suppress("UNCHECKED_CAST")
+    val mockDataStore: DataStore<Preferences> = DataStoreFactory.create(
+        serializer = androidx.datastore.preferences.core.PreferencesSerializer as androidx.datastore.core.Serializer<Preferences>,
+        produceFile = { java.io.File.createTempFile("mock", ".preferences_pb") }
+    )
     App(
         accountRepository = accountRepository,
         categoryRepository = categoryRepository,
         trxRepository = trxRepository,
-        budgetRepository = budgetRepository
+        budgetRepository = budgetRepository,
+        dataStore = mockDataStore
     )
 }
 

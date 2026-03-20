@@ -30,7 +30,7 @@ fun MyThemeSwitcher(
     dark: Boolean,
     request: ThemeSwitcherRequest?,
     modifier: Modifier = Modifier,
-    animationSpec: AnimationSpec<Float> = tween(durationMillis = 750, easing = FastOutSlowInEasing),
+    animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
     content: @Composable (dark: Boolean) -> Unit,
 ) {

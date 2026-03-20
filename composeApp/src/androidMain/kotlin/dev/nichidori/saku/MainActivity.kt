@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.room.Room
 import dev.nichidori.saku.core.platform.setToastActivityProvider
 import dev.nichidori.saku.data.AppDatabase
+import dev.nichidori.saku.data.createDataStore
 import dev.nichidori.saku.data.getDatabaseBuilder
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.data.repo.DefaultAccountRepository
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
                 getDatabaseBuilder(this)
             }
         )
+        val dataStore = createDataStore(this)
         setContent {
             val view = LocalView.current
             val window = LocalActivity.current?.window
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
                 categoryRepository = DefaultCategoryRepository(db = db),
                 trxRepository = DefaultTrxRepository(db = db),
                 budgetRepository = DefaultBudgetRepository(db = db),
+                dataStore = dataStore,
                 onDarkTheme = { darkTheme ->
                     window?.let {
                         WindowInsetsControllerCompat(it, view).isAppearanceLightStatusBars = !darkTheme

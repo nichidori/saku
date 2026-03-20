@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.datetime.wheel.picker)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.core)
+            implementation(libs.androidx.datastore)
             implementation(libs.icons.lucide)
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.navigation.compose)
