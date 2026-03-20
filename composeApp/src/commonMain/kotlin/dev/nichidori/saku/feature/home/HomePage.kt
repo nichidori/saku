@@ -1,7 +1,10 @@
 package dev.nichidori.saku.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -87,7 +90,11 @@ fun HomePage(
             modifier = modifier.graphicsLayer { translationX = contentTranslation }
         )
 
-        if (showMenu) {
+        AnimatedVisibility(
+            visible = showMenu,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
