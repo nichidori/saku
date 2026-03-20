@@ -29,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
+import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
@@ -306,6 +307,9 @@ fun MainContainer(
                 HomePage(
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository, budgetRepository)
+                    },
+                    appVersion = {
+                        getAppVersion()
                     },
                     onCategoryClick = {
                         rootNavController.navigate(Route.CategoryList)

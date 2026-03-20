@@ -10,6 +10,16 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    alias(libs.plugins.buildconfig)
+}
+
+val versionName = "0.9.2"
+val versionCode = 16
+
+buildConfig {
+    packageName("dev.nichidori.saku.composeApp")
+    buildConfigField("VERSION_NAME", versionName)
+    buildConfigField("VERSION_CODE", versionCode)
 }
 
 kotlin {
@@ -69,8 +79,8 @@ android {
         applicationId = "dev.nichidori.saku"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 16
-        versionName = "0.9.2"
+        versionCode = versionCode
+        versionName = versionName
     }
     lint {
         disable += "NullSafeMutableLiveData"

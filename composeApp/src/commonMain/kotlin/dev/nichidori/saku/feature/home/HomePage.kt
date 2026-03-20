@@ -41,6 +41,7 @@ import kotlin.time.Clock
 @Composable
 fun HomePage(
     viewModel: HomeViewModel,
+    appVersion: () -> String?,
     onCategoryClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
@@ -155,6 +156,17 @@ fun HomePage(
                                 }
                         )
                     }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                appVersion()?.let {
+                    Text(
+                        text = "v$it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
             }
         }

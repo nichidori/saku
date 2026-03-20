@@ -1,5 +1,6 @@
 [versions]
 agp = "8.12.0"
+buildconfig = "6.0.9"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
@@ -53,6 +54,7 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
