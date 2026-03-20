@@ -16,20 +16,20 @@ GRADLE_FILE="composeApp/build.gradle.kts"
 # Read package name from gradle file
 PACKAGE_NAME=$(grep -m 1 'applicationId =' "$GRADLE_FILE" | cut -d '"' -f 2)
 
-# Read current versionName
-CURRENT_VERSION_NAME=$(grep -m 1 'versionName =' "$GRADLE_FILE" | cut -d '"' -f 2)
+# Read current appVersionName
+CURRENT_VERSION_NAME=$(grep -m 1 'appVersionName =' "$GRADLE_FILE" | cut -d '"' -f 2)
 
 if [ "$CURRENT_VERSION_NAME" != "$NEW_VERSION_NAME" ]; then
     # Extract current versionCode and increment it
-    CURRENT_VERSION_CODE=$(grep -E 'versionCode = [0-9]+' "$GRADLE_FILE" | tr -dc '0-9')
+    CURRENT_VERSION_CODE=$(grep -m 1 'appVersionCode =' "$GRADLE_FILE" | tr -dc '0-9')
     if [ -n "$CURRENT_VERSION_CODE" ]; then
         NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
-        sed -i "s/versionCode = $CURRENT_VERSION_CODE/versionCode = $NEW_VERSION_CODE/" "$GRADLE_FILE"
+        sed -i "s/appVersionCode = $CURRENT_VERSION_CODE/appVersionCode = $NEW_VERSION_CODE/" "$GRADLE_FILE"
         echo "Updated versionCode to $NEW_VERSION_CODE"
     fi
 
     # Update versionName
-    sed -i "s/versionName = \".*\"/versionName = \"$NEW_VERSION_NAME\"/" "$GRADLE_FILE"
+    sed -i 's/appVersionName = ".*"/appVersionName = "'"$NEW_VERSION_NAME"'"/' "$GRADLE_FILE"
     echo "Updated versionName to $NEW_VERSION_NAME"
 
     # Commit and tag changes
@@ -37,7 +37,7 @@ if [ "$CURRENT_VERSION_NAME" != "$NEW_VERSION_NAME" ]; then
     git commit -m "build: update version to ${NEW_VERSION_NAME}+${NEW_VERSION_CODE}"
     git tag "v${NEW_VERSION_NAME}"
 else
-    NEW_VERSION_CODE=$(grep -E 'versionCode = [0-9]+' "$GRADLE_FILE" | tr -dc '0-9')
+    NEW_VERSION_CODE=$(grep -m 1 'appVersionCode =' "$GRADLE_FILE" | tr -dc '0-9')
     echo "Version $NEW_VERSION_NAME is already set. Skipping version update and commit."
 fi
 
