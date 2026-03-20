@@ -112,7 +112,15 @@ fun HomePage(
                 .graphicsLayer { translationX = menuTranslation }
                 .background(color = MaterialTheme.colorScheme.surface)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Settings",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(8.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -142,12 +150,20 @@ fun HomePage(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            "Dark Mode",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
+                        Column(
+                            horizontalAlignment = Alignment.Start,
                             modifier = Modifier.weight(1f)
-                        )
+                        ) {
+                            Text(
+                                "Theme",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                if (darkTheme) "Dark" else "Light",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                         Icon(
                             imageVector = if (darkTheme) Lucide.Sun else Lucide.Moon,
                             contentDescription = "Toggle theme",
