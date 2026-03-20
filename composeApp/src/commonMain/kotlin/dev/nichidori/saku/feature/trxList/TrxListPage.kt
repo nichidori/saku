@@ -267,7 +267,7 @@ fun TrxListPage(
                                 modifier = Modifier
                                     .size(14.dp)
                                     .align(Alignment.TopEnd)
-                                    .offset(x = 4.dp, y = (-4).dp)
+                                    .offset(x = (-4).dp, y = 8.dp)
                                     .background(MaterialTheme.colorScheme.onSurface, CircleShape)
                                     .padding(2.dp)
                                     .background(MaterialTheme.colorScheme.secondary, CircleShape)
