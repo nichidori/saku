@@ -1,11 +1,7 @@
 package dev.nichidori.saku.feature.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,14 +11,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
@@ -44,156 +34,30 @@ import kotlin.time.Clock
 @Composable
 fun HomePage(
     viewModel: HomeViewModel,
-    appVersion: () -> String?,
-    onCategoryClick: () -> Unit,
+    onMenuClick: () -> Unit,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
     onBudgetClick: (String) -> Unit,
     onNewBudgetClick: () -> Unit,
-    darkTheme: Boolean,
-    onThemeToggle: (Offset) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
-
-    val menuWidth = 240.dp
-    val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
-    var showMenu by remember { mutableStateOf(false) }
-    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
-
-    val menuTranslation by animateFloatAsState(
-        targetValue = if (showMenu) 0f else menuOffsetPx,
-        animationSpec = tween(durationMillis = 300),
-        label = "menuTranslation"
-    )
-
-    val contentTranslation by animateFloatAsState(
-        targetValue = if (showMenu) -menuOffsetPx else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "contentTranslation"
-    )
 
     LaunchedEffect(Unit) {
         val month = Clock.System.now().toYearMonth()
         viewModel.load(month = month)
     }
 
-    Box {
-        HomePageContent(
-            uiState = uiState,
-            onMenuClick = { showMenu = !showMenu },
-            onAccountClick = onAccountClick,
-            onNewAccountClick = onNewAccountClick,
-            onBudgetClick = onBudgetClick,
-            onNewBudgetClick = onNewBudgetClick,
-            onBalanceToggle = viewModel::onBalanceToggle,
-            modifier = modifier.graphicsLayer { translationX = contentTranslation }
-        )
-
-        AnimatedVisibility(
-            visible = showMenu,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.25f))
-                    .clickable { showMenu = false }
-                    .graphicsLayer { translationX = contentTranslation }
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .fillMaxHeight()
-                .width(menuWidth)
-                .graphicsLayer { translationX = menuTranslation }
-                .background(color = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    "Settings",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(8.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onCategoryClick() }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        "Categories",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Icon(
-                        imageVector = Lucide.ChevronRight,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onThemeToggle(themeToggleOffset) }
-                        .padding(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                "Theme",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                if (darkTheme) "Dark" else "Light",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        Icon(
-                            imageVector = if (darkTheme) Lucide.Sun else Lucide.Moon,
-                            contentDescription = "Toggle theme",
-                            modifier = Modifier
-                                .size(20.dp)
-                                .onGloballyPositioned { coords ->
-                                    val pos = coords.positionInRoot()
-                                    val size = coords.size
-                                    themeToggleOffset = Offset(
-                                        x = pos.x + size.width / 2f,
-                                        y = pos.y + size.height / 2f,
-                                    )
-                                }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                appVersion()?.let {
-                    Text(
-                        text = "v$it",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
-        }
-    }
+    HomePageContent(
+        uiState = uiState,
+        onMenuClick = onMenuClick,
+        onAccountClick = onAccountClick,
+        onNewAccountClick = onNewAccountClick,
+        onBudgetClick = onBudgetClick,
+        onNewBudgetClick = onNewBudgetClick,
+        onBalanceToggle = viewModel::onBalanceToggle,
+        modifier = modifier
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

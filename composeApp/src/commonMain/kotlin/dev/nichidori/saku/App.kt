@@ -1,11 +1,18 @@
 package dev.nichidori.saku
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
@@ -14,7 +21,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +42,7 @@ import androidx.navigation.toRoute
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
+import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
@@ -88,6 +101,7 @@ fun App(
     var dark by rememberSaveable { mutableStateOf(darkTheme) }
     var request by remember { mutableStateOf<ThemeSwitcherRequest?>(null) }
     var counter by remember { mutableLongStateOf(0L) }
+    var showMenu by remember { mutableStateOf(false) }
 
     MyThemeSwitcher(
         dark = dark,
@@ -121,21 +135,34 @@ fun App(
                     }
                 ) {
                     composable<Route.Main> {
-                        MainContainer(
-                            rootNavController = rootNavController,
-                            accountRepository = accountRepository,
-                            categoryRepository = categoryRepository,
-                            trxRepository = trxRepository,
-                            budgetRepository = budgetRepository,
+                        SettingsMenu(
+                            showMenu = showMenu,
                             darkTheme = darkTheme,
-                            onThemeToggle = { origin ->
+                            onMenuClose = { showMenu = false },
+                            onCategoryClick = {
+                                showMenu = false
+                                rootNavController.navigate(Route.CategoryList)
+                            },
+                            onThemeToggle = { offset ->
                                 dark = !dark
                                 request = ThemeSwitcherRequest(
                                     id = ++counter,
-                                    origin = origin,
+                                    origin = offset,
                                 )
-                            }
-                        )
+                            },
+                            onThemeToggleOffsetChange = { },
+                            onMenuToggle = { showMenu = !showMenu },
+                            appVersion = { getAppVersion() }
+                        ) {
+                            MainContainer(
+                                rootNavController = rootNavController,
+                                accountRepository = accountRepository,
+                                categoryRepository = categoryRepository,
+                                trxRepository = trxRepository,
+                                budgetRepository = budgetRepository,
+                                onMenuClick = { showMenu = !showMenu }
+                            )
+                        }
                     }
                     composable<Route.CategoryList> {
                         CategoryListPage(
@@ -236,8 +263,7 @@ fun MainContainer(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
-    darkTheme: Boolean,
-    onThemeToggle: (Offset) -> Unit,
+    onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -308,12 +334,7 @@ fun MainContainer(
                     viewModel = viewModel {
                         HomeViewModel(accountRepository, trxRepository, budgetRepository)
                     },
-                    appVersion = {
-                        getAppVersion()
-                    },
-                    onCategoryClick = {
-                        rootNavController.navigate(Route.CategoryList)
-                    },
+                    onMenuClick = onMenuClick,
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))
                     },
@@ -325,9 +346,7 @@ fun MainContainer(
                     },
                     onNewBudgetClick = {
                         rootNavController.navigate(Route.DefaultBudget(templateId = null))
-                    },
-                    darkTheme = darkTheme,
-                    onThemeToggle = onThemeToggle
+                    }
                 )
             }
             composable<Route.TrxList> {
@@ -380,6 +399,165 @@ fun MainContainer(
                         showInputOption = false
                     },
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SettingsMenu(
+    showMenu: Boolean,
+    darkTheme: Boolean,
+    onMenuClose: () -> Unit,
+    onCategoryClick: () -> Unit,
+    onThemeToggle: (Offset) -> Unit,
+    onThemeToggleOffsetChange: (Offset) -> Unit,
+    onMenuToggle: () -> Unit,
+    appVersion: () -> String?,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val menuWidth = 240.dp
+    val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
+    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
+
+    val menuTranslation by animateFloatAsState(
+        targetValue = if (showMenu) 0f else menuOffsetPx,
+        animationSpec = tween(durationMillis = 300),
+        label = "menuTranslation"
+    )
+
+    val contentTranslation by animateFloatAsState(
+        targetValue = if (showMenu) -menuOffsetPx else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "contentTranslation"
+    )
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { translationX = contentTranslation }
+        ) {
+            content()
+        }
+
+        AnimatedVisibility(
+            visible = showMenu,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.25f))
+                    .clickable { onMenuClose() }
+                    .graphicsLayer { translationX = contentTranslation }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .fillMaxHeight()
+                .width(menuWidth)
+                .graphicsLayer { translationX = menuTranslation }
+                .background(color = MaterialTheme.colorScheme.surface)
+                .windowInsetsPadding(WindowInsets.displayCutout)
+                .windowInsetsPadding(WindowInsets.statusBars)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Settings",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    IconButton(onClick = onMenuClose) {
+                        Icon(
+                            imageVector = Lucide.X,
+                            contentDescription = "Close menu"
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onCategoryClick() }
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        "Categories",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Lucide.ChevronRight,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeToggle(themeToggleOffset) }
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                "Theme",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                if (darkTheme) "Dark" else "Light",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                        Icon(
+                            imageVector = if (darkTheme) Lucide.Sun else Lucide.Moon,
+                            contentDescription = "Toggle theme",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .onGloballyPositioned { coords ->
+                                    val pos = coords.positionInRoot()
+                                    val size = coords.size
+                                    onThemeToggleOffsetChange(Offset(
+                                        x = pos.x + size.width / 2f,
+                                        y = pos.y + size.height / 2f,
+                                    ))
+                                }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                appVersion()?.let {
+                    Text(
+                        text = "v$it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
         }
     }
