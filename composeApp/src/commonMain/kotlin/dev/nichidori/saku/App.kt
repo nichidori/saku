@@ -1,18 +1,12 @@
 package dev.nichidori.saku
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
@@ -39,10 +33,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
-import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
@@ -72,18 +66,40 @@ import kotlin.reflect.typeOf
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-@Serializable sealed interface Route {
-    @Serializable data object Main : Route
-    @Serializable data object Home : Route
-    @Serializable data object Statistic : Route
-    @Serializable data object CategoryList : Route
-    @Serializable data object TrxList : Route
-    @Serializable data class Account(val id: String?) : Route
-    @Serializable data class Category(val id: String?, val type: TrxType = TrxType.Expense) : Route
-    @Serializable data class Trx(val id: String?) : Route
-    @Serializable data class CategoryBudget(val templateId: String) : Route
-    @Serializable data class DefaultBudget(val templateId: String?) : Route
-    @Serializable data class MonthBudget(val budgetId: String) : Route
+@Serializable
+sealed interface Route {
+    @Serializable
+    data object Main : Route
+
+    @Serializable
+    data object Home : Route
+
+    @Serializable
+    data object Statistic : Route
+
+    @Serializable
+    data object CategoryList : Route
+
+    @Serializable
+    data object TrxList : Route
+
+    @Serializable
+    data class Account(val id: String?) : Route
+
+    @Serializable
+    data class Category(val id: String?, val type: TrxType = TrxType.Expense) : Route
+
+    @Serializable
+    data class Trx(val id: String?) : Route
+
+    @Serializable
+    data class CategoryBudget(val templateId: String) : Route
+
+    @Serializable
+    data class DefaultBudget(val templateId: String?) : Route
+
+    @Serializable
+    data class MonthBudget(val budgetId: String) : Route
 }
 
 @Composable
@@ -102,6 +118,7 @@ fun App(
     var request by remember { mutableStateOf<ThemeSwitcherRequest?>(null) }
     var counter by remember { mutableLongStateOf(0L) }
     var showMenu by remember { mutableStateOf(false) }
+    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
     MyThemeSwitcher(
         dark = dark,
@@ -143,15 +160,14 @@ fun App(
                                 showMenu = false
                                 rootNavController.navigate(Route.CategoryList)
                             },
-                            onThemeToggle = { offset ->
+                            onThemeToggleRequest = {
                                 dark = !dark
                                 request = ThemeSwitcherRequest(
                                     id = ++counter,
-                                    origin = offset,
+                                    origin = themeToggleOffset,
                                 )
                             },
-                            onThemeToggleOffsetChange = { },
-                            onMenuToggle = { showMenu = !showMenu },
+                            onThemeToggleOffsetChange = { themeToggleOffset = it },
                             appVersion = { getAppVersion() }
                         ) {
                             MainContainer(
@@ -404,6 +420,7 @@ fun MainContainer(
     }
 }
 
+@Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsMenu(
@@ -411,30 +428,30 @@ fun SettingsMenu(
     darkTheme: Boolean,
     onMenuClose: () -> Unit,
     onCategoryClick: () -> Unit,
-    onThemeToggle: (Offset) -> Unit,
+    onThemeToggleRequest: () -> Unit,
     onThemeToggleOffsetChange: (Offset) -> Unit,
-    onMenuToggle: () -> Unit,
     appVersion: () -> String?,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val menuWidth = 240.dp
-    val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
     var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
-    val menuTranslation by animateFloatAsState(
-        targetValue = if (showMenu) 0f else menuOffsetPx,
-        animationSpec = tween(durationMillis = 300),
-        label = "menuTranslation"
-    )
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val menuWidth = maxWidth.coerceIn(240.dp, 320.dp) - 20.dp
+        val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
 
-    val contentTranslation by animateFloatAsState(
-        targetValue = if (showMenu) -menuOffsetPx else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "contentTranslation"
-    )
+        val menuTranslation by animateFloatAsState(
+            targetValue = if (showMenu) 0f else menuOffsetPx,
+            animationSpec = tween(durationMillis = 300),
+            label = "menuTranslation"
+        )
 
-    Box(modifier = modifier.fillMaxSize()) {
+        val contentTranslation by animateFloatAsState(
+            targetValue = if (showMenu) -menuOffsetPx else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "contentTranslation"
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -467,55 +484,60 @@ fun SettingsMenu(
                 .windowInsetsPadding(WindowInsets.displayCutout)
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         "Settings",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
-                    IconButton(onClick = onMenuClose) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    MyIconButton(onClick = onMenuClose) {
                         Icon(
                             imageVector = Lucide.X,
-                            contentDescription = "Close menu"
+                            contentDescription = "Close menu",
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                MyBox(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onCategoryClick() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Text(
+                            "Categories",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = Lucide.ChevronRight,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onCategoryClick() }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        "Categories",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Icon(
-                        imageVector = Lucide.ChevronRight,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onThemeToggle(themeToggleOffset) }
-                        .padding(12.dp)
-                ) {
+                MyBox(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onThemeToggleRequest() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Start,
@@ -523,12 +545,12 @@ fun SettingsMenu(
                         ) {
                             Text(
                                 "Theme",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
                                 if (darkTheme) "Dark" else "Light",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                             )
                         }
                         Icon(
@@ -539,10 +561,12 @@ fun SettingsMenu(
                                 .onGloballyPositioned { coords ->
                                     val pos = coords.positionInRoot()
                                     val size = coords.size
-                                    onThemeToggleOffsetChange(Offset(
-                                        x = pos.x + size.width / 2f,
-                                        y = pos.y + size.height / 2f,
-                                    ))
+                                    onThemeToggleOffsetChange(
+                                        Offset(
+                                            x = pos.x + size.width / 2f,
+                                            y = pos.y + size.height / 2f,
+                                        )
+                                    )
                                 }
                         )
                     }
@@ -554,8 +578,9 @@ fun SettingsMenu(
                     Text(
                         text = "v$it",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(12.dp)
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
             }
