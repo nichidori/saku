@@ -3,8 +3,11 @@ package dev.nichidori.saku
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.room.Room
 import dev.nichidori.saku.core.platform.setToastActivityProvider
 import dev.nichidori.saku.data.AppDatabase
@@ -34,11 +37,19 @@ class MainActivity : ComponentActivity() {
             }
         )
         setContent {
+            val view = LocalView.current
+            val window = LocalActivity.current?.window
+
             App(
                 accountRepository = DefaultAccountRepository(db = db),
                 categoryRepository = DefaultCategoryRepository(db = db),
                 trxRepository = DefaultTrxRepository(db = db),
-                budgetRepository = DefaultBudgetRepository(db = db)
+                budgetRepository = DefaultBudgetRepository(db = db),
+                onDarkTheme = { darkTheme ->
+                    window?.let {
+                        WindowInsetsControllerCompat(it, view).isAppearanceLightStatusBars = !darkTheme
+                    }
+                }
             )
         }
     }

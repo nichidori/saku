@@ -82,7 +82,7 @@ fun HomePageContent(
     modifier: Modifier = Modifier
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    var toggleCenter by remember { mutableStateOf(Offset.Zero) }
+    var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
 
     Scaffold(
         topBar = {
@@ -101,11 +101,11 @@ fun HomePageContent(
                 expandedHeight = 48.dp,
                 actions = {
                     IconButton(
-                        onClick = { onThemeToggle(toggleCenter) },
+                        onClick = { onThemeToggle(themeToggleOffset) },
                         modifier = Modifier.onGloballyPositioned { coords ->
                             val pos = coords.positionInRoot()
                             val size = coords.size
-                            toggleCenter = Offset(
+                            themeToggleOffset = Offset(
                                 x = pos.x + size.width / 2f,
                                 y = pos.y + size.height / 2f,
                             )

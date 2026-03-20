@@ -77,18 +77,21 @@ fun App(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
-    budgetRepository: BudgetRepository
+    budgetRepository: BudgetRepository,
+    darkTheme: Boolean = false,
+    onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
 
-    var isDark by rememberSaveable { mutableStateOf(false) }
+    var dark by rememberSaveable { mutableStateOf(darkTheme) }
     var request by remember { mutableStateOf<ThemeSwitcherRequest?>(null) }
     var counter by remember { mutableLongStateOf(0L) }
 
     MyThemeSwitcher(
-        isDark = isDark,
+        dark = dark,
         request = request,
+        onDarkTheme = onDarkTheme,
     ) { darkTheme ->
         MyTheme(darkTheme = darkTheme) {
             Surface(
@@ -125,7 +128,7 @@ fun App(
                             budgetRepository = budgetRepository,
                             darkTheme = darkTheme,
                             onThemeToggle = { origin ->
-                                isDark = !isDark
+                                dark = !dark
                                 request = ThemeSwitcherRequest(
                                     id = ++counter,
                                     origin = origin,

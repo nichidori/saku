@@ -27,13 +27,14 @@ data class ThemeSwitcherRequest(val id: Long, val origin: Offset)
 
 @Composable
 fun MyThemeSwitcher(
-    isDark: Boolean,
+    dark: Boolean,
     request: ThemeSwitcherRequest?,
     modifier: Modifier = Modifier,
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 750, easing = FastOutSlowInEasing),
+    onDarkTheme: (darkTheme: Boolean) -> Unit = {},
     content: @Composable (dark: Boolean) -> Unit,
 ) {
-    var dark by remember { mutableStateOf(isDark) }
+    var darkTheme by remember { mutableStateOf(dark) }
     var snapshotBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var revealOrigin by remember { mutableStateOf(Offset.Zero) }
     val revealProgress = remember { Animatable(1f) }
@@ -48,7 +49,8 @@ fun MyThemeSwitcher(
         withFrameNanos { } // ensure captureLayer holds the latest frame
         snapshotBitmap = captureLayer.toImageBitmap()
         revealOrigin = req.origin
-        dark = isDark
+        darkTheme = dark
+        onDarkTheme(darkTheme)
 
         revealProgress.snapTo(0f)
         revealProgress.animateTo(targetValue = 1f, animationSpec = animationSpec)
@@ -64,7 +66,7 @@ fun MyThemeSwitcher(
                     drawLayer(captureLayer)
                 },
         ) {
-            content(dark)
+            content(darkTheme)
         }
 
         snapshotBitmap?.let {
