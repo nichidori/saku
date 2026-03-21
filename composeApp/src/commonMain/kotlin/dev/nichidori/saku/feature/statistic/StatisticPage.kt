@@ -341,7 +341,7 @@ fun StatisticPageContent(
                                     }
 
                                     val isExpanded = monthlyState.expandedItemKey == itemKey
-                                    val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey]
+                                    val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey] ?: Initial
 
                                     StatisticItem(
                                         name = name,
@@ -352,7 +352,7 @@ fun StatisticPageContent(
                                         onTargetChange = {
                                             categoryFractions[index] = it
                                         },
-                                        expanded = isExpanded,
+                                        expanded = isExpanded && trxsStatus.isCompleted,
                                         onExpandToggle = {
                                             if (isExpanded) {
                                                 onItemCollapse(pageMonth)
@@ -363,9 +363,9 @@ fun StatisticPageContent(
                                         expandedContent = {
                                             when (trxsStatus) {
                                                 is Failure -> Text(
-                                                    text = "Failed to load transactions",
-                                                    modifier = Modifier.padding(16.dp),
+                                                    text = "Failed to load transactions.",
                                                     style = MaterialTheme.typography.bodySmall,
+                                                    modifier = Modifier.padding(top = 12.dp)
                                                 )
 
                                                 is Success -> {
@@ -507,6 +507,7 @@ fun StatisticItem(
             visible = expanded,
             enter = expandVertically(),
             exit = shrinkVertically(),
+            modifier = Modifier.padding(start = 56.dp)
         ) {
             expandedContent()
         }
@@ -516,9 +517,7 @@ fun StatisticItem(
 @Composable
 private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 56.dp, top = 12.dp),
+        modifier = modifier.fillMaxWidth().padding(top = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

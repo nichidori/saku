@@ -138,10 +138,7 @@ class StatisticViewModel(
             }
 
             updateMonthlyState(month) {
-                it.copy(
-                    expandedItemKey = itemKey,
-                    trxsStatusByItemKey = it.trxsStatusByItemKey + (itemKey to Loading),
-                )
+                it.copy(expandedItemKey = itemKey)
             }
 
             try {
