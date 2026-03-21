@@ -1,14 +1,15 @@
 package dev.nichidori.saku.feature.statistic
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -22,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
@@ -31,16 +34,14 @@ import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
+import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.AccountType
-import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.plus
-import kotlinx.datetime.until
+import kotlinx.datetime.*
+import kotlinx.datetime.format.DayOfWeekNames
+import kotlinx.datetime.format.Padding
 import kotlin.time.Clock
 
 fun StatisticGroupBy.label(): String {
@@ -155,6 +156,10 @@ fun StatisticPage(
         }
     }
 
+    LaunchedEffect(uiState.groupBy) {
+        viewModel.onItemCollapse(initialMonth)
+    }
+
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -197,6 +202,8 @@ fun StatisticPage(
                 pagerState = pagerState,
                 selectedMonth = initialMonth,
                 earliestMonth = earliestMonth,
+                onItemExpand = viewModel::onItemExpand,
+                onItemCollapse = viewModel::onItemCollapse,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -209,6 +216,8 @@ fun StatisticPageContent(
     pagerState: PagerState,
     selectedMonth: YearMonth,
     earliestMonth: YearMonth,
+    onItemExpand: (YearMonth, StatisticItemKey) -> Unit,
+    onItemCollapse: (YearMonth) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -250,43 +259,55 @@ fun StatisticPageContent(
             ) { page ->
                 val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
                 val monthlyState = uiState.stateByMonth[pageMonth] ?: StatisticUiState.MonthlyState()
-                
+
                 when (monthlyState.loadStatus) {
                     Loading, is Success<*>, is Failure<*> -> {
                         val (items, maxAmount) = remember(monthlyState, uiState.groupBy, selectedType) {
                             when (uiState.groupBy) {
                                 StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
                                     Pair(
-                                        monthlyState.incomesOfCategory.entries.toList(),
+                                        monthlyState.incomesOfCategory.entries.map {
+                                            StatisticItemKey.ByCategory(it.key) to it.value
+                                        },
                                         monthlyState.totalIncome
                                     )
                                 } else {
                                     Pair(
-                                        monthlyState.expensesOfCategory.entries.toList(),
+                                        monthlyState.expensesOfCategory.entries.map {
+                                            StatisticItemKey.ByCategory(it.key) to it.value
+                                        },
                                         monthlyState.totalExpense
                                     )
                                 }
 
                                 StatisticGroupBy.Account -> if (selectedType == TrxType.Income) {
                                     Pair(
-                                        monthlyState.incomesOfAccount.entries.toList(),
+                                        monthlyState.incomesOfAccount.entries.map {
+                                            StatisticItemKey.ByAccount(it.key) to it.value
+                                        },
                                         monthlyState.totalIncome
                                     )
                                 } else {
                                     Pair(
-                                        monthlyState.expensesOfAccount.entries.toList(),
+                                        monthlyState.expensesOfAccount.entries.map {
+                                            StatisticItemKey.ByAccount(it.key) to it.value
+                                        },
                                         monthlyState.totalExpense
                                     )
                                 }
 
                                 StatisticGroupBy.AccountType -> if (selectedType == TrxType.Income) {
                                     Pair(
-                                        monthlyState.incomesOfAccountType.entries.toList(),
+                                        monthlyState.incomesOfAccountType.entries.map {
+                                            StatisticItemKey.ByAccountType(it.key) to it.value
+                                        },
                                         monthlyState.totalIncome
                                     )
                                 } else {
                                     Pair(
-                                        monthlyState.expensesOfAccountType.entries.toList(),
+                                        monthlyState.expensesOfAccountType.entries.map {
+                                            StatisticItemKey.ByAccountType(it.key) to it.value
+                                        },
                                         monthlyState.totalExpense
                                     )
                                 }
@@ -309,13 +330,18 @@ fun StatisticPageContent(
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                itemsIndexed(items, key = { index, _ -> index }) { index, (item, amount) ->
-                                    val (name, icon) = when (item) {
-                                        is Category -> item.name to item.icon.toPickerIcon()?.icon
-                                        is Account -> item.name to null
-                                        is AccountType -> item.label() to null
-                                        else -> "" to null
+                                itemsIndexed(
+                                    items,
+                                    key = { index, _ -> index }
+                                ) { index, (itemKey, amount) ->
+                                    val (name, icon) = when (itemKey) {
+                                        is StatisticItemKey.ByCategory -> itemKey.category.name to itemKey.category.icon.toPickerIcon()?.icon
+                                        is StatisticItemKey.ByAccount -> itemKey.account.name to null
+                                        is StatisticItemKey.ByAccountType -> itemKey.type.label() to null
                                     }
+
+                                    val isExpanded = monthlyState.expandedItemKey == itemKey
+                                    val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey]
 
                                     StatisticItem(
                                         name = name,
@@ -325,6 +351,34 @@ fun StatisticPageContent(
                                         previousTarget = categoryFractions[index] ?: 0f,
                                         onTargetChange = {
                                             categoryFractions[index] = it
+                                        },
+                                        expanded = isExpanded,
+                                        onExpandToggle = {
+                                            if (isExpanded) {
+                                                onItemCollapse(pageMonth)
+                                            } else {
+                                                onItemExpand(pageMonth, itemKey)
+                                            }
+                                        },
+                                        expandedContent = {
+                                            when (trxsStatus) {
+                                                is Failure -> Text(
+                                                    text = "Failed to load transactions",
+                                                    modifier = Modifier.padding(16.dp),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                )
+
+                                                is Success -> {
+                                                    val transactions = trxsStatus.data
+                                                    Column {
+                                                        transactions.forEach { trx ->
+                                                            StatisticTrxItem(trx = trx)
+                                                        }
+                                                    }
+                                                }
+
+                                                else -> Unit
+                                            }
                                         }
                                     )
                                 }
@@ -353,7 +407,10 @@ fun StatisticItem(
     maxAmount: Long,
     previousTarget: Float,
     onTargetChange: (Float) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    expanded: Boolean = false,
+    onExpandToggle: () -> Unit = {},
+    expandedContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     val target = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
     var animationTarget by remember { mutableFloatStateOf(previousTarget) }
@@ -368,80 +425,140 @@ fun StatisticItem(
         onTargetChange(target)
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(40.dp)
-                .wrapContentSize()
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = name,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else {
-                Text(
-                    name.firstOrNull()?.toString() ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(IntrinsicSize.Min)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = MyDefaultShape
-                )
-                .clip(shape = MyDefaultShape)
-        ) {
-            if (animatedFraction > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animatedFraction)
-                        .background(
-                            color = MaterialTheme.colorScheme.secondary,
-                            shape = MyDefaultShape
-                        )
-                )
-            }
-            Row(
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                    .size(40.dp)
+                    .wrapContentSize()
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        name,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onBackground,
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = name,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
+                } else {
                     Text(
-                        amount.toRupiah(),
-                        style = MaterialTheme.typography.bodyMedium,
+                        name.firstOrNull()?.toString() ?: "",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Text(
-                    text = "${(target * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(IntrinsicSize.Min)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = MyDefaultShape
+                    )
+                    .clip(shape = MyDefaultShape)
+                    .clickable { onExpandToggle() }
+            ) {
+                if (animatedFraction > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedFraction)
+                            .background(
+                                color = MaterialTheme.colorScheme.secondary,
+                                shape = MyDefaultShape
+                            )
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            amount.toRupiah(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    Text(
+                        text = "${(target * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            expandedContent()
+        }
+    }
+}
+
+@Composable
+private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 56.dp, top = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val accountInfo = when (trx) {
+            is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
+            else -> trx.sourceAccount.name
+        }
+        val primaryText = trx.description.ifBlank { accountInfo }
+
+        Text(
+            text = trx.transactionAt.format(
+                LocalDateTime.Format {
+                    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+                    chars(" ")
+                    day(padding = Padding.NONE)
+                }
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(40.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = primaryText,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = trx.amount.toRupiah(),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = when (trx) {
+                is Trx.Income -> MaterialTheme.colorScheme.primary
+                is Trx.Expense -> MaterialTheme.colorScheme.error
+                is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
     }
 }

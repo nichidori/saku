@@ -6,6 +6,11 @@ import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.*
+import dev.nichidori.saku.domain.model.AccountType
+import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxFilter
+import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +20,12 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
 
 enum class StatisticGroupBy { Category, Account, AccountType }
+
+sealed interface StatisticItemKey {
+    data class ByCategory(val category: Category) : StatisticItemKey
+    data class ByAccount(val account: Account) : StatisticItemKey
+    data class ByAccountType(val type: AccountType) : StatisticItemKey
+}
 
 data class StatisticUiState(
     val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
@@ -28,6 +39,8 @@ data class StatisticUiState(
         val expensesOfAccount: Map<Account, Long> = emptyMap(),
         val incomesOfAccountType: Map<AccountType, Long> = emptyMap(),
         val expensesOfAccountType: Map<AccountType, Long> = emptyMap(),
+        val expandedItemKey: StatisticItemKey? = null,
+        val trxsStatusByItemKey: Map<StatisticItemKey, Status<List<Trx>, Exception>> = emptyMap(),
     ) {
         val totalIncome: Long = incomesOfCategory.values.sum()
         val totalExpense: Long = expensesOfCategory.values.sum()
@@ -105,6 +118,49 @@ class StatisticViewModel(
                     it.copy(loadStatus = Failure(e))
                 }
             }
+        }
+    }
+
+    fun onItemExpand(month: YearMonth, itemKey: StatisticItemKey) {
+        viewModelScope.launch {
+            val filter = when (itemKey) {
+                is StatisticItemKey.ByCategory -> TrxFilter(
+                    month = month,
+                    categoryId = itemKey.category.id
+                )
+                is StatisticItemKey.ByAccount -> TrxFilter(
+                    month = month,
+                    accountId = itemKey.account.id
+                )
+                is StatisticItemKey.ByAccountType -> TrxFilter(
+                    month = month
+                )
+            }
+
+            updateMonthlyState(month) {
+                it.copy(
+                    expandedItemKey = itemKey,
+                    trxsStatusByItemKey = it.trxsStatusByItemKey + (itemKey to Loading),
+                )
+            }
+
+            try {
+                val trxs = trxRepository.getFilteredTrxs(filter)
+                updateMonthlyState(month) {
+                    it.copy(trxsStatusByItemKey = it.trxsStatusByItemKey + (itemKey to Success(trxs)))
+                }
+            } catch (e: Exception) {
+                this@StatisticViewModel.log(e)
+                updateMonthlyState(month) {
+                    it.copy(trxsStatusByItemKey = it.trxsStatusByItemKey + (itemKey to Failure(e)))
+                }
+            }
+        }
+    }
+
+    fun onItemCollapse(month: YearMonth) {
+        updateMonthlyState(month) {
+            it.copy(expandedItemKey = null)
         }
     }
 
