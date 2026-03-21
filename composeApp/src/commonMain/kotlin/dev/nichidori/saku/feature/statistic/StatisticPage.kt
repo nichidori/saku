@@ -232,19 +232,29 @@ fun StatisticPageContent(
                 .consumeWindowInsets(contentPadding)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            var lastValidMonthlyState by remember { mutableStateOf(StatisticUiState.MonthlyState()) }
+
+            val currentMonthlyState = uiState.stateByMonth[selectedMonth]
+            if (currentMonthlyState != null && currentMonthlyState.loadStatus.isCompleted) {
+                lastValidMonthlyState = currentMonthlyState
+            }
+
             MySegmentedControl(
                 items = listOf(TrxType.Income, TrxType.Expense),
                 selectedItem = selectedType,
                 onItemSelection = { selectedType = it },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) { type ->
-                val currentMonthlyState = uiState.stateByMonth[selectedMonth] ?: StatisticUiState.MonthlyState()
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = if (type == TrxType.Income) "Income" else "Expense",
                         style = MaterialTheme.typography.labelSmall
                     )
-                    Text(text = if (type == TrxType.Income) currentMonthlyState.totalIncome.toRupiah() else currentMonthlyState.totalExpense.toRupiah())
+                    Text(
+                        text = if (type == TrxType.Income) lastValidMonthlyState.totalIncome.toRupiah()
+                        else lastValidMonthlyState.totalExpense.toRupiah()
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
