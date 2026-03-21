@@ -29,6 +29,7 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Budget
+import dev.nichidori.saku.domain.model.BudgetStatus
 import dev.nichidori.saku.domain.model.status
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
@@ -197,11 +198,19 @@ fun MonthBudgetItem(
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                budget.baseAmount.toRupiah(),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    budget.baseAmount.toRupiah(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                if (budget.status != BudgetStatus.Future) Text(
+                    budget.spentAmount.toRupiah() + " spent",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
