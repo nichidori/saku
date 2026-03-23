@@ -451,11 +451,11 @@ fun MyDateTimePicker(
             modifier = Modifier
                 .requiredHeight(height)
                 .pointerInput(Unit) { detectTapGestures {} }
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
         ) {
             CloseRow()
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
             WheelDateTimePicker(
                 startDateTime = startDateTime,
                 maxDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
@@ -482,7 +482,7 @@ fun MyDateTimePicker(
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                 ),
-                modifier = Modifier.fillMaxWidth().fillMaxHeight()
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
