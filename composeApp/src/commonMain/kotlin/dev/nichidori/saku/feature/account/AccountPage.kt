@@ -25,7 +25,6 @@ import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.AccountType
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AccountPage(
@@ -206,21 +205,3 @@ fun AccountPageContent(
     }
 }
 
-@Preview
-@Composable
-fun AccountPageContentPreview() {
-    AccountPageContent(
-        uiState = AccountUiState(
-            name = "My Bank Account",
-            balance = 1000000L,
-            type = AccountType.Bank
-        ),
-        typeOptions = AccountType.entries,
-        onUp = {},
-        onNameChange = {},
-        onBalanceChange = {},
-        onTypeChange = {},
-        onSaveClick = {},
-        onDeleteClick = {}
-    )
-}

@@ -45,7 +45,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -610,48 +609,4 @@ fun TrxPageContent(
     }
 }
 
-@Preview
-@Composable
-fun TrxPageContentPreview() {
-    val uiState = TrxUiState(
-        description = "Dinner",
-        amount = 25000,
-        category = Category(
-            id = "1",
-            name = "Food",
-            type = TrxType.Expense,
-            createdAt = Clock.System.now(),
-            updatedAt = null
-        ),
-        accountOptions = listOf(
-            Account(
-                id = "1",
-                name = "Cash",
-                type = AccountType.Cash,
-                initialAmount = 12000,
-                currentAmount = 30000,
-                createdAt = Clock.System.now(),
-                updatedAt = null
-            )
-        ),
-    )
-    TrxPageContent(
-        uiState = uiState,
-        types = TrxType.entries,
-        onUp = {},
-        onTypeChange = {},
-        onTimeChange = {},
-        onAmountChange = {},
-        onDescriptionChange = {},
-        onSourceAccountChange = {},
-        onTargetAccountChange = {},
-        onCategoryChange = {},
-        onNoteChange = {},
-        onEnableFeeToggle = {},
-        onFeeAmountChange = {},
-        onFeeAccountChange = {},
-        onFeeCategoryChange = {},
-        onSaveClick = {},
-        onDeleteClick = {}
-    )
-}
+

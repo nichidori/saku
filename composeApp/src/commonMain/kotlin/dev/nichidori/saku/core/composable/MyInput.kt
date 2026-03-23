@@ -43,7 +43,6 @@ import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -141,15 +140,7 @@ fun NumberKeyboard(
     }
 }
 
-@Preview
-@Composable
-fun NumberKeyboardPreview() {
-    NumberKeyboard(
-        onValueClick = {},
-        onDeleteClick = {},
-        onActionClick = {}
-    )
-}
+
 
 @Composable
 fun KeyboardKey(
@@ -200,14 +191,7 @@ fun KeyboardKey(
     }
 }
 
-@Preview
-@Composable
-fun KeyboardKeyPreview() {
-    KeyboardKey(
-        label = "1",
-        onClick = {}
-    )
-}
+
 
 @Composable
 fun AccountTypeSelector(
@@ -280,14 +264,7 @@ fun AccountTypeSelector(
     }
 }
 
-@Preview
-@Composable
-fun AccountTypeSelectorPreview() {
-    AccountTypeSelector(
-        types = AccountType.entries,
-        onSelected = {}
-    )
-}
+
 
 fun AccountType.label(): String {
     return when (this) {
@@ -376,49 +353,7 @@ fun AccountSelector(
     }
 }
 
-@Preview
-@Composable
-fun AccountSelectorPreview() {
-    val accounts = listOf(
-        Account(
-            id = "1",
-            name = "Cash",
-            initialAmount = 100000,
-            currentAmount = 100000,
-            type = AccountType.Cash,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        Account(
-            id = "2",
-            name = "Bank BCA",
-            initialAmount = 1000000,
-            currentAmount = 1000000,
-            type = AccountType.Bank,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        Account(
-            id = "3",
-            name = "Gopay",
-            initialAmount = 50000,
-            currentAmount = 50000,
-            type = AccountType.Ewallet,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        Account(
-            id = "4",
-            name = "Flazz",
-            initialAmount = 100000,
-            currentAmount = 77500,
-            type = AccountType.Emoney,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        )
-    )
-    AccountSelector(accounts = accounts, onSelected = {})
-}
+
 
 @Composable
 fun CategorySelector(
@@ -497,37 +432,7 @@ fun CategorySelector(
     }
 }
 
-@Preview
-@Composable
-fun CategorySelectorPreview() {
-    val categories = listOf(
-        Category(
-            id = "1",
-            name = "Groceries",
-            type = TrxType.Expense,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        Category(
-            id = "2",
-            name = "Salary",
-            type = TrxType.Income,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        Category(
-            id = "3",
-            name = "Freelance",
-            type = TrxType.Income,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        )
-    )
-    CategorySelector(
-        categories = categories,
-        onSelected = {}
-    )
-}
+
 
 @Composable
 fun MyDateTimePicker(
@@ -583,11 +488,4 @@ fun MyDateTimePicker(
     }
 }
 
-@Preview
-@Composable
-fun MyDateTimePickerPreview() {
-    MyDateTimePicker(
-        startDateTime = LocalDateTime(2024, 1, 1, 0, 0, 0),
-        onDateTimePicked = {}
-    )
-}
+

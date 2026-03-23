@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -66,7 +65,6 @@ import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
 import kotlinx.datetime.YearMonth
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.reflect.typeOf
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -652,112 +650,3 @@ fun InputOption(
     }
 }
 
-@Preview
-@Composable
-fun AppPreview() {
-    val accountRepository = object : AccountRepository {
-        override suspend fun addAccount(
-            name: String,
-            initialAmount: Long,
-            type: AccountType
-        ) {
-        }
-
-        override suspend fun getAccountById(id: String): Account? = null
-        override suspend fun getAllAccounts(): List<Account> = emptyList()
-        override suspend fun updateAccount(
-            id: String,
-            name: String,
-            initialAmount: Long,
-            type: AccountType
-        ) {
-        }
-
-        override suspend fun deleteAccount(id: String) {}
-        override suspend fun getTotalBalance(): Long = 0
-    }
-    val categoryRepository = object : CategoryRepository {
-        override suspend fun addCategory(name: String, type: TrxType, icon: String?, parent: Category?) {}
-        override suspend fun getCategoryById(id: String): Category? = null
-        override suspend fun getAllCategories(): List<Category> = emptyList()
-        override suspend fun getRootCategories(): List<Category> = emptyList()
-        override suspend fun getSubcategories(parentId: String): List<Category> = emptyList()
-        override suspend fun updateCategory(
-            id: String,
-            name: String,
-            type: TrxType,
-            icon: String?,
-            parent: Category?
-        ) {
-        }
-
-        override suspend fun deleteCategory(id: String) {}
-    }
-    val trxRepository = object : TrxRepository {
-        override suspend fun addTrx(
-            type: TrxType,
-            transactionAt: Instant,
-            amount: Long,
-            description: String,
-            sourceAccount: Account,
-            targetAccount: Account?,
-            category: Category?,
-            note: String
-        ) {
-        }
-
-        override suspend fun getTrxById(id: String): Trx? = null
-        override suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx> = emptyList()
-        override suspend fun updateTrx(
-            id: String,
-            type: TrxType,
-            transactionAt: Instant,
-            amount: Long,
-            description: String,
-            sourceAccount: Account,
-            targetAccount: Account?,
-            category: Category?,
-            note: String
-        ) {
-        }
-
-        override suspend fun deleteTrx(id: String) {}
-    }
-    val budgetRepository = object : BudgetRepository {
-        override suspend fun addBudgetTemplate(category: Category, defaultAmount: Long) {}
-        override suspend fun getBudgetTemplateById(id: String): BudgetTemplate? = null
-        override suspend fun getBudgetTemplateByCategoryId(categoryId: String): BudgetTemplate? = null
-        override suspend fun getAllBudgetTemplates(): List<BudgetTemplate> = emptyList()
-        override suspend fun updateBudgetTemplate(id: String, defaultAmount: Long) {}
-        override suspend fun deleteBudgetTemplate(id: String) {}
-        override suspend fun ensureBudgetsExist(now: YearMonth) {}
-        override suspend fun getBudgetById(id: String): Budget? = null
-        override suspend fun getBudgetsByYearMonth(month: YearMonth): List<Budget> = emptyList()
-        override suspend fun getBudgetsByCategory(categoryId: String): List<Budget> = emptyList()
-        override suspend fun updateBudget(id: String, baseAmount: Long, spentAmount: Long) {}
-        override suspend fun deleteBudget(id: String) {}
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    val mockDataStore: DataStore<Preferences> = DataStoreFactory.create(
-        serializer = androidx.datastore.preferences.core.PreferencesSerializer as androidx.datastore.core.Serializer<Preferences>,
-        produceFile = { java.io.File.createTempFile("mock", ".preferences_pb") }
-    )
-    App(
-        accountRepository = accountRepository,
-        categoryRepository = categoryRepository,
-        trxRepository = trxRepository,
-        budgetRepository = budgetRepository,
-        dataStore = mockDataStore
-    )
-}
-
-@Preview
-@Composable
-fun InputOptionSelectorPreview() {
-    InputOptionSelector(
-        onAccountClick = {},
-        onCategoryClick = {},
-        onTrxClick = {}
-    )
-}

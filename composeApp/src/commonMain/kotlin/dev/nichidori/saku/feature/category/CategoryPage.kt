@@ -33,7 +33,6 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Instant
 
 @Composable
@@ -359,46 +358,3 @@ fun CategoryPageContent(
     }
 }
 
-@Preview
-@Composable
-fun CategoryPageContentPreview() {
-    val uiState = CategoryUiState(
-        name = "Food",
-        type = TrxType.Expense,
-        parent = Category(
-            id = "1",
-            name = "Groceries",
-            type = TrxType.Expense,
-            createdAt = Instant.DISTANT_PAST,
-            updatedAt = null
-        ),
-        parentsOfType = mapOf(
-            TrxType.Expense to listOf(
-                Category(
-                    id = "1",
-                    name = "Groceries",
-                    type = TrxType.Expense,
-                    createdAt = Instant.DISTANT_PAST,
-                    updatedAt = null
-                ),
-                Category(
-                    id = "2",
-                    name = "Food",
-                    type = TrxType.Expense,
-                    createdAt = Instant.DISTANT_PAST,
-                    updatedAt = null
-                )
-            )
-        )
-    )
-    CategoryPageContent(
-        uiState = uiState,
-        onUp = {},
-        onTypeChange = {},
-        onNameChange = {},
-        onParentChange = {},
-        onSaveClick = {},
-        onDeleteClick = {},
-        onIconChange = {},
-    )
-}
