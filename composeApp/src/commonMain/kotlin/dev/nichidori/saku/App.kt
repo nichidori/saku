@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.ZeroCornerSize
@@ -36,6 +35,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
@@ -43,7 +45,7 @@ import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.*
+import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
@@ -63,11 +65,9 @@ import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
 import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
-import kotlinx.datetime.YearMonth
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 import kotlin.time.Clock
-import kotlin.time.Instant
 
 @Serializable
 sealed interface Route {
@@ -120,6 +120,7 @@ fun App(
 
     val focusManager = LocalFocusManager.current
     val rootNavController = rememberNavController()
+    val navEventState = rememberNavigationEventState(NavigationEventInfo.None)
 
     val appUiState by appViewModel.uiState.collectAsStateWithLifecycleIfAvailable()
 
@@ -127,6 +128,12 @@ fun App(
     var counter by remember { mutableLongStateOf(0L) }
     var showMenu by remember { mutableStateOf(false) }
     var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
+
+    NavigationBackHandler(
+        state = navEventState,
+        isBackEnabled = showMenu,
+        onBackCompleted = { showMenu = false }
+    )
 
     LaunchedEffect(appUiState.darkTheme) {
         request = ThemeSwitcherRequest(
