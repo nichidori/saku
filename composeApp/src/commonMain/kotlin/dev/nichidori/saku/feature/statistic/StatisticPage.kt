@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
@@ -540,14 +541,25 @@ private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
         Text(
             text = trx.transactionAt.format(
                 LocalDateTime.Format {
-                    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
-                    chars(" ")
                     day(padding = Padding.NONE)
                 }
             ),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(40.dp),
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(20.dp),
+        )
+        Text(
+            text = trx.transactionAt.format(
+                LocalDateTime.Format {
+                    chars("  ")
+                    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+                }
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.width(32.dp),
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
