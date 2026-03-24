@@ -217,6 +217,7 @@ fun App(
                                     is Success -> status.data
                                     else -> null
                                 },
+                                onRestoredTrxConsumed = appViewModel::clearTrxRestoreStatus,
                                 onMenuClick = { showMenu = !showMenu },
                             )
                         }
@@ -325,6 +326,7 @@ fun MainContainer(
     budgetRepository: BudgetRepository,
     snackbarHostState: SnackbarHostState,
     restoredTrx: Trx?,
+    onRestoredTrxConsumed: () -> Unit,
     onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
@@ -400,6 +402,7 @@ fun MainContainer(
                 LaunchedEffect(restoredTrx) {
                     restoredTrx?.let { trx ->
                         viewModel.load(month = trx.transactionAt.toYearMonth())
+                        onRestoredTrxConsumed()
                     }
                 }
 
@@ -428,6 +431,7 @@ fun MainContainer(
                 LaunchedEffect(restoredTrx) {
                     restoredTrx?.let { trx ->
                         viewModel.loadTrxs(month = trx.transactionAt.toYearMonth())
+                        onRestoredTrxConsumed()
                     }
                 }
 
@@ -451,6 +455,7 @@ fun MainContainer(
                 LaunchedEffect(restoredTrx) {
                     restoredTrx?.let { trx ->
                         viewModel.load(month = trx.transactionAt.toYearMonth())
+                        onRestoredTrxConsumed()
                     }
                 }
 

@@ -103,4 +103,10 @@ class AppViewModel(
             it.copy(deletedTrx = null)
         }
     }
+
+    fun clearTrxRestoreStatus() {
+        _uiState.update {
+            it.copy(trxRestoreStatus = Initial)
+        }
+    }
 }
