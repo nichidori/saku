@@ -43,6 +43,7 @@ import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Trx
@@ -144,18 +145,15 @@ fun App(
         )
     }
 
-    LaunchedEffect(appUiState.deletedTrxForUndo) {
-        appUiState.deletedTrxForUndo?.let { trx ->
+    LaunchedEffect(appUiState) {
+        appUiState.deletedTrx?.let { trx ->
             val result = snackbarHostState.showSnackbar(
                 message = "Transaction deleted",
                 actionLabel = "Undo",
                 duration = SnackbarDuration.Long
             )
             when (result) {
-                SnackbarResult.ActionPerformed -> {
-                    appViewModel.undoDelete(trx)
-                }
-
+                SnackbarResult.ActionPerformed -> appViewModel.restoreTrx(trx)
                 SnackbarResult.Dismissed -> {}
             }
             appViewModel.clearDeletedTrx()
@@ -215,7 +213,11 @@ fun App(
                                 trxRepository = trxRepository,
                                 budgetRepository = budgetRepository,
                                 snackbarHostState = snackbarHostState,
-                                onMenuClick = { showMenu = !showMenu }
+                                restoredTrx = when (val status = appUiState.trxRestoreStatus) {
+                                    is Success -> status.data
+                                    else -> null
+                                },
+                                onMenuClick = { showMenu = !showMenu },
                             )
                         }
                     }
@@ -322,6 +324,7 @@ fun MainContainer(
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
     snackbarHostState: SnackbarHostState,
+    restoredTrx: Trx?,
     onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
@@ -390,10 +393,18 @@ fun MainContainer(
             modifier = Modifier.padding(contentPadding).consumeWindowInsets(contentPadding)
         ) {
             composable<Route.Home> {
+                val viewModel = viewModel {
+                    HomeViewModel(accountRepository, trxRepository, budgetRepository)
+                }
+
+                LaunchedEffect(restoredTrx) {
+                    restoredTrx?.let { trx ->
+                        viewModel.load(month = trx.transactionAt.toYearMonth())
+                    }
+                }
+
                 HomePage(
-                    viewModel = viewModel {
-                        HomeViewModel(accountRepository, trxRepository, budgetRepository)
-                    },
+                    viewModel = viewModel,
                     onMenuClick = onMenuClick,
                     onAccountClick = { id ->
                         rootNavController.navigate(Route.Account(id))
@@ -410,11 +421,19 @@ fun MainContainer(
                 )
             }
             composable<Route.TrxList> {
+                val viewModel = viewModel {
+                    TrxListViewModel(accountRepository, categoryRepository, trxRepository)
+                }
+
+                LaunchedEffect(restoredTrx) {
+                    restoredTrx?.let { trx ->
+                        viewModel.loadTrxs(month = trx.transactionAt.toYearMonth())
+                    }
+                }
+
                 TrxListPage(
                     initialMonth = selectedMonth,
-                    viewModel = viewModel {
-                        TrxListViewModel(accountRepository, categoryRepository, trxRepository)
-                    },
+                    viewModel = viewModel,
                     monthChipsListState = monthChipsListState,
                     onMonthChange = { month ->
                         selectedMonth = month
@@ -425,11 +444,19 @@ fun MainContainer(
                 )
             }
             composable<Route.Statistic> {
+                val viewModel = viewModel {
+                    StatisticViewModel(trxRepository)
+                }
+
+                LaunchedEffect(restoredTrx) {
+                    restoredTrx?.let { trx ->
+                        viewModel.load(month = trx.transactionAt.toYearMonth())
+                    }
+                }
+
                 StatisticPage(
                     initialMonth = selectedMonth,
-                    viewModel = viewModel {
-                        StatisticViewModel(trxRepository)
-                    },
+                    viewModel = viewModel,
                     monthChipsListState = monthChipsListState,
                     onMonthChange = { month ->
                         selectedMonth = month
