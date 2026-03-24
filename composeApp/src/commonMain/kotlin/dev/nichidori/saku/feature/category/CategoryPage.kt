@@ -9,7 +9,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +39,6 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.TrxType
-import kotlin.time.Instant
 
 @Composable
 fun CategoryPage(
@@ -103,7 +108,42 @@ fun CategoryPageContent(
 ) {
     var showParentInput by remember { mutableStateOf(false) }
     var showIconPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusManager = LocalFocusManager.current
+
+    if (showDeleteConfirmation) {
+        ModalBottomSheet(
+            onDismissRequest = { showDeleteConfirmation = false },
+            sheetState = sheetState,
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Delete Category",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Are you sure to delete this Category? Deleting would also delete related Budgets and remove this Category from existing Transactions. This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                MyButton(
+                    text = "Delete",
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDeleteClick()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
 
     if (showIconPicker) {
         ModalBottomSheet(
@@ -236,7 +276,7 @@ fun CategoryPageContent(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
-                            onClick = onDeleteClick,
+                            onClick = { showDeleteConfirmation = true },
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                     }

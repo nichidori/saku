@@ -5,19 +5,25 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Trash
+import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -25,6 +31,7 @@ import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.AccountType
+import androidx.compose.foundation.shape.ZeroCornerSize
 
 @Composable
 fun AccountPage(
@@ -79,6 +86,7 @@ fun AccountPage(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountPageContent(
     uiState: AccountUiState,
@@ -93,7 +101,42 @@ fun AccountPageContent(
 ) {
     var showBalanceInput by remember { mutableStateOf(false) }
     var showTypeInput by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusManager = LocalFocusManager.current
+
+    if (showDeleteConfirmation) {
+        ModalBottomSheet(
+            onDismissRequest = { showDeleteConfirmation = false },
+            sheetState = sheetState,
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Delete Account",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Are you sure to delete this Account? Deleting would also delete related Transactions. This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                MyButton(
+                    text = "Delete",
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDeleteClick()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -110,7 +153,7 @@ fun AccountPageContent(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
-                            onClick = onDeleteClick,
+                            onClick = { showDeleteConfirmation = true },
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                     }
@@ -137,6 +180,7 @@ fun AccountPageContent(
                         },
                     )
                 }
+
                 showTypeInput -> {
                     AccountTypeSelector(
                         types = typeOptions,
@@ -147,6 +191,7 @@ fun AccountPageContent(
                         selectedWhen = { it == uiState.type },
                     )
                 }
+
                 else -> {
                     MyButton(
                         text = "Save",

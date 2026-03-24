@@ -5,13 +5,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +28,8 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.MyAppBar
 import dev.nichidori.saku.core.composable.MyBox
+import dev.nichidori.saku.core.composable.MyButton
+import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyIconButton
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -72,6 +81,7 @@ fun CategoryBudgetPage(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryBudgetPageContent(
     uiState: CategoryBudgetUiState,
@@ -81,6 +91,42 @@ fun CategoryBudgetPageContent(
     onMonthBudgetClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    if (showDeleteConfirmation) {
+        ModalBottomSheet(
+            onDismissRequest = { showDeleteConfirmation = false },
+            sheetState = sheetState,
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Delete Budget",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Are you sure to delete this Budget? This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                MyButton(
+                    text = "Delete",
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDelete()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             MyAppBar(
@@ -95,7 +141,7 @@ fun CategoryBudgetPageContent(
                                 modifier = Modifier.size(20.dp)
                             )
                         },
-                        onClick = onDelete,
+                        onClick = { showDeleteConfirmation = true },
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                 }
