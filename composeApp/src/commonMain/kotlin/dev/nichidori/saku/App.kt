@@ -45,6 +45,7 @@ import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
+import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.BudgetRepository
@@ -115,7 +116,7 @@ fun App(
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
     val appViewModel: AppViewModel = viewModel {
-        AppViewModel(dataStore = dataStore)
+        AppViewModel(dataStore = dataStore, trxRepository = trxRepository)
     }
 
     val focusManager = LocalFocusManager.current
@@ -128,6 +129,7 @@ fun App(
     var counter by remember { mutableLongStateOf(0L) }
     var showMenu by remember { mutableStateOf(false) }
     var themeToggleOffset by remember { mutableStateOf(Offset.Zero) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     NavigationBackHandler(
         state = navEventState,
@@ -140,6 +142,24 @@ fun App(
             id = ++counter,
             origin = themeToggleOffset,
         )
+    }
+
+    LaunchedEffect(appUiState.deletedTrxForUndo) {
+        appUiState.deletedTrxForUndo?.let { trx ->
+            val result = snackbarHostState.showSnackbar(
+                message = "Transaction deleted",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Long
+            )
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    appViewModel.undoDelete(trx)
+                }
+
+                SnackbarResult.Dismissed -> {}
+            }
+            appViewModel.clearDeletedTrx()
+        }
     }
 
     MyThemeSwitcher(
@@ -194,6 +214,7 @@ fun App(
                                 categoryRepository = categoryRepository,
                                 trxRepository = trxRepository,
                                 budgetRepository = budgetRepository,
+                                snackbarHostState = snackbarHostState,
                                 onMenuClick = { showMenu = !showMenu }
                             )
                         }
@@ -249,7 +270,10 @@ fun App(
                             },
                             onUp = { rootNavController.popBackStack() },
                             onSaveSuccess = { rootNavController.popBackStack() },
-                            onDeleteSuccess = { rootNavController.popBackStack() },
+                            onDeleteSuccess = { deletedTrx ->
+                                appViewModel.onTrxDeleted(deletedTrx)
+                                rootNavController.popBackStack()
+                            },
                         )
                     }
                     composable<Route.CategoryBudget> { backStackEntry ->
@@ -297,6 +321,7 @@ fun MainContainer(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
+    snackbarHostState: SnackbarHostState,
     onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
@@ -307,6 +332,7 @@ fun MainContainer(
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             MyNavBar(
                 selectedDestination = when {

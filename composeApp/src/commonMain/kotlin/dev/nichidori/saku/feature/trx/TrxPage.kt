@@ -31,7 +31,7 @@ import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -39,6 +39,7 @@ import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -53,7 +54,7 @@ fun TrxPage(
     viewModel: TrxViewModel,
     onUp: () -> Unit,
     onSaveSuccess: () -> Unit,
-    onDeleteSuccess: () -> Unit,
+    onDeleteSuccess: (Trx) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
@@ -61,8 +62,8 @@ fun TrxPage(
     uiState.saveStatus.let { status ->
         LaunchedEffect(status) {
             when (status) {
-                is Success<*> -> onSaveSuccess()
-                is Status.Failure<*> -> showToast(
+                is Success -> onSaveSuccess()
+                is Failure -> showToast(
                     status.error.toString(),
                     duration = ToastDuration.Long
                 )
@@ -74,9 +75,9 @@ fun TrxPage(
 
     uiState.deleteStatus.let { status ->
         LaunchedEffect(status) {
-            when (status) {
-                is Success<*> -> onDeleteSuccess()
-                is Status.Failure<*> -> showToast(
+            when (val status = status) {
+                is Success -> onDeleteSuccess(status.data)
+                is Failure -> showToast(
                     status.error.toString(),
                     duration = ToastDuration.Long
                 )

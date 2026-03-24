@@ -44,7 +44,7 @@ data class TrxUiState(
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
     val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
-    val deleteStatus: Status<Unit, Exception> = Initial,
+    val deleteStatus: Status<Trx, Exception> = Initial,
 ) {
     val categoriesByParent = when (type) {
         TrxType.Income -> incomesByParent
@@ -255,9 +255,11 @@ class TrxViewModel(
                 _uiState.update {
                     it.copy(deleteStatus = Loading)
                 }
-                trxRepository.deleteTrx(id!!)
+                val trxId = id ?: throw Exception("Trx id is null")
+                val trx = trxRepository.getTrxById(trxId) ?: throw Exception("Trx not found")
+                trxRepository.deleteTrx(trxId)
                 _uiState.update {
-                    it.copy(deleteStatus = Success(Unit))
+                    it.copy(deleteStatus = Success(trx))
                 }
             } catch (e: Exception) {
                 this@TrxViewModel.log(e)

@@ -7,6 +7,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.util.log
+import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,10 +22,12 @@ private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
 
 data class AppUiState(
     val darkTheme: Boolean = false,
+    val deletedTrxForUndo: Trx? = null,
 )
 
 class AppViewModel(
     private val dataStore: DataStore<Preferences>,
+    private val trxRepository: TrxRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppUiState())
@@ -53,6 +58,37 @@ class AppViewModel(
             } catch (e: Exception) {
                 this@AppViewModel.log(e)
             }
+        }
+    }
+
+    fun undoDelete(trx: Trx) {
+        viewModelScope.launch {
+            try {
+                trxRepository.addTrx(
+                    type = trx.type,
+                    transactionAt = trx.transactionAt,
+                    amount = trx.amount,
+                    description = trx.description,
+                    sourceAccount = trx.sourceAccount,
+                    targetAccount = (trx as? Trx.Transfer)?.targetAccount,
+                    category = trx.category,
+                    note = trx.note ?: ""
+                )
+            } catch (e: Exception) {
+                this@AppViewModel.log(e)
+            }
+        }
+    }
+
+    fun onTrxDeleted(trx: Trx) {
+        _uiState.update {
+            it.copy(deletedTrxForUndo = trx)
+        }
+    }
+
+    fun clearDeletedTrx() {
+        _uiState.update {
+            it.copy(deletedTrxForUndo = null)
         }
     }
 }
