@@ -175,14 +175,51 @@ fun TrxListPage(
                         }
                     }
 
-                    if (uiState.categories.isNotEmpty()) {
-                        FilterSection(title = "Category") {
-                            uiState.categories.forEach { category ->
+                    if (uiState.incomeCategories.isNotEmpty()) {
+                        FilterSection(title = "Income Category") {
+                            uiState.incomeCategories.forEach { category ->
                                 val selected = selectedCategoryIds.contains(category.id)
                                 MyFilterChip(
                                     selected = selected,
                                     onClick = {
-                                        val childrenIds = uiState.categories
+                                        val childrenIds = uiState.incomeCategories
+                                            .filter { it.parent?.id == category.id }
+                                            .map { it.id }
+                                        val parentId = category.parent?.id
+
+                                        selectedCategoryIds = if (selected) {
+                                            var nextSet = selectedCategoryIds - category.id
+                                            if (childrenIds.isNotEmpty()) {
+                                                nextSet = nextSet - childrenIds.toSet()
+                                            }
+                                            if (parentId != null) {
+                                                nextSet = nextSet - parentId
+                                            }
+                                            nextSet
+                                        } else {
+                                            var nextSet = selectedCategoryIds + category.id
+                                            if (childrenIds.isNotEmpty()) {
+                                                nextSet = nextSet + childrenIds.toSet()
+                                            }
+                                            nextSet
+                                        }
+                                    },
+                                    label = {
+                                        Text(category.name)
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    if (uiState.expenseCategories.isNotEmpty()) {
+                        FilterSection(title = "Expense Category") {
+                            uiState.expenseCategories.forEach { category ->
+                                val selected = selectedCategoryIds.contains(category.id)
+                                MyFilterChip(
+                                    selected = selected,
+                                    onClick = {
+                                        val childrenIds = uiState.expenseCategories
                                             .filter { it.parent?.id == category.id }
                                             .map { it.id }
                                         val parentId = category.parent?.id

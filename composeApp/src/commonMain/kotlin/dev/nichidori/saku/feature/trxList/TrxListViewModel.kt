@@ -33,7 +33,8 @@ data class DailyTrxRecord(
 data class TrxListUiState(
     val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
     val accounts: List<Account> = emptyList(),
-    val categories: List<Category> = emptyList(),
+    val incomeCategories: List<Category> = emptyList(),
+    val expenseCategories: List<Category> = emptyList(),
     val filterAccountIds: Set<String> = emptySet(),
     val filterAccountTypes: Set<AccountType> = emptySet(),
     val filterCategoryIds: Set<String> = emptySet(),
@@ -122,8 +123,16 @@ class TrxListViewModel(
                 val categories = categoryRepository.getAllCategories()
                     .sortedWith(compareBy({ it.parent?.name ?: it.name }, { it.parent != null }, { it.name }))
 
+                val incomeCategories = categories.filter { it.type == TrxType.Income }
+                    .sortedWith(compareBy({ it.parent?.name ?: it.name }, { it.parent != null }, { it.name }))
+                val expenseCategories = categories.filter { it.type == TrxType.Expense }
+                    .sortedWith(compareBy({ it.parent?.name ?: it.name }, { it.parent != null }, { it.name }))
+
                 _uiState.update {
-                    it.copy(categories = categories)
+                    it.copy(
+                        incomeCategories = incomeCategories,
+                        expenseCategories = expenseCategories,
+                    )
                 }
             } catch (e: Exception) {
                 this@TrxListViewModel.log(e)
