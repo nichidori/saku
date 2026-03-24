@@ -2,6 +2,7 @@ package dev.nichidori.saku.feature.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,6 +12,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
@@ -25,9 +30,11 @@ import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.*
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 @Composable
@@ -267,7 +274,7 @@ fun AccountCard(
 @Composable
 fun BudgetSection(
     month: YearMonth?,
-    budgets: List<Budget>,
+    budgets: List<ActiveBudget>,
     onBudgetClick: (String) -> Unit,
     onNewBudgetClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -314,10 +321,10 @@ fun BudgetSection(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                budgets.forEach { budget ->
+                budgets.forEach { activeBudget ->
                     BudgetItem(
-                        budget = budget,
-                        onClick = { onBudgetClick(budget.templateId) }
+                        activeBudget = activeBudget,
+                        onClick = { onBudgetClick(activeBudget.budget.templateId) }
                     )
                 }
             }
@@ -334,59 +341,126 @@ fun BudgetSection(
 
 @Composable
 fun BudgetItem(
-    budget: Budget,
+    activeBudget: ActiveBudget,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val budget = activeBudget.budget
+    val dailyAllowance = activeBudget.dailyAllowance
+
     MyBox(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    budget.category.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    budget.remainingAmount.toRupiah(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onBackground
-                )
-            }
+            Text(
+                budget.category.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
-            var progress by rememberSaveable { mutableFloatStateOf(0f) }
-            val animatedProgress by animateFloatAsState(
-                targetValue = progress,
-                animationSpec = tween(durationMillis = 500)
+            BudgetProgressBar(
+                spentAmount = budget.spentAmount,
+                baseAmount = budget.baseAmount,
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            LaunchedEffect(budget.baseAmount, budget.spentAmount) {
-                progress = if (budget.baseAmount > 0) {
-                    (budget.spentAmount.toFloat() / budget.baseAmount.toFloat()).coerceIn(0f, 1f)
-                } else {
-                    0f
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    budget.remainingAmount.toRupiah() + (if (budget.remainingAmount >= 0) " left" else " overspent"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                if (dailyAllowance > 0) {
+                    Text(
+                        "${dailyAllowance.toRupiah()} / day",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
-            LinearProgressIndicator(
-                progress = { animatedProgress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(MyDefaultShape),
-                strokeCap = StrokeCap.Square,
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
         }
+    }
+}
+
+@Composable
+fun BudgetProgressBar(
+    spentAmount: Long,
+    baseAmount: Long,
+    modifier: Modifier = Modifier
+) {
+    val spentRatio = if (baseAmount > 0) {
+        (spentAmount.toFloat() / baseAmount.toFloat()).coerceAtLeast(0f)
+    } else {
+        0f
+    }
+
+    var animatedSpentRatio by rememberSaveable { mutableFloatStateOf(0f) }
+    val animatedSpent by animateFloatAsState(
+        targetValue = animatedSpentRatio,
+        animationSpec = tween(durationMillis = 500)
+    )
+
+    LaunchedEffect(spentRatio) {
+        animatedSpentRatio = spentRatio
+    }
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val indicatorColor = MaterialTheme.colorScheme.background
+
+    val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val currentMonth = YearMonth(currentDate.year, currentDate.month)
+    val dayOfMonth = currentDate.day
+    val daysInCurrentMonth = currentMonth.days.size
+    val dateIndicatorRatio = dayOfMonth.toFloat() / daysInCurrentMonth.toFloat()
+
+    Canvas(modifier = modifier.fillMaxWidth().height(8.dp).clip(MyDefaultShape)) {
+        val width = size.width
+        val height = size.height
+        val shapeRadius = MyDefaultShape.topStart.toPx(Size(width, height), this)
+        val cornerRadius = CornerRadius(shapeRadius, shapeRadius)
+
+        drawRoundRect(
+            color = trackColor,
+            size = size,
+            cornerRadius = cornerRadius
+        )
+
+        val clampedSpent = animatedSpent.coerceAtMost(1f)
+        val overspend = (animatedSpent - 1f).coerceAtLeast(0f)
+
+        if (clampedSpent > 0f) {
+            drawRoundRect(
+                color = primaryColor,
+                size = Size(width * clampedSpent, height),
+                cornerRadius = cornerRadius
+            )
+        }
+
+        if (overspend > 0f) {
+            drawRoundRect(
+                color = errorColor,
+                size = Size(width * overspend, height),
+                cornerRadius = cornerRadius
+            )
+        }
+
+        val indicatorX = width * dateIndicatorRatio
+        drawLine(
+            color = indicatorColor,
+            start = Offset(indicatorX, 0f),
+            end = Offset(indicatorX, height),
+            strokeWidth = 4.dp.toPx()
+        )
     }
 }
 

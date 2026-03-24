@@ -18,7 +18,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
+import kotlinx.datetime.toLocalDateTime
+import kotlin.math.roundToLong
+import kotlin.time.Clock
+
+data class ActiveBudget(
+    val budget: Budget,
+    val remainingDays: Int,
+    val dailyAllowance: Long
+)
 
 data class HomeUiState(
     val loadStatus: Status<Unit, Exception> = Initial,
@@ -26,7 +36,7 @@ data class HomeUiState(
     val netWorth: Long = 0,
     val netWorthTrend: List<Float> = emptyList(),
     val accounts: List<Account> = emptyList(),
-    val budgets: List<Budget> = emptyList(),
+    val budgets: List<ActiveBudget> = emptyList(),
     val trxs: List<Trx> = emptyList(),
     val showBalance: Boolean = false,
 ) {
@@ -53,7 +63,26 @@ class HomeViewModel(
                 val accounts = accountRepository.getAllAccounts()
                 val netWorth = accountRepository.getTotalBalance()
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
+
+                val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val currentMonth = YearMonth(currentDate.year, currentDate.month)
+                val daysInMonth = currentMonth.days.size
+                val dayOfMonth = currentDate.day
+                val remainingDays = daysInMonth - dayOfMonth + 1
+
                 val budgets = budgetRepository.getBudgetsByYearMonth(month)
+                    .map { budget ->
+                        ActiveBudget(
+                            budget = budget,
+                            remainingDays = remainingDays,
+                            dailyAllowance = if (remainingDays > 0) {
+                                (budget.remainingAmount.coerceAtLeast(0)
+                                    .toDouble() / remainingDays.toLong()).roundToLong()
+                            } else {
+                                0L
+                            }
+                        )
+                    }
                 _uiState.update {
                     it.copy(
                         loadStatus = Success(Unit),
