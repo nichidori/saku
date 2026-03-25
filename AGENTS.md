@@ -92,6 +92,8 @@ composeApp/
 
 ### Import Organization
 
+Always use explicit import statements. Never use package prefix for variables, classes, functions, methods, and other names.
+
 Organize imports in this order (no blank lines between groups):
 
 1. Kotlin standard library (`kotlin.*`, `kotlinx.*`)
