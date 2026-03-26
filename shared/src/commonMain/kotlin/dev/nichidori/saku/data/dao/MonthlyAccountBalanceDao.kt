@@ -40,7 +40,7 @@ interface MonthlyAccountBalanceDao {
     @Query(
         """
         SELECT * FROM monthly_account_balance
-        WHERE year > :startYear OR (year = :startYear AND month >= :startMonth)
+        WHERE (year > :startYear OR (year = :startYear AND month >= :startMonth))
         AND (year < :endYear OR (year = :endYear AND month <= :endMonth))
         ORDER BY year ASC, month ASC, account_id ASC
         """
@@ -56,7 +56,7 @@ interface MonthlyAccountBalanceDao {
         """
         SELECT * FROM monthly_account_balance
         WHERE account_id = :accountId
-        AND year > :startYear OR (year = :startYear AND month >= :startMonth)
+        AND (year > :startYear OR (year = :startYear AND month >= :startMonth))
         AND (year < :endYear OR (year = :endYear AND month <= :endMonth))
         ORDER BY year ASC, month ASC
         """
@@ -75,7 +75,7 @@ interface MonthlyAccountBalanceDao {
     @Query(
         """
         SELECT year, month, SUM(balance) as netWorth FROM monthly_account_balance
-        WHERE year > :startYear OR (year = :startYear AND month >= :startMonth)
+        WHERE (year > :startYear OR (year = :startYear AND month >= :startMonth))
         AND (year < :endYear OR (year = :endYear AND month <= :endMonth))
         GROUP BY year, month
         ORDER BY year ASC, month ASC

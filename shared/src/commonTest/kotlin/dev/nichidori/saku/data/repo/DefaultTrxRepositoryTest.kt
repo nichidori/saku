@@ -28,6 +28,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import dev.nichidori.saku.data.entity.BudgetEntity
 import dev.nichidori.saku.data.entity.BudgetTemplateEntity
+import dev.nichidori.saku.data.entity.MonthlyAccountBalanceEntity
 import kotlinx.datetime.number
 import kotlin.time.Duration.Companion.days
 
@@ -969,5 +970,310 @@ class DefaultTrxRepositoryTest {
         ).first { it.budget.categoryId == expenseCategory.id }
 
         assertEquals(0L, updatedBudget.budget.spentAmount)
+    }
+
+    @Test
+    fun addTrx_shouldUpdateMonthlyAccountBalanceForIncome() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = now,
+            amount = 5_000L,
+            description = "Salary",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
+        )
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        assertEquals(15_000L, cashBalance.balance)
+    }
+
+    @Test
+    fun addTrx_shouldUpdateMonthlyAccountBalanceForExpense() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = now,
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = expenseCategory,
+            note = ""
+        )
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        assertEquals(8_000L, cashBalance.balance)
+    }
+
+    @Test
+    fun addTrx_shouldUpdateMonthlyAccountBalanceForTransfer() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = bankAccount.id,
+                balance = 20_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = now,
+            amount = 3_000L,
+            description = "Cash to Bank",
+            sourceAccount = cashAccount,
+            targetAccount = bankAccount,
+            category = transferCategory,
+            note = ""
+        )
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        val bankBalance = balanceRecords.first { it.accountId == bankAccount.id }
+        assertEquals(7_000L, cashBalance.balance)
+        assertEquals(23_000L, bankBalance.balance)
+    }
+
+    @Test
+    fun updateTrx_shouldUpdateMonthlyAccountBalance() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = now,
+            amount = 2_000L,
+            description = "Bonus",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Income,
+            transactionAt = addedTrx.transactionAt,
+            amount = 4_000L,
+            description = addedTrx.description,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        assertEquals(14_000L, cashBalance.balance)
+    }
+
+    @Test
+    fun updateTrx_shouldUpdateMonthlyAccountBalanceWhenChangingAccounts() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = bankAccount.id,
+                balance = 20_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = now,
+            amount = 1_000L,
+            description = "Freelance",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Income,
+            transactionAt = addedTrx.transactionAt,
+            amount = addedTrx.amount,
+            description = addedTrx.description,
+            sourceAccount = bankAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+            note = addedTrx.note ?: ""
+        )
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        val bankBalance = balanceRecords.first { it.accountId == bankAccount.id }
+        assertEquals(10_000L, cashBalance.balance)
+        assertEquals(21_000L, bankBalance.balance)
+    }
+
+    @Test
+    fun deleteTrx_shouldRevertMonthlyAccountBalance() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = now,
+            amount = 2_000L,
+            description = "Salary",
+            sourceAccount = cashAccount,
+            targetAccount = null,
+            category = incomeCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.deleteTrx(addedTrx.id)
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        assertEquals(10_000L, cashBalance.balance)
+    }
+
+    @Test
+    fun deleteTrx_shouldRevertMonthlyAccountBalanceForTransfer() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = cashAccount.id,
+                balance = 10_000L
+            )
+        )
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = bankAccount.id,
+                balance = 20_000L
+            )
+        )
+
+        repository.addTrx(
+            type = TrxType.Transfer,
+            transactionAt = now,
+            amount = 2_500L,
+            description = "Transfer",
+            sourceAccount = cashAccount,
+            targetAccount = bankAccount,
+            category = transferCategory,
+            note = ""
+        )
+
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+
+        repository.deleteTrx(addedTrx.id)
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val cashBalance = balanceRecords.first { it.accountId == cashAccount.id }
+        val bankBalance = balanceRecords.first { it.accountId == bankAccount.id }
+        assertEquals(10_000L, cashBalance.balance)
+        assertEquals(20_000L, bankBalance.balance)
     }
 }

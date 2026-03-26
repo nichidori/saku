@@ -31,8 +31,7 @@ class DefaultTrxRepository(
         val accounts = accountDao.getAll()
         val snapshots = accounts.map { account ->
             MonthlyAccountBalance(
-                year = yearMonth.year,
-                month = yearMonth.month.number,
+                yearMonth = yearMonth,
                 accountId = account.id,
                 balance = account.currentAmount
             ).toEntity()

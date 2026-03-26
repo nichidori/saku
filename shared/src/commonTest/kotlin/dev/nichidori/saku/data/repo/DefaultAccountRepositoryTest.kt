@@ -8,6 +8,11 @@ import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
+import dev.nichidori.saku.data.entity.MonthlyAccountBalanceEntity
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -115,5 +120,45 @@ class DefaultAccountRepositoryTest {
         val emptyRepo = DefaultAccountRepository(emptyDb)
         val balance = emptyRepo.getTotalBalance()
         assertEquals(0, balance)
+    }
+
+    @Test
+    fun addAccount_shouldInsertMonthlyAccountBalance() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        repository.addAccount("New Account", 50_000L, AccountType.Cash)
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val newAccountBalance = balanceRecords.first { it.accountId != account.id }
+        assertEquals(50_000L, newAccountBalance.balance)
+    }
+
+    @Test
+    fun updateAccount_shouldUpdateMonthlyAccountBalance() = runTest {
+        val now = Clock.System.now()
+        val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        db.accountDao().insert(account.toEntity())
+        db.monthlyAccountBalanceDao().insert(
+            MonthlyAccountBalanceEntity(
+                year = localDate.year,
+                month = localDate.month.number,
+                accountId = account.id,
+                balance = 10_000L
+            )
+        )
+
+        repository.updateAccount(account.id, "Updated Cash", 20_000L, account.type)
+
+        val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
+            localDate.year,
+            localDate.month.number
+        )
+        val updatedBalance = balanceRecords.first { it.accountId == account.id }
+        assertEquals(20_000L, updatedBalance.balance)
     }
 }
