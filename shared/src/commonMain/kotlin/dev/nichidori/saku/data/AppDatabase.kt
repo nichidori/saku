@@ -11,21 +11,34 @@ import dev.nichidori.saku.data.dao.AccountDao
 import dev.nichidori.saku.data.dao.BudgetDao
 import dev.nichidori.saku.data.dao.BudgetTemplateDao
 import dev.nichidori.saku.data.dao.CategoryDao
+import dev.nichidori.saku.data.dao.MonthlyAccountBalanceDao
 import dev.nichidori.saku.data.dao.TrxDao
 import dev.nichidori.saku.data.entity.AccountEntity
 import dev.nichidori.saku.data.entity.BudgetEntity
 import dev.nichidori.saku.data.entity.BudgetTemplateEntity
 import dev.nichidori.saku.data.entity.CategoryEntity
+import dev.nichidori.saku.data.entity.MonthlyAccountBalanceEntity
 import dev.nichidori.saku.data.entity.TrxEntity
 import kotlinx.coroutines.Dispatchers
 
-@Database(entities = [AccountEntity::class, CategoryEntity::class, TrxEntity::class, BudgetEntity::class, BudgetTemplateEntity::class], version = 3)
+@Database(
+    entities = [
+        AccountEntity::class,
+        CategoryEntity::class,
+        TrxEntity::class,
+        BudgetEntity::class,
+        BudgetTemplateEntity::class,
+        MonthlyAccountBalanceEntity::class,
+    ],
+    version = 4,
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun categoryDao(): CategoryDao
     abstract fun trxDao(): TrxDao
     abstract fun budgetDao(): BudgetDao
     abstract fun budgetTemplateDao(): BudgetTemplateDao
+    abstract fun monthlyAccountBalanceDao(): MonthlyAccountBalanceDao
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -51,11 +64,20 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            "CREATE TABLE IF NOT EXISTS `monthly_account_balance` (`year` INTEGER NOT NULL, `month` INTEGER NOT NULL, `account_id` TEXT NOT NULL, `balance` INTEGER NOT NULL, PRIMARY KEY(`year`, `month`, `account_id`))"
+        )
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_monthly_account_balance_account_id` ON `monthly_account_balance` (`account_id`)")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
     return builder
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
