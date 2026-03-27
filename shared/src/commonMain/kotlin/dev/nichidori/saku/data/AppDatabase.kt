@@ -51,25 +51,83 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(connection: SQLiteConnection) {
         // Create budget_template
         connection.execSQL(
-            "CREATE TABLE IF NOT EXISTS `budget_template` (`id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `default_amount` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+            """
+            CREATE TABLE IF NOT EXISTS `budget_template` (
+                `id` TEXT NOT NULL,
+                `category_id` TEXT NOT NULL,
+                `default_amount` INTEGER NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`category_id`) REFERENCES `category`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
         )
-        connection.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_template_category_id` ON `budget_template` (`category_id`)")
+        connection.execSQL(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_template_category_id`
+            ON `budget_template` (`category_id`)
+            """.trimIndent()
+        )
 
         // Create budget table
         connection.execSQL(
-            "CREATE TABLE IF NOT EXISTS `budget` (`id` TEXT NOT NULL, `template_id` TEXT NOT NULL, `category_id` TEXT NOT NULL, `month` INTEGER NOT NULL, `year` INTEGER NOT NULL, `base_amount` INTEGER NOT NULL, `spent_amount` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`category_id`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(`template_id`) REFERENCES `budget_template`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+            """
+            CREATE TABLE IF NOT EXISTS `budget` (
+                `id` TEXT NOT NULL,
+                `template_id` TEXT NOT NULL,
+                `category_id` TEXT NOT NULL,
+                `month` INTEGER NOT NULL,
+                `year` INTEGER NOT NULL,
+                `base_amount` INTEGER NOT NULL,
+                `spent_amount` INTEGER NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`category_id`) REFERENCES `category`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`template_id`) REFERENCES `budget_template`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
         )
-        connection.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_category_id_month_year` ON `budget` (`category_id`, `month`, `year`)")
-        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_budget_template_id` ON `budget` (`template_id`)")
+        connection.execSQL(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_budget_category_id_month_year`
+            ON `budget` (`category_id`, `month`, `year`)
+            """.trimIndent()
+        )
+        connection.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_budget_template_id`
+            ON `budget` (`template_id`)
+            """.trimIndent()
+        )
     }
 }
 
 val MIGRATION_3_4 = object : Migration(3, 4) {
     override fun migrate(connection: SQLiteConnection) {
         connection.execSQL(
-            "CREATE TABLE IF NOT EXISTS `monthly_account_balance` (`year` INTEGER NOT NULL, `month` INTEGER NOT NULL, `account_id` TEXT NOT NULL, `balance` INTEGER NOT NULL, PRIMARY KEY(`year`, `month`, `account_id`))"
+            """
+            CREATE TABLE IF NOT EXISTS `monthly_account_balance` (
+                `year` INTEGER NOT NULL,
+                `month` INTEGER NOT NULL,
+                `account_id` TEXT NOT NULL,
+                `balance` INTEGER NOT NULL,
+                PRIMARY KEY(`year`, `month`, `account_id`),
+                FOREIGN KEY(`account_id`) REFERENCES `account`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
         )
-        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_monthly_account_balance_account_id` ON `monthly_account_balance` (`account_id`)")
+        connection.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_monthly_account_balance_account_id`
+            ON `monthly_account_balance` (`account_id`)
+            """.trimIndent()
+        )
     }
 }
 
