@@ -18,9 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import kotlin.math.roundToLong
 import kotlin.time.Clock
 
@@ -34,13 +32,15 @@ data class HomeUiState(
     val loadStatus: Status<Unit, Exception> = Initial,
     val month: YearMonth? = null,
     val netWorth: Long = 0,
-    val netWorthTrend: List<Float> = emptyList(),
+    val netWorthTrend: List<Long> = emptyList(),
     val accounts: List<Account> = emptyList(),
     val budgets: List<ActiveBudget> = emptyList(),
     val trxs: List<Trx> = emptyList(),
+    val monthlyBalancesByAccount: Map<String, List<Long>> = emptyMap(),
     val showBalance: Boolean = false,
 ) {
     val netWorthFormatted = if (showBalance) netWorth.toRupiah() else "****"
+    val accountAndTrends = accounts.map { Pair(it, monthlyBalancesByAccount[it.id] ?: listOf()) }
 }
 
 fun Account.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah() else "****"
@@ -60,8 +60,29 @@ class HomeViewModel(
                     it.copy(loadStatus = Loading, trxs = listOf())
                 }
                 budgetRepository.ensureBudgetsExist(month)
+                accountRepository.ensureMonthlyBalancesExist(month)
+
+                // Get the latest 6 months trend for net worth and account balances
+                val startMonth = month.minus(5, DateTimeUnit.MONTH)
+                val fullRange = generateSequence(startMonth) { it.plus(1, DateTimeUnit.MONTH) }
+                    .takeWhile { it <= month }
+                    .toList()
+
+                val netWorthHistory = accountRepository.getNetWorthHistory(startMonth, month)
+                val netWorthTrend = fullRange.map { netWorthHistory[it] ?: 0L }
+
                 val accounts = accountRepository.getAllAccounts()
-                val netWorth = accountRepository.getTotalBalance()
+                val monthlyBalancesByAccount = accounts.associate { account ->
+                    val history = accountRepository.getAccountBalanceHistory(
+                        accountId = account.id,
+                        startMonth = startMonth,
+                        endMonth = month,
+                    ).associateBy { it.yearMonth }
+
+                    account.id to fullRange.map { history[it]?.balance ?: 0L }
+                }
+
+                val netWorth = accountRepository.getNetWorthByMonth(month)
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
 
                 val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -88,9 +109,11 @@ class HomeViewModel(
                         loadStatus = Success(Unit),
                         month = month,
                         netWorth = netWorth,
+                        netWorthTrend = netWorthTrend,
                         accounts = accounts,
                         budgets = budgets,
                         trxs = trxs,
+                        monthlyBalancesByAccount = monthlyBalancesByAccount,
                     )
                 }
             } catch (e: Exception) {

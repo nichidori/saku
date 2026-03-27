@@ -15,8 +15,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,17 +25,12 @@ import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.MyBox
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.*
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.format
+import dev.nichidori.saku.domain.model.Account
+import kotlinx.datetime.*
 import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 @Composable
@@ -111,6 +107,7 @@ fun HomePageContent(
                 TrendCard(
                     title = "Net Worth",
                     value = uiState.netWorthFormatted,
+                    trend = uiState.netWorthTrend,
                     action = {
                         MyIconButton(onClick = onBalanceToggle) {
                             Icon(
@@ -127,7 +124,7 @@ fun HomePageContent(
                 || uiState.budgets.isNotEmpty()
             ) item {
                 AccountSection(
-                    accounts = uiState.accounts,
+                    accountAndTrends = uiState.accountAndTrends,
                     showBalance = uiState.showBalance,
                     onAccountClick = onAccountClick,
                     onNewAccountClick = onNewAccountClick,
@@ -148,6 +145,7 @@ fun HomePageContent(
 fun TrendCard(
     title: String,
     value: String,
+    trend: List<Long>,
     modifier: Modifier = Modifier,
     action: @Composable () -> Unit = {}
 ) {
@@ -156,8 +154,8 @@ fun TrendCard(
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row {
+        Column {
+            Row(modifier = Modifier.padding(12.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.labelSmall)
                     Text(
@@ -168,26 +166,18 @@ fun TrendCard(
                 }
                 action()
             }
-
-            // TODO: Draw line chart here
-//            Spacer(modifier = Modifier.height(16.dp))
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(80.dp)
-//                    .background(
-//                        color = MaterialTheme.colorScheme.primaryContainer,
-//                        shape = MyDefaultShape
-//                    )
-//            ) {
-//            }
+            Spacer(modifier = Modifier.height(16.dp))
+            LineChart(
+                data = trend,
+                modifier = Modifier.fillMaxWidth().height(80.dp)
+            )
         }
     }
 }
 
 @Composable
 fun AccountSection(
-    accounts: List<Account>,
+    accountAndTrends: List<Pair<Account, List<Long>>>,
     showBalance: Boolean,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
@@ -213,8 +203,8 @@ fun AccountSection(
                 )
             }
         }
-        if (accounts.isNotEmpty()) {
-            accounts.chunked(2).forEachIndexed { i, row ->
+        if (accountAndTrends.isNotEmpty()) {
+            accountAndTrends.chunked(2).forEachIndexed { i, row ->
                 if (i > 0) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -226,7 +216,7 @@ fun AccountSection(
                 ) {
                     row.forEach { account ->
                         AccountCard(
-                            account = account,
+                            accountAndTrend = account,
                             showBalance = showBalance,
                             onClick = onAccountClick,
                             modifier = Modifier.weight(1f)
@@ -250,22 +240,31 @@ fun AccountSection(
 
 @Composable
 fun AccountCard(
-    account: Account,
+    accountAndTrend: Pair<Account, List<Long>>,
     showBalance: Boolean,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val (account, trend) = accountAndTrend
+
     MyBox(
         modifier = modifier
             .clip(MyDefaultShape)
             .clickable { onClick(account.id) },
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(account.name, style = MaterialTheme.typography.labelSmall)
-            Text(
-                account.balanceFormatted(show = showBalance),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+        Column {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(account.name, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    account.balanceFormatted(show = showBalance),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            LineChart(
+                data = trend,
+                modifier = Modifier.fillMaxWidth().height(40.dp)
             )
         }
     }
@@ -464,4 +463,64 @@ fun BudgetProgressBar(
     }
 }
 
+@Composable
+fun LineChart(data: List<Long>, modifier: Modifier = Modifier) {
+    val lineColor = MaterialTheme.colorScheme.onBackground
+    val gradientBrush = Brush.verticalGradient(
+        listOf(MaterialTheme.colorScheme.secondary, Color.Transparent)
+    )
+    val bottomPadding = 12f
 
+    BoxWithConstraints(modifier = modifier) {
+        val points = remember(data, constraints) {
+            val maxValue = data.maxOrNull() ?: return@remember emptyList()
+            val maxWidth = constraints.maxWidth.toFloat()
+            val maxHeight = constraints.maxHeight.toFloat() - bottomPadding
+
+            val paddedData = listOf(data.firstOrNull() ?: 0L) + data + listOf(data.lastOrNull() ?: 0L)
+            paddedData.mapIndexed { index, value ->
+                Offset(
+                    x = maxWidth * index / maxOf(paddedData.size - 1, 1),
+                    y = maxHeight - (maxHeight * value / maxValue)
+                )
+            }
+        }
+
+        val path = remember(points) { Path() }
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 2.dp.toPx()
+            val radius = 2.dp.toPx()
+
+            path.rewind()
+            path.moveTo(points.first().x, points.first().y)
+            for (point in points) {
+                path.lineTo(point.x, point.y)
+            }
+            path.lineTo(size.width, size.height)
+            path.lineTo(0f, size.height)
+            path.close()
+
+            drawPath(path, brush = gradientBrush)
+
+            for ((start, end) in points.zipWithNext()) {
+                drawLine(
+                    color = lineColor,
+                    start = start,
+                    end = end,
+                    strokeWidth = strokeWidth,
+                )
+            }
+
+            for (point in points.drop(1).dropLast(1)) {
+                if (point.y < size.height - bottomPadding) {
+                    drawCircle(
+                        color = lineColor,
+                        center = point,
+                        radius = radius,
+                    )
+                }
+            }
+        }
+    }
+}
