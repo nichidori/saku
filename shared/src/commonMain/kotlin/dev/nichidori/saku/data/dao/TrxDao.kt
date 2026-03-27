@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import dev.nichidori.saku.data.entity.AccountTypeEntity
 import dev.nichidori.saku.data.entity.TrxEntity
 import dev.nichidori.saku.data.entity.TrxTypeEntity
 import dev.nichidori.saku.data.entity.TrxWithDetailsEntity
@@ -30,10 +31,12 @@ interface TrxDao {
     @Query(
         """
     SELECT * FROM trx
+    INNER JOIN account source_acc ON trx.source_account_id = source_acc.id
     WHERE transaction_at >= :startTime
       AND transaction_at < :endTime
-      AND (:type IS NULL OR type = :type)
+      AND (:type IS NULL OR trx.type = :type)
       AND (:categoryId IS NULL OR category_id = :categoryId)
+      AND (:accountType IS NULL OR source_acc.type = :accountType)
       AND (
           :accountId IS NULL OR 
           source_account_id = :accountId OR 
@@ -47,7 +50,8 @@ interface TrxDao {
         endTime: Long,
         type: TrxTypeEntity? = null,
         categoryId: String? = null,
-        accountId: String? = null
+        accountId: String? = null,
+        accountType: AccountTypeEntity? = null,
     ): List<TrxWithDetailsEntity>
 
     @Query(

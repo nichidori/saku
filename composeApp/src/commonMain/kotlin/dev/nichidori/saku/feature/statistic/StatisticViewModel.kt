@@ -121,19 +121,23 @@ class StatisticViewModel(
         }
     }
 
-    fun onItemExpand(month: YearMonth, itemKey: StatisticItemKey) {
+    fun onItemExpand(month: YearMonth, itemKey: StatisticItemKey, type: TrxType) {
         viewModelScope.launch {
             val filter = when (itemKey) {
                 is StatisticItemKey.ByCategory -> TrxFilter(
                     month = month,
+                    type = type,
                     categoryId = itemKey.category.id
                 )
                 is StatisticItemKey.ByAccount -> TrxFilter(
                     month = month,
+                    type = type,
                     accountId = itemKey.account.id
                 )
                 is StatisticItemKey.ByAccountType -> TrxFilter(
-                    month = month
+                    month = month,
+                    type = type,
+                    accountType = itemKey.type
                 )
             }
 

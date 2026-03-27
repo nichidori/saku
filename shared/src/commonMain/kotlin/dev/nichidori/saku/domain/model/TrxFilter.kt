@@ -6,5 +6,6 @@ data class TrxFilter(
     val month: YearMonth,
     val type: TrxType? = null,
     val categoryId: String? = null,
-    val accountId: String? = null
+    val accountId: String? = null,
+    val accountType: AccountType? = null,
 )

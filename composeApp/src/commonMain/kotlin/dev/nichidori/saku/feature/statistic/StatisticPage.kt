@@ -217,7 +217,7 @@ fun StatisticPageContent(
     pagerState: PagerState,
     selectedMonth: YearMonth,
     earliestMonth: YearMonth,
-    onItemExpand: (YearMonth, StatisticItemKey) -> Unit,
+    onItemExpand: (YearMonth, StatisticItemKey, TrxType) -> Unit,
     onItemCollapse: (YearMonth) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -368,7 +368,7 @@ fun StatisticPageContent(
                                             if (isExpanded) {
                                                 onItemCollapse(pageMonth)
                                             } else {
-                                                onItemExpand(pageMonth, itemKey)
+                                                onItemExpand(pageMonth, itemKey, selectedType)
                                             }
                                         },
                                         expandedContent = {

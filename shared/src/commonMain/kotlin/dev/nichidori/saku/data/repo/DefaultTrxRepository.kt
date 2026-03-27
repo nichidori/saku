@@ -199,7 +199,8 @@ class DefaultTrxRepository(
                     .toEpochMilliseconds(),
                 type = filter.type?.toEntity(),
                 categoryId = filter.categoryId,
-                accountId = filter.accountId
+                accountId = filter.accountId,
+                accountType = filter.accountType?.toEntity(),
             ).map { it.toDomain() }
         }
     }
