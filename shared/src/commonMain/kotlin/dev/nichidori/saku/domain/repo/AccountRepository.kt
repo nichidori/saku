@@ -17,4 +17,5 @@ interface AccountRepository {
     suspend fun getAccountBalancesByMonth(yearMonth: YearMonth): List<MonthlyAccountBalance>
     suspend fun getAccountBalanceHistory(accountId: String, startMonth: YearMonth, endMonth: YearMonth): List<MonthlyAccountBalance>
     suspend fun updateMonthlySnapshots(yearMonth: YearMonth)
+    suspend fun ensureMonthlyBalancesExist(now: YearMonth)
 }

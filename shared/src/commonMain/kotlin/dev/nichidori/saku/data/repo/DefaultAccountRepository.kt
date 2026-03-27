@@ -10,12 +10,18 @@ import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.MonthlyAccountBalance
 import dev.nichidori.saku.domain.repo.AccountRepository
-import kotlin.time.Clock
+import dev.nichidori.saku.data.entity.TrxTypeEntity
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DateTimeUnit.Companion.DAY
+import kotlinx.datetime.DateTimeUnit.Companion.MONTH
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.number
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.until
+import kotlin.time.Clock
 import java.util.UUID
 
 class DefaultAccountRepository(
@@ -147,5 +153,87 @@ class DefaultAccountRepository(
         db.useWriterConnection {
             db.monthlyAccountBalanceDao().insertAll(snapshots.map { it.toEntity() })
         }
+    }
+
+    override suspend fun ensureMonthlyBalancesExist(now: YearMonth) {
+        val timeZone = TimeZone.currentSystemDefault()
+
+        db.useWriterConnection {
+            it.immediateTransaction {
+                val accounts = db.accountDao().getAll()
+
+                for (account in accounts) {
+                    val accountDomain = account.toDomain()
+                    val startMonth = accountDomain.createdAt
+                        .toLocalDateTime(timeZone)
+                        .let { YearMonth(it.year, it.month) }
+
+                    val existingBalances = db.monthlyAccountBalanceDao()
+                        .getByAccountIdAndYearMonthRange(
+                            accountId = account.id,
+                            startYear = startMonth.year,
+                            startMonth = startMonth.month.number,
+                            endYear = now.year,
+                            endMonth = now.month.number
+                        )
+                        .map { YearMonth(it.year, it.month) }
+                        .toHashSet()
+
+                    for (month in startMonth..<now.plus(1, DateTimeUnit.MONTH)) {
+                        if (month !in existingBalances || month == now) {
+                        val balance = calculateHistoricalBalance(
+                            accountId = account.id,
+                            startAmount = accountDomain.initialAmount,
+                            month = month,
+                            timeZone = timeZone
+                        )
+                            db.monthlyAccountBalanceDao().insert(
+                                MonthlyAccountBalance(
+                                    yearMonth = month,
+                                    accountId = account.id,
+                                    balance = balance
+                                ).toEntity()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun calculateHistoricalBalance(
+        accountId: String,
+        startAmount: Long,
+        month: YearMonth,
+        timeZone: TimeZone
+    ): Long {
+        val endTime = month.lastDay
+            .plus(1, DAY)
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+
+        val trxs = db.trxDao().getFilteredWithDetails(
+            startTime = 0,
+            endTime = endTime,
+            accountId = accountId
+        )
+
+        var balance = startAmount
+        for (trxWithDetails in trxs) {
+            val trx = trxWithDetails.trx
+            when (trx.type) {
+                TrxTypeEntity.Income -> {
+                    if (trx.sourceAccountId == accountId) balance += trx.amount
+                }
+                TrxTypeEntity.Expense -> {
+                    if (trx.sourceAccountId == accountId) balance -= trx.amount
+                }
+                TrxTypeEntity.Transfer -> {
+                    if (trx.sourceAccountId == accountId) balance -= trx.amount
+                    if (trx.targetAccountId == accountId) balance += trx.amount
+                }
+            }
+        }
+        return balance
     }
 }
