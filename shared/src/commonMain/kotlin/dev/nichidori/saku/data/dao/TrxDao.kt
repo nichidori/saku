@@ -65,4 +65,14 @@ interface TrxDao {
 """
     )
     suspend fun getTotalAmount(startTime: Long, endTime: Long, categoryId: String, type: TrxTypeEntity): Long?
+
+    @Query(
+        """
+    SELECT * FROM trx
+    WHERE source_account_id = :accountId OR target_account_id = :accountId
+    ORDER BY transaction_at ASC
+    LIMIT 1
+"""
+    )
+    suspend fun getEarliestByAccountId(accountId: String): TrxWithDetailsEntity?
 }

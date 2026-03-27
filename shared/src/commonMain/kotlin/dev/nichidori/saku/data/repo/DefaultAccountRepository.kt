@@ -4,25 +4,19 @@ import androidx.room.immediateTransaction
 import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
 import dev.nichidori.saku.data.AppDatabase
+import dev.nichidori.saku.data.entity.TrxTypeEntity
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.MonthlyAccountBalance
 import dev.nichidori.saku.domain.repo.AccountRepository
-import dev.nichidori.saku.data.entity.TrxTypeEntity
-import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.*
 import kotlinx.datetime.DateTimeUnit.Companion.DAY
 import kotlinx.datetime.DateTimeUnit.Companion.MONTH
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.YearMonth
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.number
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.until
+import java.util.*
 import kotlin.time.Clock
-import java.util.UUID
 
 class DefaultAccountRepository(
     private val db: AppDatabase,
@@ -164,9 +158,20 @@ class DefaultAccountRepository(
 
                 for (account in accounts) {
                     val accountDomain = account.toDomain()
-                    val startMonth = accountDomain.createdAt
+                    val accountCreatedMonth = accountDomain.createdAt
                         .toLocalDateTime(timeZone)
-                        .let { YearMonth(it.year, it.month) }
+                        .let { month -> YearMonth(month.year, month.month) }
+
+                    val earliestTrx = db.trxDao().getEarliestByAccountId(account.id)?.toDomain()
+                    val earliestTrxMonth = earliestTrx?.transactionAt
+                        ?.toLocalDateTime(timeZone)
+                        ?.let { month -> YearMonth(month.year, month.month) }
+
+                    val startMonth = if (earliestTrxMonth != null && earliestTrxMonth < accountCreatedMonth) {
+                        earliestTrxMonth
+                    } else {
+                        accountCreatedMonth
+                    }
 
                     val existingBalances = db.monthlyAccountBalanceDao()
                         .getByAccountIdAndYearMonthRange(
@@ -176,17 +181,17 @@ class DefaultAccountRepository(
                             endYear = now.year,
                             endMonth = now.month.number
                         )
-                        .map { YearMonth(it.year, it.month) }
+                        .map { month -> YearMonth(month.year, month.month) }
                         .toHashSet()
 
-                    for (month in startMonth..<now.plus(1, DateTimeUnit.MONTH)) {
+                    for (month in startMonth..<now.plus(1, MONTH)) {
                         if (month !in existingBalances || month == now) {
-                        val balance = calculateHistoricalBalance(
-                            accountId = account.id,
-                            startAmount = accountDomain.initialAmount,
-                            month = month,
-                            timeZone = timeZone
-                        )
+                            val balance = calculateHistoricalBalance(
+                                accountId = account.id,
+                                startAmount = accountDomain.initialAmount,
+                                month = month,
+                                timeZone = timeZone
+                            )
                             db.monthlyAccountBalanceDao().insert(
                                 MonthlyAccountBalance(
                                     yearMonth = month,
@@ -225,9 +230,11 @@ class DefaultAccountRepository(
                 TrxTypeEntity.Income -> {
                     if (trx.sourceAccountId == accountId) balance += trx.amount
                 }
+
                 TrxTypeEntity.Expense -> {
                     if (trx.sourceAccountId == accountId) balance -= trx.amount
                 }
+
                 TrxTypeEntity.Transfer -> {
                     if (trx.sourceAccountId == accountId) balance -= trx.amount
                     if (trx.targetAccountId == accountId) balance += trx.amount
