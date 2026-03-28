@@ -357,7 +357,7 @@ fun TrxListContent(
             for ((index, entry) in uiState.trxRecordsByDate.entries.withIndex()) {
                 val (date, record) = entry
                 item {
-                    Column {
+                    Column(modifier = Modifier.animateItem()) {
                         if (index > 0) {
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -411,8 +411,15 @@ fun TrxListContent(
                         }
                     }
                 }
-                items(record.trxs) { trx ->
-                    TrxCard(trx = trx, onClick = onTrxClick)
+                items(
+                    record.trxs,
+                    key = { trx -> trx.id },
+                ) { trx ->
+                    TrxCard(
+                        trx = trx,
+                        onClick = onTrxClick,
+                        modifier = Modifier.animateItem(),
+                    )
                 }
             }
         }

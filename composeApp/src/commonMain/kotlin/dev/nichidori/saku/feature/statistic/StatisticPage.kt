@@ -1,7 +1,10 @@
 package dev.nichidori.saku.feature.statistic
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -271,139 +274,145 @@ fun StatisticPageContent(
                 val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
                 val monthlyState = uiState.stateByMonth[pageMonth] ?: StatisticUiState.MonthlyState()
 
-                when (monthlyState.loadStatus) {
-                    Loading, is Success<*>, is Failure<*> -> {
-                        val (items, maxAmount) = remember(monthlyState, uiState.groupBy, selectedType) {
-                            when (uiState.groupBy) {
-                                StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
-                                    Pair(
-                                        monthlyState.incomesOfCategory.entries.map {
-                                            StatisticItemKey.ByCategory(it.key) to it.value
-                                        },
-                                        monthlyState.totalIncome
-                                    )
-                                } else {
-                                    Pair(
-                                        monthlyState.expensesOfCategory.entries.map {
-                                            StatisticItemKey.ByCategory(it.key) to it.value
-                                        },
-                                        monthlyState.totalExpense
-                                    )
-                                }
+                val isContentVisible = monthlyState.loadStatus.let {
+                    it is Loading || it is Success<*> || it is Failure<*>
+                }
 
-                                StatisticGroupBy.Account -> if (selectedType == TrxType.Income) {
-                                    Pair(
-                                        monthlyState.incomesOfAccount.entries.map {
-                                            StatisticItemKey.ByAccount(it.key) to it.value
-                                        },
-                                        monthlyState.totalIncome
-                                    )
-                                } else {
-                                    Pair(
-                                        monthlyState.expensesOfAccount.entries.map {
-                                            StatisticItemKey.ByAccount(it.key) to it.value
-                                        },
-                                        monthlyState.totalExpense
-                                    )
-                                }
-
-                                StatisticGroupBy.AccountType -> if (selectedType == TrxType.Income) {
-                                    Pair(
-                                        monthlyState.incomesOfAccountType.entries.map {
-                                            StatisticItemKey.ByAccountType(it.key) to it.value
-                                        },
-                                        monthlyState.totalIncome
-                                    )
-                                } else {
-                                    Pair(
-                                        monthlyState.expensesOfAccountType.entries.map {
-                                            StatisticItemKey.ByAccountType(it.key) to it.value
-                                        },
-                                        monthlyState.totalExpense
-                                    )
-                                }
+                AnimatedVisibility(
+                    visible = isContentVisible,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 300, easing = EaseOut)),
+                    exit = ExitTransition.None,
+                ) {
+                    val (items, maxAmount) = remember(monthlyState, uiState.groupBy, selectedType) {
+                        when (uiState.groupBy) {
+                            StatisticGroupBy.Category -> if (selectedType == TrxType.Income) {
+                                Pair(
+                                    monthlyState.incomesOfCategory.entries.map {
+                                        StatisticItemKey.ByCategory(it.key) to it.value
+                                    },
+                                    monthlyState.totalIncome
+                                )
+                            } else {
+                                Pair(
+                                    monthlyState.expensesOfCategory.entries.map {
+                                        StatisticItemKey.ByCategory(it.key) to it.value
+                                    },
+                                    monthlyState.totalExpense
+                                )
                             }
-                        }
 
-                        LaunchedEffect(items.size) {
-                            categoryFractions.keys.filter { it >= items.size }.forEach {
-                                categoryFractions.remove(it)
+                            StatisticGroupBy.Account -> if (selectedType == TrxType.Income) {
+                                Pair(
+                                    monthlyState.incomesOfAccount.entries.map {
+                                        StatisticItemKey.ByAccount(it.key) to it.value
+                                    },
+                                    monthlyState.totalIncome
+                                )
+                            } else {
+                                Pair(
+                                    monthlyState.expensesOfAccount.entries.map {
+                                        StatisticItemKey.ByAccount(it.key) to it.value
+                                    },
+                                    monthlyState.totalExpense
+                                )
                             }
-                        }
 
-                        if (items.isNotEmpty()) {
-                            LazyColumn(
-                                contentPadding = PaddingValues(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    bottom = 16.dp
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                itemsIndexed(
-                                    items,
-                                    key = { index, _ -> index }
-                                ) { index, (itemKey, amount) ->
-                                    val (name, icon) = when (itemKey) {
-                                        is StatisticItemKey.ByCategory -> itemKey.category.name to itemKey.category.icon.toPickerIcon()?.icon
-                                        is StatisticItemKey.ByAccount -> itemKey.account.name to null
-                                        is StatisticItemKey.ByAccountType -> itemKey.type.label() to null
-                                    }
-
-                                    val isExpanded = monthlyState.expandedItemKey == itemKey
-                                    val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey] ?: Initial
-
-                                    StatisticItem(
-                                        name = name,
-                                        icon = icon,
-                                        amount = amount,
-                                        maxAmount = maxAmount,
-                                        previousTarget = categoryFractions[index] ?: 0f,
-                                        onTargetChange = {
-                                            categoryFractions[index] = it
-                                        },
-                                        expanded = isExpanded && trxsStatus.isCompleted,
-                                        onExpandToggle = {
-                                            if (isExpanded) {
-                                                onItemCollapse(pageMonth)
-                                            } else {
-                                                onItemExpand(pageMonth, itemKey, selectedType)
-                                            }
-                                        },
-                                        expandedContent = {
-                                            when (trxsStatus) {
-                                                is Failure -> Text(
-                                                    text = "Failed to load transactions.",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier.padding(top = 12.dp)
-                                                )
-
-                                                is Success -> {
-                                                    val transactions = trxsStatus.data
-                                                    Column {
-                                                        transactions.forEach { trx ->
-                                                            StatisticTrxItem(trx = trx)
-                                                        }
-                                                    }
-                                                }
-
-                                                else -> Unit
-                                            }
-                                        }
-                                    )
-                                }
+                            StatisticGroupBy.AccountType -> if (selectedType == TrxType.Income) {
+                                Pair(
+                                    monthlyState.incomesOfAccountType.entries.map {
+                                        StatisticItemKey.ByAccountType(it.key) to it.value
+                                    },
+                                    monthlyState.totalIncome
+                                )
+                            } else {
+                                Pair(
+                                    monthlyState.expensesOfAccountType.entries.map {
+                                        StatisticItemKey.ByAccountType(it.key) to it.value
+                                    },
+                                    monthlyState.totalExpense
+                                )
                             }
-                        } else if (monthlyState.loadStatus !is Loading) {
-                            MyNoData(
-                                message = "No transactions yet",
-                                contentDescription = "No transactions",
-                                modifier = Modifier.fillMaxSize()
-                            )
                         }
                     }
 
-                    else -> Unit
+                    LaunchedEffect(items.size) {
+                        categoryFractions.keys.filter { it >= items.size }.forEach {
+                            categoryFractions.remove(it)
+                        }
+                    }
+
+                    val isLoaded = monthlyState.loadStatus !is Loading
+
+                    if (items.isNotEmpty()) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            itemsIndexed(
+                                items,
+                                key = { index, _ -> index }
+                            ) { index, (itemKey, amount) ->
+                                val (name, icon) = when (itemKey) {
+                                    is StatisticItemKey.ByCategory -> itemKey.category.name to itemKey.category.icon.toPickerIcon()?.icon
+                                    is StatisticItemKey.ByAccount -> itemKey.account.name to null
+                                    is StatisticItemKey.ByAccountType -> itemKey.type.label() to null
+                                }
+
+                                val isExpanded = monthlyState.expandedItemKey == itemKey
+                                val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey] ?: Initial
+
+                                StatisticItem(
+                                    name = name,
+                                    icon = icon,
+                                    amount = amount,
+                                    maxAmount = maxAmount,
+                                    previousTarget = categoryFractions[index] ?: 0f,
+                                    onTargetChange = {
+                                        categoryFractions[index] = it
+                                    },
+                                    expanded = isExpanded && trxsStatus.isCompleted,
+                                    onExpandToggle = {
+                                        if (isExpanded) {
+                                            onItemCollapse(pageMonth)
+                                        } else {
+                                            onItemExpand(pageMonth, itemKey, selectedType)
+                                        }
+                                    },
+                                    expandedContent = {
+                                        when (trxsStatus) {
+                                            is Failure -> Text(
+                                                text = "Failed to load transactions.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                modifier = Modifier.padding(top = 12.dp)
+                                            )
+
+                                            is Success -> {
+                                                val transactions = trxsStatus.data
+                                                Column {
+                                                    transactions.forEach { trx ->
+                                                        StatisticTrxItem(trx = trx)
+                                                    }
+                                                }
+                                            }
+
+                                            else -> Unit
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    } else if (isLoaded) {
+                        MyNoData(
+                            message = "No transactions yet",
+                            contentDescription = "No transactions",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
