@@ -469,13 +469,12 @@ fun LineChart(data: List<Long>, modifier: Modifier = Modifier) {
     val gradientBrush = Brush.verticalGradient(
         listOf(MaterialTheme.colorScheme.secondary, Color.Transparent)
     )
-    val bottomPadding = 12f
 
     BoxWithConstraints(modifier = modifier) {
         val points = remember(data, constraints) {
             val maxValue = data.maxOrNull() ?: return@remember emptyList()
             val maxWidth = constraints.maxWidth.toFloat()
-            val maxHeight = constraints.maxHeight.toFloat() - bottomPadding
+            val maxHeight = constraints.maxHeight.toFloat() * 0.75f
 
             val paddedData = listOf(data.firstOrNull() ?: 0L) + data + listOf(data.lastOrNull() ?: 0L)
             paddedData.mapIndexed { index, value ->
@@ -486,34 +485,34 @@ fun LineChart(data: List<Long>, modifier: Modifier = Modifier) {
             }
         }
 
-        val path = remember(points) { Path() }
+        if (points.isNotEmpty()) {
+            val path = remember(points) { Path() }
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidth = 2.dp.toPx()
-            val radius = 2.dp.toPx()
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 2.dp.toPx()
+                val radius = 2.dp.toPx()
 
-            path.rewind()
-            path.moveTo(points.first().x, points.first().y)
-            for (point in points) {
-                path.lineTo(point.x, point.y)
-            }
-            path.lineTo(size.width, size.height)
-            path.lineTo(0f, size.height)
-            path.close()
+                path.rewind()
+                path.moveTo(points.first().x, points.first().y)
+                for (point in points) {
+                    path.lineTo(point.x, point.y)
+                }
+                path.lineTo(this.size.width, this.size.height)
+                path.lineTo(0f, this.size.height)
+                path.close()
 
-            drawPath(path, brush = gradientBrush)
+                drawPath(path, brush = gradientBrush)
 
-            for ((start, end) in points.zipWithNext()) {
-                drawLine(
-                    color = lineColor,
-                    start = start,
-                    end = end,
-                    strokeWidth = strokeWidth,
-                )
-            }
+                for ((start, end) in points.zipWithNext()) {
+                    drawLine(
+                        color = lineColor,
+                        start = start,
+                        end = end,
+                        strokeWidth = strokeWidth,
+                    )
+                }
 
-            for (point in points.drop(1).dropLast(1)) {
-                if (point.y < size.height - bottomPadding) {
+                for (point in points.drop(1).dropLast(1)) {
                     drawCircle(
                         color = lineColor,
                         center = point,
