@@ -19,7 +19,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.MyBox
@@ -264,6 +266,7 @@ fun AccountCard(
             Spacer(modifier = Modifier.height(12.dp))
             LineChart(
                 data = trend,
+                bottomPadding = 12.dp,
                 modifier = Modifier.fillMaxWidth().height(40.dp)
             )
         }
@@ -464,17 +467,23 @@ fun BudgetProgressBar(
 }
 
 @Composable
-fun LineChart(data: List<Long>, modifier: Modifier = Modifier) {
+fun LineChart(
+    data: List<Long>,
+    modifier: Modifier = Modifier,
+    bottomPadding: Dp = 16.dp,
+) {
     val lineColor = MaterialTheme.colorScheme.onBackground
     val gradientBrush = Brush.verticalGradient(
         listOf(MaterialTheme.colorScheme.secondary, Color.Transparent)
     )
 
     BoxWithConstraints(modifier = modifier) {
+        val bottomPadding = with(LocalDensity.current) { bottomPadding.toPx() }
+
         val points = remember(data, constraints) {
             val maxValue = data.maxOrNull() ?: return@remember emptyList()
             val maxWidth = constraints.maxWidth.toFloat()
-            val maxHeight = constraints.maxHeight.toFloat() * 0.75f
+            val maxHeight = constraints.maxHeight.toFloat() - bottomPadding
 
             val paddedData = listOf(data.firstOrNull() ?: 0L) + data + listOf(data.lastOrNull() ?: 0L)
             paddedData.mapIndexed { index, value ->
@@ -509,14 +518,6 @@ fun LineChart(data: List<Long>, modifier: Modifier = Modifier) {
                         start = start,
                         end = end,
                         strokeWidth = strokeWidth,
-                    )
-                }
-
-                for (point in points.drop(1).dropLast(1)) {
-                    drawCircle(
-                        color = lineColor,
-                        center = point,
-                        radius = radius,
                     )
                 }
             }
