@@ -40,10 +40,10 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
-import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.Trx
@@ -139,10 +139,13 @@ fun App(
     )
 
     LaunchedEffect(appUiState.darkTheme) {
-        request = ThemeSwitcherRequest(
-            id = ++counter,
-            origin = themeToggleOffset,
-        )
+        appUiState.darkTheme?.let {
+            onDarkTheme(it)
+            request = ThemeSwitcherRequest(
+                id = ++counter,
+                origin = themeToggleOffset,
+            )
+        }
     }
 
     LaunchedEffect(appUiState) {
@@ -160,10 +163,11 @@ fun App(
         }
     }
 
+    val darkTheme = appUiState.darkTheme ?: return
+
     MyThemeSwitcher(
-        dark = appUiState.darkTheme,
+        darkTheme = darkTheme,
         request = request,
-        onDarkTheme = onDarkTheme,
     ) { darkTheme ->
         MyTheme(darkTheme = darkTheme) {
             Surface(

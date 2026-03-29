@@ -10,7 +10,6 @@ import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +22,7 @@ import kotlinx.coroutines.launch
 private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
 
 data class AppUiState(
-    val darkTheme: Boolean = false,
+    val darkTheme: Boolean? = null,
     val deletedTrx: Trx? = null,
     val trxRestoreStatus: Status<Trx, Exception> = Initial,
 )
@@ -51,7 +50,7 @@ class AppViewModel(
     fun toggleDarkTheme() {
         viewModelScope.launch {
             try {
-                val newDarkTheme = !_uiState.value.darkTheme
+                val newDarkTheme = !(_uiState.value.darkTheme ?: false)
                 dataStore.edit { prefs ->
                     prefs[DARK_THEME_KEY] = newDarkTheme
                 }

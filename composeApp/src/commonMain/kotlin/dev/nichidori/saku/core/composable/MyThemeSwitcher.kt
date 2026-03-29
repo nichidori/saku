@@ -27,14 +27,13 @@ data class ThemeSwitcherRequest(val id: Long, val origin: Offset)
 
 @Composable
 fun MyThemeSwitcher(
-    dark: Boolean,
+    darkTheme: Boolean,
     request: ThemeSwitcherRequest?,
     modifier: Modifier = Modifier,
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-    onDarkTheme: (darkTheme: Boolean) -> Unit = {},
     content: @Composable (dark: Boolean) -> Unit,
 ) {
-    var darkTheme by remember { mutableStateOf(dark) }
+    var currentDarkTheme by remember { mutableStateOf(darkTheme) }
     var snapshotBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var revealOrigin by remember { mutableStateOf(Offset.Zero) }
     val revealProgress = remember { Animatable(1f) }
@@ -44,17 +43,24 @@ fun MyThemeSwitcher(
     LaunchedEffect(request) {
         val req = request ?: return@LaunchedEffect
         if (req.id == lastHandledId) return@LaunchedEffect
-        lastHandledId = req.id
 
-        withFrameNanos { } // ensure captureLayer holds the latest frame
-        snapshotBitmap = captureLayer.toImageBitmap()
-        revealOrigin = req.origin
-        darkTheme = dark
-        onDarkTheme(darkTheme)
+        // Play theme switch animation only if already initialized
+        if (lastHandledId != null) {
+            lastHandledId = req.id
 
-        revealProgress.snapTo(0f)
-        revealProgress.animateTo(targetValue = 1f, animationSpec = animationSpec)
-        snapshotBitmap = null
+            withFrameNanos { } // ensure captureLayer holds the latest frame
+            snapshotBitmap = captureLayer.toImageBitmap()
+            revealOrigin = req.origin
+
+            currentDarkTheme = darkTheme
+
+            revealProgress.snapTo(0f)
+            revealProgress.animateTo(targetValue = 1f, animationSpec = animationSpec)
+            snapshotBitmap = null
+        } else {
+            lastHandledId = req.id
+            currentDarkTheme = darkTheme
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -66,7 +72,7 @@ fun MyThemeSwitcher(
                     drawLayer(captureLayer)
                 },
         ) {
-            content(darkTheme)
+            content(currentDarkTheme)
         }
 
         snapshotBitmap?.let {

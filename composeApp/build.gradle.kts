@@ -37,6 +37,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.splashscreen)
+            implementation(libs.material)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
