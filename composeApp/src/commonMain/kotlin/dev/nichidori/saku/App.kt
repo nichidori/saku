@@ -175,6 +175,7 @@ fun App(
                         }
                     },
             ) {
+                @OptIn(ExperimentalAnimationApi::class)
                 NavHost(
                     rootNavController,
                     startDestination = Route.Main,
@@ -182,13 +183,16 @@ fun App(
                         slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start)
                     },
                     exitTransition = {
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start)
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start) +
+                                veilOut(targetColor = Color.Black.copy(alpha = 0.4f))
                     },
                     popEnterTransition = {
-                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End) +
+                                unveilIn(initialColor = Color.Black.copy(alpha = 0.4f))
                     },
                     popExitTransition = {
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End)
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End) +
+                                veilOut(targetColor = Color.Black.copy(alpha = 0.4f))
                     }
                 ) {
                     composable<Route.Main> {
