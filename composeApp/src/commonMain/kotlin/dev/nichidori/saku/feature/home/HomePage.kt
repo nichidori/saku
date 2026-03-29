@@ -1,6 +1,10 @@
 package dev.nichidori.saku.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -114,43 +118,49 @@ fun HomePageContent(
         },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { contentPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
+        AnimatedVisibility(
+            visible = uiState.loadStatus.isCompleted || uiState.month != null,
+            enter = fadeIn(animationSpec = tween(durationMillis = 300, easing = EaseOut)),
+            exit = ExitTransition.None,
             modifier = Modifier.fillMaxSize().padding(contentPadding)
         ) {
-            item {
-                TrendCard(
-                    title = "Net Worth",
-                    value = uiState.netWorthFormatted,
-                    trend = uiState.netWorthTrend,
-                    action = {
-                        MyIconButton(onClick = onBalanceToggle) {
-                            Icon(
-                                imageVector = if (uiState.showBalance) Lucide.EyeOff else Lucide.Eye,
-                                contentDescription = "Toggle balance visibility"
-                            )
+            LazyColumn(
+                contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
+            ) {
+                item {
+                    TrendCard(
+                        title = "Net Worth",
+                        value = uiState.netWorthFormatted,
+                        trend = uiState.netWorthTrend,
+                        action = {
+                            MyIconButton(onClick = onBalanceToggle) {
+                                Icon(
+                                    imageVector = if (uiState.showBalance) Lucide.EyeOff else Lucide.Eye,
+                                    contentDescription = "Toggle balance visibility"
+                                )
+                            }
                         }
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            if (uiState.loadStatus.isCompleted
-                || uiState.accounts.isNotEmpty()
-                || uiState.budgets.isNotEmpty()
-            ) item {
-                AccountSection(
-                    accountAndTrends = uiState.accountAndTrends,
-                    showBalance = uiState.showBalance,
-                    onAccountClick = onAccountClick,
-                    onNewAccountClick = onNewAccountClick,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                BudgetSection(
-                    month = uiState.month,
-                    budgets = uiState.budgets,
-                    onBudgetClick = onBudgetClick,
-                    onNewBudgetClick = onNewBudgetClick,
-                )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                if (uiState.loadStatus.isCompleted
+                    || uiState.accounts.isNotEmpty()
+                    || uiState.budgets.isNotEmpty()
+                ) item {
+                    AccountSection(
+                        accountAndTrends = uiState.accountAndTrends,
+                        showBalance = uiState.showBalance,
+                        onAccountClick = onAccountClick,
+                        onNewAccountClick = onNewAccountClick,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    BudgetSection(
+                        month = uiState.month,
+                        budgets = uiState.budgets,
+                        onBudgetClick = onBudgetClick,
+                        onNewBudgetClick = onNewBudgetClick,
+                    )
+                }
             }
         }
     }
