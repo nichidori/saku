@@ -19,7 +19,7 @@ fun MyButton(
         shape = MyDefaultShape,
         modifier = modifier.fillMaxWidth(),
     ) {
-        Text(text)
+        Text(text, fontWeight = FontWeight.Bold)
     }
 }
 
