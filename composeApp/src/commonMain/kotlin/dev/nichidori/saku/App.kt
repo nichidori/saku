@@ -524,7 +524,6 @@ fun SettingsMenu(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val menuWidth = maxWidth.coerceIn(240.dp, 320.dp) - 20.dp
         val menuOffsetPx = with(LocalDensity.current) { menuWidth.toPx() }
@@ -569,7 +568,7 @@ fun SettingsMenu(
                 .fillMaxHeight()
                 .width(menuWidth)
                 .graphicsLayer { translationX = menuTranslation }
-                .background(color = MaterialTheme.colorScheme.surface)
+                .background(color = MaterialTheme.colorScheme.background)
                 .windowInsetsPadding(WindowInsets.displayCutout)
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
