@@ -336,6 +336,12 @@ fun MainContainer(
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    LaunchedEffect(currentDestination) {
+        if (currentDestination?.hierarchy?.any { it.hasRoute<Route.Home>() } == true) {
+            selectedMonth = Clock.System.now().toYearMonth()
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
