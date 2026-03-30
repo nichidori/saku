@@ -268,7 +268,8 @@ fun StatisticPageContent(
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = if (type == TrxType.Income) lastValidMonthlyState.totalIncome.toRupiah()
+                        text = if (type != selectedType) "****"
+                        else if (type == TrxType.Income) lastValidMonthlyState.totalIncome.toRupiah()
                         else lastValidMonthlyState.totalExpense.toRupiah()
                     )
                 }
