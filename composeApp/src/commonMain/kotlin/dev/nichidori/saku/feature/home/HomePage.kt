@@ -2,12 +2,10 @@ package dev.nichidori.saku.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.EaseOut
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -133,6 +129,7 @@ fun HomePageContent(
                         title = "Net Worth",
                         value = uiState.netWorthFormatted,
                         trend = uiState.netWorthTrend,
+                        showTrend = uiState.showBalance,
                         action = {
                             MyIconButton(onClick = onBalanceToggle) {
                                 Icon(
@@ -172,6 +169,7 @@ fun TrendCard(
     title: String,
     value: String,
     trend: List<Long>,
+    showTrend: Boolean,
     modifier: Modifier = Modifier,
     action: @Composable () -> Unit = {}
 ) {
@@ -192,11 +190,13 @@ fun TrendCard(
                 }
                 action()
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            LineChart(
-                data = trend,
-                modifier = Modifier.fillMaxWidth().height(80.dp)
-            )
+            AnimatedVisibility(visible = showTrend) {
+                Spacer(modifier = Modifier.height(16.dp))
+                LineChart(
+                    data = trend,
+                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                )
+            }
         }
     }
 }
@@ -236,9 +236,7 @@ fun AccountSection(
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .height(IntrinsicSize.Min)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     row.forEach { account ->
                         AccountCard(
@@ -287,12 +285,14 @@ fun AccountCard(
                     fontWeight = FontWeight.Bold,
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            LineChart(
-                data = trend,
-                bottomPadding = 12.dp,
-                modifier = Modifier.fillMaxWidth().height(40.dp)
-            )
+            AnimatedVisibility(visible = showBalance) {
+                Spacer(modifier = Modifier.height(12.dp))
+                LineChart(
+                    data = trend,
+                    bottomPadding = 12.dp,
+                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                )
+            }
         }
     }
 }
@@ -501,13 +501,26 @@ fun LineChart(
         listOf(MaterialTheme.colorScheme.secondary, Color.Transparent)
     )
 
+    var hasAnimated by rememberSaveable { mutableStateOf(false) }
+    val progress = remember { Animatable(if (hasAnimated) 1f else 0f) }
+
+    LaunchedEffect(hasAnimated) {
+        if (!hasAnimated) {
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+            )
+            hasAnimated = true
+        }
+    }
+
     BoxWithConstraints(modifier = modifier) {
-        val bottomPadding = with(LocalDensity.current) { bottomPadding.toPx() }
+        val bottomPaddingPx = with(LocalDensity.current) { bottomPadding.toPx() }
 
         val points = remember(data, constraints) {
             val maxValue = data.maxOrNull() ?: return@remember emptyList()
             val maxWidth = constraints.maxWidth.toFloat()
-            val maxHeight = constraints.maxHeight.toFloat() - bottomPadding
+            val maxHeight = constraints.maxHeight.toFloat() - bottomPaddingPx
 
             val paddedData = listOf(data.firstOrNull() ?: 0L) + data + listOf(data.lastOrNull() ?: 0L)
             paddedData.mapIndexed { index, value ->
@@ -519,31 +532,58 @@ fun LineChart(
         }
 
         if (points.isNotEmpty()) {
-            val path = remember(points) { Path() }
+            val linePath = remember(points) {
+                Path().apply {
+                    moveTo(points.first().x, points.first().y)
+                    for (point in points) lineTo(point.x, point.y)
+                }
+            }
+
+            val currentProgress = progress.value
 
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val strokeWidth = 2.dp.toPx()
-                val radius = 2.dp.toPx()
+                val pathMeasure = PathMeasure()
+                pathMeasure.setPath(linePath, false)
+                val totalLength = pathMeasure.length
 
-                path.rewind()
-                path.moveTo(points.first().x, points.first().y)
-                for (point in points) {
-                    path.lineTo(point.x, point.y)
-                }
-                path.lineTo(this.size.width, this.size.height)
-                path.lineTo(0f, this.size.height)
-                path.close()
+                if (currentProgress > 0f) {
+                    val gradientPath = Path()
+                    pathMeasure.getSegment(
+                        startDistance = 0f,
+                        stopDistance = totalLength * currentProgress,
+                        destination = gradientPath,
+                        startWithMoveTo = true,
+                    )
 
-                drawPath(path, brush = gradientBrush)
+                    // Close the fill area straight down and back along the bottom
+                    val segmentMeasure = PathMeasure()
+                    segmentMeasure.setPath(gradientPath, false)
+                    val lastPoint = segmentMeasure.getPosition(segmentMeasure.length)
 
-                for ((start, end) in points.zipWithNext()) {
-                    drawLine(
-                        color = lineColor,
-                        start = start,
-                        end = end,
-                        strokeWidth = strokeWidth,
+                    gradientPath.lineTo(lastPoint.x, size.height)
+                    gradientPath.lineTo(0f, size.height)
+                    gradientPath.close()
+
+                    drawPath(
+                        path = gradientPath,
+                        brush = gradientBrush,
                     )
                 }
+
+                // Line stroke animated from left to right
+                val partialLinePath = Path()
+                pathMeasure.getSegment(
+                    startDistance = 0f,
+                    stopDistance = totalLength * currentProgress,
+                    destination = partialLinePath,
+                    startWithMoveTo = true,
+                )
+                drawPath(
+                    path = partialLinePath,
+                    color = lineColor,
+                    style = Stroke(width = strokeWidth),
+                )
             }
         }
     }
