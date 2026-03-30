@@ -2,9 +2,11 @@ package dev.nichidori.saku.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,12 +17,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -176,7 +180,8 @@ fun TrendCard(
     MyBox(
         modifier = modifier
             .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clipToBounds(),
     ) {
         Column {
             Row(modifier = Modifier.padding(12.dp)) {
@@ -190,7 +195,11 @@ fun TrendCard(
                 }
                 action()
             }
-            AnimatedVisibility(visible = showTrend) {
+            AnimatedVisibility(
+                visible = showTrend,
+                enter = expandVertically(clip = false) + fadeIn(),
+                exit = shrinkVertically(clip = false) + fadeOut(),
+            ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 LineChart(
                     data = trend,
@@ -285,13 +294,19 @@ fun AccountCard(
                     fontWeight = FontWeight.Bold,
                 )
             }
-            AnimatedVisibility(visible = showBalance) {
-                Spacer(modifier = Modifier.height(12.dp))
-                LineChart(
-                    data = trend,
-                    bottomPadding = 12.dp,
-                    modifier = Modifier.fillMaxWidth().height(40.dp)
-                )
+            AnimatedVisibility(
+                visible = showBalance,
+                enter = expandVertically(clip = false) + fadeIn(),
+                exit = shrinkVertically(clip = false) + fadeOut(),
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LineChart(
+                        data = trend,
+                        bottomPadding = 12.dp,
+                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                    )
+                }
             }
         }
     }
