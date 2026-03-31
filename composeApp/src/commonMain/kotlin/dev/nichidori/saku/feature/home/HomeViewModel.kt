@@ -62,8 +62,8 @@ class HomeViewModel(
                 budgetRepository.ensureBudgetsExist(month)
                 accountRepository.ensureMonthlyBalancesExist(month)
 
-                // Get the latest 6 months trend for net worth and account balances
-                val startMonth = month.minus(5, DateTimeUnit.MONTH)
+                // Get the latest 12 months trend for net worth and account balances
+                val startMonth = month.minus(11, DateTimeUnit.MONTH)
                 val fullRange = generateSequence(startMonth) { it.plus(1, DateTimeUnit.MONTH) }
                     .takeWhile { it <= month }
                     .toList()
