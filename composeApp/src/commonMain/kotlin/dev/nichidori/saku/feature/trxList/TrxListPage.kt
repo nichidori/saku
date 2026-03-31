@@ -396,21 +396,12 @@ fun TrxListContent(
                                 )
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            if (record.totalIncome.absoluteValue > 0) Text(
-                                record.totalIncome.absoluteValue.toRupiah(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier
-                                    .padding(
-                                        top = if (index > 0) 12.dp else 0.dp,
-                                        bottom = 8.dp
-                                    )
-                            )
                             if (record.totalExpense.absoluteValue > 0) {
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
                                     record.totalExpense.absoluteValue.toRupiah(),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier
                                         .padding(
