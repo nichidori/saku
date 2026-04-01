@@ -411,7 +411,7 @@ fun BudgetItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    budget.remainingAmount.toRupiah() + (if (budget.remainingAmount >= 0) " left" else " overspent"),
+                    budget.remainingAmount.toRupiah() + (if (budget.remainingAmount >= 0) " available" else " overspent"),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (budget.remainingAmount < 0) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onBackground,
