@@ -215,8 +215,7 @@ fun AccountPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .padding(20.dp, 0.dp, 20.dp, 20.dp)
         ) {
             MyTextField(
                 value = uiState.name,
@@ -226,6 +225,7 @@ fun AccountPageContent(
                     imeAction = ImeAction.Next
                 )
             )
+            Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
                 value = uiState.balanceFormatted,
@@ -236,6 +236,7 @@ fun AccountPageContent(
                     showBalanceInput = focusState.isFocused
                 }
             )
+            Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
                 value = uiState.type?.label().orEmpty(),

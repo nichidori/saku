@@ -6,16 +6,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -190,15 +183,15 @@ fun CategoryPageContent(
                                 .background(
                                     color = if (selected) MaterialTheme.colorScheme.secondary
                                     else MaterialTheme.colorScheme.surfaceContainer,
-                                    shape = CircleShape
+                                    shape = MyDefaultShape
                                 )
                                 .border(
                                     width = 2.dp,
                                     color = if (selected) MaterialTheme.colorScheme.onSurface
                                     else Color.Transparent,
-                                    shape = CircleShape
+                                    shape = MyDefaultShape
                                 )
-                                .clip(CircleShape)
+                                .clip(MyDefaultShape)
                                 .clickable {
                                     onIconChange(null)
                                     showIconPicker = false
@@ -231,15 +224,15 @@ fun CategoryPageContent(
                                     .background(
                                         color = if (selected) MaterialTheme.colorScheme.secondary
                                         else MaterialTheme.colorScheme.surfaceContainer,
-                                        shape = CircleShape
+                                        shape = MyDefaultShape
                                     )
                                     .border(
                                         width = 2.dp,
                                         color = if (selected) MaterialTheme.colorScheme.onSurface
                                         else Color.Transparent,
-                                        shape = CircleShape
+                                        shape = MyDefaultShape
                                     )
-                                    .clip(CircleShape)
+                                    .clip(MyDefaultShape)
                                     .clickable {
                                         onIconChange(pickerIcon.label)
                                         showIconPicker = false
@@ -319,8 +312,7 @@ fun CategoryPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .padding(20.dp, 0.dp, 20.dp, 20.dp)
         ) {
             if (uiState.canChooseType) {
                 MySegmentedControl(
@@ -334,17 +326,11 @@ fun CategoryPageContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Box(
+
+            MyBox(
                 modifier = Modifier
                     .size(80.dp)
-                    .border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        shape = CircleShape
-                    )
-                    .clip(CircleShape)
                     .clickable { showIconPicker = true }
-                    .wrapContentSize()
             ) {
                 val icon = uiState.icon.toPickerIcon()?.icon
                 if (icon != null) {
@@ -352,7 +338,7 @@ fun CategoryPageContent(
                         imageVector = icon,
                         contentDescription = "Category icon",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp).align(Alignment.Center)
                     )
                 } else {
                     Text(
@@ -360,10 +346,10 @@ fun CategoryPageContent(
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
@@ -374,6 +360,7 @@ fun CategoryPageContent(
                     imeAction = ImeAction.Next
                 )
             )
+            Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
                 value = uiState.parent?.name.orEmpty(),
@@ -386,7 +373,6 @@ fun CategoryPageContent(
                         MyTextButton(
                             text = "Remove",
                             onClick = { onParentChange(null) },
-                            modifier = Modifier.padding(end = 8.dp)
                         )
                     }
                 } else null,

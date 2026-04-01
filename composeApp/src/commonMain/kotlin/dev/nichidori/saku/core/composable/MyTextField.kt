@@ -2,9 +2,7 @@ package dev.nichidori.saku.core.composable
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,23 +15,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("ModifierParameter")
 @Composable
 fun MyTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -52,7 +47,7 @@ fun MyTextField(
         keyboardOptions = keyboardOptions,
         textStyle = MaterialTheme.typography.bodyLarge.copy(
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onBackground
         ),
         interactionSource = interactionSource,
         modifier = modifier
@@ -69,31 +64,69 @@ fun MyTextField(
                 )
             },
         decorationBox = { innerTextField ->
-            TextFieldDefaults.DecorationBox(
-                value = value,
-                innerTextField = innerTextField,
-                enabled = enabled,
-                singleLine = true,
-                visualTransformation = VisualTransformation.None,
-                interactionSource = interactionSource,
-                label = {
+            Row {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = label,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
-                },
-                trailingIcon = trailingIcon,
-                shape = MyDefaultShape,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
-                contentPadding = TextFieldDefaults.contentPaddingWithLabel(start = 4.dp, end = 0.dp)
-            )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    innerTextField()
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                trailingIcon?.let {
+                    Box(modifier = Modifier.padding(top = 8.dp)) {
+                        it()
+                    }
+                }
+            }
         }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyLargeTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val indicatorColor = if (isFocused) {
+        MaterialTheme.colorScheme.onBackground
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        readOnly = readOnly,
+        singleLine = true,
+        keyboardOptions = keyboardOptions,
+        textStyle = MaterialTheme.typography.headlineSmall.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        ),
+        interactionSource = interactionSource,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .drawBehind {
+                val strokeWidth = 2.dp.toPx()
+                val y = size.height - strokeWidth / 2
+                drawLine(
+                    color = indicatorColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = strokeWidth
+                )
+            },
     )
 }

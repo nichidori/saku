@@ -115,8 +115,7 @@ fun MonthBudgetPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .padding(20.dp, 0.dp, 20.dp, 20.dp)
         ) {
             uiState.budget?.let { budget ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -131,7 +130,8 @@ fun MonthBudgetPageContent(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp).weight(1f))
+                    Spacer(modifier = Modifier.width(20.dp).weight(1f))
+
                     MyBox(
                         modifier = Modifier.background(
                             color = if (budget.status.isActive) MaterialTheme.colorScheme.secondary
@@ -154,7 +154,7 @@ fun MonthBudgetPageContent(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 val pastBudget = budget.status == BudgetStatus.Past
                 MyTextField(
@@ -171,7 +171,6 @@ fun MonthBudgetPageContent(
                                     onAmountChange(uiState.defaultAmount?.toString() ?: "")
                                 },
                                 enabled = uiState.canDefault,
-                                modifier = Modifier.padding(end = 8.dp)
                             )
                         }
                     } else null,

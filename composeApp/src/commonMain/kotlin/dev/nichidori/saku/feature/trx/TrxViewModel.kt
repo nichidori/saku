@@ -51,8 +51,8 @@ data class TrxUiState(
         TrxType.Expense -> expensesByParent
         else -> emptyMap()
     }
-    val amountFormatted = amount?.toRupiah().orEmpty()
-    val feeAmountFormatted = feeAmount?.toRupiah().orEmpty()
+    val amountFormatted = (amount ?: 0).toRupiah()
+    val feeAmountFormatted = (feeAmount ?: 0).toRupiah()
     val canSave = time != null
             && amount != null
             && sourceAccount != null

@@ -7,12 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +18,6 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
@@ -30,14 +25,13 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.*
+import dev.nichidori.saku.core.model.Status.Failure
+import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.domain.model.Account
-import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
@@ -436,9 +430,9 @@ fun TrxPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 20.dp)
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                 MySegmentedControl(
                     items = types,
                     selectedItem = uiState.type,
@@ -456,6 +450,70 @@ fun TrxPageContent(
                         },
                     )
                 }
+                Spacer(modifier = Modifier.height(32.dp))
+
+                MyLargeTextField(
+                    value = uiState.amountFormatted,
+                    onValueChange = { },
+                    readOnly = true,
+                    modifier = Modifier
+                        .onFocusChanged { focusState ->
+                            showAmountInput = focusState.isFocused
+                        }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                MyTextField(
+                    value = uiState.description,
+                    onValueChange = onDescriptionChange,
+                    label = "Description",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                    MyTextField(
+                        value = uiState.sourceAccount?.name.orEmpty(),
+                        onValueChange = { },
+                        label = if (uiState.type == TrxType.Transfer) "From" else "Account",
+                        enabled = uiState.accountOptions.isNotEmpty(),
+                        readOnly = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { focusState ->
+                                showSourceAccountInput = focusState.isFocused
+                            }
+                    )
+                    Spacer(modifier = Modifier.width(24.dp))
+
+                    if (uiState.type == TrxType.Transfer) {
+                        MyTextField(
+                            value = uiState.targetAccount?.name.orEmpty(),
+                            onValueChange = { },
+                            label = "To",
+                            enabled = uiState.accountOptions.isNotEmpty(),
+                            readOnly = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .onFocusChanged { focusState ->
+                                    showTargetAccountInput = focusState.isFocused
+                                }
+                        )
+                    } else {
+                        MyTextField(
+                            value = uiState.category?.name.orEmpty(),
+                            onValueChange = { },
+                            label = "Category",
+                            enabled = uiState.categoriesByParent.isNotEmpty(),
+                            readOnly = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .onFocusChanged { focusState ->
+                                    showCategoryInput = focusState.isFocused
+                                }
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(24.dp))
 
                 MyTextField(
@@ -472,136 +530,92 @@ fun TrxPageContent(
                             minute()
                         }
                     ).orEmpty(),
-                    onValueChange = onDescriptionChange,
+                    onValueChange = { },
                     label = "Time",
                     readOnly = true,
                     trailingIcon = {
                         MyTextButton(
                             text = "Now",
                             onClick = { onTimeChange(Clock.System.now()) },
-                            modifier = Modifier.padding(end = 8.dp)
                         )
                     },
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        showTimeInput = focusState.isFocused
-                    }
-                )
-
-                MyTextField(
-                    value = uiState.amountFormatted,
-                    onValueChange = { },
-                    label = "Amount",
-                    readOnly = true,
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        showAmountInput = focusState.isFocused
-                    }
-                )
-
-                MyTextField(
-                    value = uiState.description,
-                    onValueChange = onDescriptionChange,
-                    label = "Description",
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                MyTextField(
-                    value = uiState.sourceAccount?.name.orEmpty(),
-                    onValueChange = { },
-                    label = if (uiState.type == TrxType.Transfer) "Source Account" else "Account",
-                    enabled = uiState.accountOptions.isNotEmpty(),
-                    readOnly = true,
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        showSourceAccountInput = focusState.isFocused
-                    }
-                )
-
-                if (uiState.type == TrxType.Transfer) {
-                    MyTextField(
-                        value = uiState.targetAccount?.name.orEmpty(),
-                        onValueChange = { },
-                        label = "Target Account",
-                        enabled = uiState.accountOptions.isNotEmpty(),
-                        readOnly = true,
-                        modifier = Modifier
-                            .onFocusChanged { focusState ->
-                                showTargetAccountInput = focusState.isFocused
-                            }
-                    )
-                } else {
-                    MyTextField(
-                        value = uiState.category?.name.orEmpty(),
-                        onValueChange = { },
-                        label = "Category",
-                        enabled = uiState.categoriesByParent.isNotEmpty(),
-                        readOnly = true,
-                        modifier = Modifier.onFocusChanged { focusState ->
-                            showCategoryInput = focusState.isFocused
+                    modifier = Modifier
+                        .onFocusChanged { focusState ->
+                            showTimeInput = focusState.isFocused
                         }
-                    )
-                }
-
-                MyTextField(
-                    value = uiState.note,
-                    onValueChange = onNoteChange,
-                    label = "Note",
                 )
             }
 
             AnimatedVisibility(visible = uiState.type == TrxType.Transfer && !uiState.canDelete) {
-                Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp)
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp)
                     ) {
                         Text(
                             text = "Additional Fee",
                             style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         MyIconButton(onClick = onEnableFeeToggle) {
                             Icon(
                                 imageVector = if (uiState.enableFee) Lucide.X else Lucide.Plus,
-                                contentDescription = if (uiState.enableFee) "Hide Additional Fee" else "Show Additional Fee",
+                                contentDescription = if (uiState.enableFee) "Hide Additional Fee"
+                                else "Show Additional Fee",
                             )
                         }
                     }
 
                     AnimatedVisibility(visible = uiState.enableFee) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(top = 4.dp)) {
-                            MyTextField(
+                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            MyLargeTextField(
                                 value = uiState.feeAmountFormatted,
                                 onValueChange = { },
-                                label = "Amount",
                                 readOnly = true,
-                                modifier = Modifier.onFocusChanged { focusState ->
-                                    showFeeAmountInput = focusState.isFocused
-                                }
+                                modifier = Modifier
+                                    .onFocusChanged { focusState ->
+                                        showFeeAmountInput = focusState.isFocused
+                                    }
                             )
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                            MyTextField(
-                                value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
-                                onValueChange = { },
-                                label = "Account",
-                                enabled = uiState.accountOptions.isNotEmpty(),
-                                readOnly = true,
-                                modifier = Modifier.onFocusChanged { focusState ->
-                                    showFeeAccountInput = focusState.isFocused
-                                }
-                            )
+                            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                                MyTextField(
+                                    value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
+                                    onValueChange = { },
+                                    label = "Account",
+                                    enabled = uiState.accountOptions.isNotEmpty(),
+                                    readOnly = true,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .onFocusChanged { focusState ->
+                                            showFeeAccountInput = focusState.isFocused
+                                        }
+                                )
+                                Spacer(modifier = Modifier.width(24.dp))
 
-                            MyTextField(
-                                value = uiState.feeCategory?.name.orEmpty(),
-                                onValueChange = { },
-                                label = "Category",
-                                enabled = uiState.expensesByParent.isNotEmpty(),
-                                readOnly = true,
-                                modifier = Modifier.onFocusChanged { focusState ->
-                                    showFeeCategoryInput = focusState.isFocused
-                                }
-                            )
+                                MyTextField(
+                                    value = uiState.feeCategory?.name.orEmpty(),
+                                    onValueChange = { },
+                                    label = "Category",
+                                    enabled = uiState.expensesByParent.isNotEmpty(),
+                                    readOnly = true,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .onFocusChanged { focusState ->
+                                            showFeeCategoryInput = focusState.isFocused
+                                        }
+                                )
+                            }
                         }
                     }
                 }

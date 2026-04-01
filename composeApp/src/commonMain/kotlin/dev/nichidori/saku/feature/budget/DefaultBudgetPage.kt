@@ -212,8 +212,7 @@ fun DefaultBudgetPageContent(
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .imePadding()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .padding(20.dp, 0.dp, 20.dp, 20.dp)
         ) {
             when (uiState.newBudget) {
                 true -> {
@@ -224,7 +223,7 @@ fun DefaultBudgetPageContent(
                         readOnly = true,
                         modifier = Modifier.onFocusChanged { showCategoryInput = it.isFocused }
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
                 false -> {
@@ -237,7 +236,7 @@ fun DefaultBudgetPageContent(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
                 else -> Unit
