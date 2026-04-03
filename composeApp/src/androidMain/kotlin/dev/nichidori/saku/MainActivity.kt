@@ -1,7 +1,11 @@
 package dev.nichidori.saku
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.animation.AccelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
@@ -10,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
+import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.room.Room
@@ -33,7 +38,26 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        splashScreen.setKeepOnScreenCondition { !themeInitialized }
+        splashScreen.apply {
+            setKeepOnScreenCondition { !themeInitialized }
+            setOnExitAnimationListener { splashScreenView ->
+                val iconView = splashScreenView.iconView
+
+                val iconScaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 0.0f)
+                val iconScaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 0.0f)
+                val iconFade = ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f)
+                val bgFade = ObjectAnimator.ofFloat(splashScreenView.view, View.ALPHA, 1f, 0f)
+
+                AnimatorSet().run {
+                    playTogether(iconScaleX, iconScaleY, iconFade, bgFade)
+                    duration = 300L
+                    interpolator = AccelerateInterpolator()
+                    doOnEnd { splashScreenView.remove() }
+                    start()
+                }
+            }
+        }
+
         setToastActivityProvider { this }
         enableEdgeToEdge()
 

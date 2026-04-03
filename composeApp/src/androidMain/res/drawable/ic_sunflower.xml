@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <group
+        android:name="sunflower_group"
+        android:pivotX="50"
+        android:pivotY="50">
+
+        <!-- i=0  angle=2°   length=16  width=4.48 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.48"
+            android:strokeLineCap="round"
+            android:pathData="M 65.99,50.56 L 78.79,51.01" />
+
+        <!-- i=1  angle=33.73°  length=4  width=4.16 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.16"
+            android:strokeLineCap="round"
+            android:pathData="M 63.31,58.88 L 65.98,60.66" />
+
+        <!-- i=2  angle=65.45°  length=12  width=3.84 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="3.84"
+            android:strokeLineCap="round"
+            android:pathData="M 56.63,64.56 L 60.62,73.30" />
+
+        <!-- i=3  angle=96.18°  length=16  width=4.16 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.16"
+            android:strokeLineCap="round"
+            android:pathData="M 48.28,65.90 L 46.91,78.63" />
+
+        <!-- i=4  angle=130.91°  length=12  width=3.84 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="3.84"
+            android:strokeLineCap="round"
+            android:pathData="M 39.52,62.10 L 33.23,69.34" />
+
+        <!-- i=5  angle=165.64°  length=4  width=4.48 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.48"
+            android:strokeLineCap="round"
+            android:pathData="M 34.50,53.98 L 31.40,54.78" />
+
+        <!-- i=6  angle=194.36°  length=16  width=3.84 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="3.84"
+            android:strokeLineCap="round"
+            android:pathData="M 34.51,45.98 L 22.12,42.77" />
+
+        <!-- i=7  angle=230.09°  length=4  width=4.16 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.16"
+            android:strokeLineCap="round"
+            android:pathData="M 39.70,37.76 L 37.64,35.31" />
+
+        <!-- i=8  angle=261.82°  length=12  width=3.84 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="3.84"
+            android:strokeLineCap="round"
+            android:pathData="M 47.72,34.16 L 46.36,24.66" />
+
+        <!-- i=9  angle=292.55°  length=16  width=4.16 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.16"
+            android:strokeLineCap="round"
+            android:pathData="M 56.15,35.23 L 61.06,23.41" />
+
+        <!-- i=10  angle=329.27°  length=12  width=4.48 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#E8D44D"
+            android:strokeWidth="4.48"
+            android:strokeLineCap="round"
+            android:pathData="M 63.93,42.12 L 72.28,37.39" />
+
+        <!-- Center circle  r=9.6 (was 12 × 0.8) -->
+        <path
+            android:fillColor="#E8D44D"
+            android:pathData="M 40.4,50
+                              A 9.6,9.6 0 1,0 59.6,50
+                              A 9.6,9.6 0 1,0 40.4,50 Z" />
+
+    </group>
+</vector>

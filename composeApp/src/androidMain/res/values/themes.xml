@@ -3,7 +3,7 @@
     <style name="Theme.App.Splash" parent="Theme.SplashScreen">
         <item name="android:windowNoTitle">true</item>
 
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_sunflower_animated</item>
         <item name="postSplashScreenTheme">@style/Theme.App</item>
     </style>
 

@@ -27,6 +27,7 @@ material = "1.12.0"
 navigationCompose = "2.9.0"
 navigationEvent = "1.0.0"
 room = "2.7.2"
+coreAnimation = "1.0.0"
 
 [libraries]
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room"  }
@@ -57,6 +58,7 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 navigationevent-compose = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationEvent" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinSerializationCore" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+androidx-core-animation = { group = "androidx.core", name = "core-animation", version.ref = "coreAnimation" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
