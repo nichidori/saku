@@ -72,7 +72,6 @@ private val transferTrx = TrxEntity(
     sourceAccountId = sourceAccount.id,
     targetAccountId = targetAccount.id,
     transactionAt = System.currentTimeMillis(),
-    note = "Internal transfer",
     createdAt = System.currentTimeMillis(),
     updatedAt = null,
     type = TrxTypeEntity.Transfer
@@ -86,7 +85,6 @@ private val incomeTrx = TrxEntity(
     sourceAccountId = sourceAccount.id,
     targetAccountId = null,
     transactionAt = System.currentTimeMillis(),
-    note = "Payslip",
     createdAt = System.currentTimeMillis(),
     updatedAt = null,
     type = TrxTypeEntity.Income
@@ -369,7 +367,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = System.currentTimeMillis(),
-            note = "Daily meal",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
             type = TrxTypeEntity.Expense
@@ -512,7 +509,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = baseTime + 1000,
-            note = null,
             createdAt = baseTime,
             updatedAt = null,
             type = TrxTypeEntity.Expense
@@ -526,7 +522,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = baseTime + 5000,
-            note = null,
             createdAt = baseTime,
             updatedAt = null,
             type = TrxTypeEntity.Expense
@@ -540,7 +535,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = baseTime - 1000,
-            note = null,
             createdAt = baseTime,
             updatedAt = null,
             type = TrxTypeEntity.Expense
@@ -554,7 +548,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = baseTime + 2000,
-            note = null,
             createdAt = baseTime,
             updatedAt = null,
             type = TrxTypeEntity.Expense
@@ -568,7 +561,6 @@ class TrxDaoTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = baseTime + 3000,
-            note = null,
             createdAt = baseTime,
             updatedAt = null,
             type = TrxTypeEntity.Income

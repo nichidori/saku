@@ -47,7 +47,6 @@ class DefaultTrxRepository(
         sourceAccount: Account,
         targetAccount: Account?,
         category: Category?,
-        note: String
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -64,7 +63,6 @@ class DefaultTrxRepository(
                 description = description,
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
-                note = note,
                 createdAt = currentTime,
                 updatedAt = null
             )
@@ -76,7 +74,6 @@ class DefaultTrxRepository(
                 description = description,
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
-                note = note,
                 createdAt = currentTime,
                 updatedAt = null
             )
@@ -89,7 +86,6 @@ class DefaultTrxRepository(
                 sourceAccount = sourceAccount,
                 targetAccount = targetAccount ?: error("Target account cannot be null"),
                 category = category,
-                note = note,
                 createdAt = currentTime,
                 updatedAt = null
             )
@@ -214,7 +210,6 @@ class DefaultTrxRepository(
         sourceAccount: Account,
         targetAccount: Account?,
         category: Category?,
-        note: String
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -312,7 +307,6 @@ class DefaultTrxRepository(
                         description = description,
                         sourceAccount = sourceAccount,
                         category = category ?: error("Category cannot be null"),
-                        note = note,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )
@@ -324,7 +318,6 @@ class DefaultTrxRepository(
                         description = description,
                         sourceAccount = sourceAccount,
                         category = category ?: error("Category cannot be null"),
-                        note = note,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )
@@ -337,7 +330,6 @@ class DefaultTrxRepository(
                         sourceAccount = sourceAccount,
                         targetAccount = targetAccount!!,
                         category = category,
-                        note = note,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )

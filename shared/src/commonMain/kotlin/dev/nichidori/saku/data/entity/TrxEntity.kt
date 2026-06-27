@@ -42,7 +42,6 @@ data class TrxEntity(
     @ColumnInfo(name = "source_account_id") val sourceAccountId: String,
     @ColumnInfo(name = "target_account_id") val targetAccountId: String?,
     @ColumnInfo(name = "transaction_at") val transactionAt: Long,
-    @ColumnInfo(name = "note") val note: String?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long?,
     @ColumnInfo(name = "type") val type: TrxTypeEntity

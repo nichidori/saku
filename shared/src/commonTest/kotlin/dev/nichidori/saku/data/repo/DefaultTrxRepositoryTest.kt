@@ -109,7 +109,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(15_000L, updatedAccount.currentAmount)
@@ -130,7 +130,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(8_000L, updatedAccount.currentAmount)
@@ -151,7 +151,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
@@ -174,7 +174,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(10_000L, updatedAccount.currentAmount)
@@ -196,7 +196,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = nonExistentAccount,
                 targetAccount = null,
                 category = incomeCategory,
-                note = ""
+    
             )
         }
     }
@@ -213,7 +213,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = cashAccount,
                 targetAccount = nonExistentAccount,
                 category = transferCategory,
-                note = ""
+    
             )
         }
     }
@@ -230,7 +230,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = nonExistentCategory,
-                note = ""
+    
             )
         }
     }
@@ -245,7 +245,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = "Paid in cash"
+
         )
         val trxs = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE)
@@ -270,7 +270,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         repository.addTrx(
             type = TrxType.Expense,
@@ -280,7 +280,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
         val filter = TrxFilter(
             month = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).let {
@@ -305,7 +305,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -319,7 +319,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(14_000L, updatedAccount.currentAmount)
@@ -339,7 +339,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -353,7 +353,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
         val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
         assertEquals(8_500L, updatedAccount.currentAmount)
@@ -375,7 +375,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val afterAddCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val afterAddBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
@@ -399,7 +399,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = addedTrx.targetAccount,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
@@ -419,7 +419,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -433,7 +433,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = bankAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
         val updatedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
         val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
@@ -453,7 +453,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = incomeCategory,
-                note = ""
+    
             )
         }
     }
@@ -468,7 +468,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -484,7 +484,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = null,
                 category = addedTrx.category,
-                note = addedTrx.note ?: ""
+    
             )
         }
     }
@@ -499,7 +499,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -515,7 +515,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = addedTrx.targetAccount,
                 category = addedTrx.category,
-                note = addedTrx.note ?: ""
+    
             )
         }
     }
@@ -530,7 +530,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -546,7 +546,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = nonExistentAccount,
                 targetAccount = null,
                 category = addedTrx.category,
-                note = addedTrx.note ?: ""
+    
             )
         }
     }
@@ -561,7 +561,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -577,7 +577,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = addedTrx.sourceAccount,
                 targetAccount = nonExistentAccount,
                 category = addedTrx.category,
-                note = addedTrx.note ?: ""
+    
             )
         }
     }
@@ -592,7 +592,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -614,7 +614,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -636,7 +636,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -662,7 +662,7 @@ class DefaultTrxRepositoryTest {
                 sourceAccount = cashAccount,
                 targetAccount = null,
                 category = incomeCategory,
-                note = ""
+    
             )
         }
     }
@@ -684,7 +684,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -705,7 +705,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
         val addedTrx = db.trxDao()
             .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
@@ -752,7 +752,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
 
         val updatedBudget = db.budgetDao().getByMonthAndYearWithCategory(
@@ -799,7 +799,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -815,7 +815,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
 
         val updatedBudget = db.budgetDao().getByMonthAndYearWithCategory(
@@ -881,7 +881,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -897,7 +897,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
 
         val currentBudget = db.budgetDao().getByMonthAndYearWithCategory(
@@ -955,7 +955,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -994,7 +994,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
 
         val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
@@ -1027,7 +1027,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = expenseCategory,
-            note = ""
+
         )
 
         val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
@@ -1068,7 +1068,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
 
         val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
@@ -1103,7 +1103,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -1119,7 +1119,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = addedTrx.sourceAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
 
         val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
@@ -1160,7 +1160,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -1176,7 +1176,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = bankAccount,
             targetAccount = null,
             category = addedTrx.category,
-            note = addedTrx.note ?: ""
+
         )
 
         val balanceRecords = db.monthlyAccountBalanceDao().getByYearMonth(
@@ -1211,7 +1211,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = null,
             category = incomeCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()
@@ -1258,7 +1258,7 @@ class DefaultTrxRepositoryTest {
             sourceAccount = cashAccount,
             targetAccount = bankAccount,
             category = transferCategory,
-            note = ""
+
         )
 
         val addedTrx = db.trxDao()

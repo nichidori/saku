@@ -77,7 +77,6 @@ class AppViewModel(
                     sourceAccount = trx.sourceAccount,
                     targetAccount = (trx as? Trx.Transfer)?.targetAccount,
                     category = trx.category,
-                    note = trx.note ?: ""
                 )
                 _uiState.update {
                     it.copy(trxRestoreStatus = Success(trx))

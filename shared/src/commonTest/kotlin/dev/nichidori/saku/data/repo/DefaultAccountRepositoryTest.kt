@@ -210,7 +210,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-historical",
                 targetAccountId = null,
                 transactionAt = month2Start,
-                note = null,
                 createdAt = month2Start,
                 updatedAt = null,
                 type = TrxTypeEntity.Income
@@ -348,7 +347,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-calculate",
                 targetAccountId = null,
                 transactionAt = month2Start,
-                note = null,
                 createdAt = month2Start,
                 updatedAt = null,
                 type = TrxTypeEntity.Income
@@ -364,7 +362,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-calculate",
                 targetAccountId = null,
                 transactionAt = month2Start + 1000,
-                note = null,
                 createdAt = month2Start + 1000,
                 updatedAt = null,
                 type = TrxTypeEntity.Expense
@@ -451,7 +448,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-multi-1",
                 targetAccountId = null,
                 transactionAt = monthStart,
-                note = null,
                 createdAt = monthStart,
                 updatedAt = null,
                 type = TrxTypeEntity.Income
@@ -527,7 +523,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-first-day",
                 targetAccountId = null,
                 transactionAt = firstDayOfCurrentMonth,
-                note = null,
                 createdAt = firstDayOfCurrentMonth,
                 updatedAt = null,
                 type = TrxTypeEntity.Income
@@ -581,7 +576,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-last-day",
                 targetAccountId = null,
                 transactionAt = dayInPreviousMonth,
-                note = null,
                 createdAt = dayInPreviousMonth,
                 updatedAt = null,
                 type = TrxTypeEntity.Expense
@@ -640,7 +634,6 @@ class DefaultAccountRepositoryTest {
                 sourceAccountId = "acc-transfer-source",
                 targetAccountId = "acc-transfer-target",
                 transactionAt = monthStart,
-                note = null,
                 createdAt = monthStart,
                 updatedAt = null,
                 type = TrxTypeEntity.Transfer

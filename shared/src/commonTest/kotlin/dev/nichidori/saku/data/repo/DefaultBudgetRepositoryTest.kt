@@ -164,7 +164,6 @@ class DefaultBudgetRepositoryTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = trxTime,
-            note = null,
             createdAt = 0L,
             updatedAt = null,
             type = dev.nichidori.saku.data.entity.TrxTypeEntity.Expense

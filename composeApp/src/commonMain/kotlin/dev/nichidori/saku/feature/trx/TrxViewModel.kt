@@ -34,7 +34,6 @@ data class TrxUiState(
     val sourceAccount: Account? = null,
     val targetAccount: Account? = null,
     val category: Category? = null,
-    val note: String = "",
     val enableFee: Boolean = false,
     val feeAmount: Long? = null,
     val feeAccount: Account? = null,
@@ -104,7 +103,6 @@ class TrxViewModel(
                         sourceAccount = this?.sourceAccount ?: it.sourceAccount,
                         targetAccount = (this as? Trx.Transfer)?.targetAccount ?: it.targetAccount,
                         category = this?.category ?: it.category,
-                        note = this?.note ?: it.note,
                         accountOptions = accounts,
                         incomesByParent = incomesByParent,
                         expensesByParent = expensesByParent,
@@ -150,10 +148,6 @@ class TrxViewModel(
 
     fun onCategoryChange(newValue: Category) {
         _uiState.update { it.copy(category = newValue) }
-    }
-
-    fun onNoteChange(newValue: String) {
-        _uiState.update { it.copy(note = newValue) }
     }
 
     fun onEnableFeeToggle() {
@@ -211,7 +205,6 @@ class TrxViewModel(
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
                             category = it.category,
-                            note = it.note
                         )
                         if (it.type == TrxType.Transfer && it.enableFee) {
                             trxRepository.addTrx(
@@ -222,7 +215,6 @@ class TrxViewModel(
                                 sourceAccount = it.feeAccount!!,
                                 targetAccount = null,
                                 category = it.feeCategory,
-                                note = ""
                             )
                         }
                     }
@@ -237,7 +229,6 @@ class TrxViewModel(
                             sourceAccount = it.sourceAccount!!,
                             targetAccount = it.targetAccount,
                             category = it.category,
-                            note = it.note
                         )
                     }
                 }

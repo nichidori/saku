@@ -9,7 +9,6 @@ sealed class Trx(
     open val category: Category?,
     open val sourceAccount: Account,
     open val transactionAt: Instant,
-    open val note: String?,
     open val createdAt: Instant,
     open val updatedAt: Instant?
 ) {
@@ -22,10 +21,9 @@ sealed class Trx(
         override val category: Category?,
         override val sourceAccount: Account,
         override val transactionAt: Instant,
-        override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt) {
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Income
     }
 
@@ -36,10 +34,9 @@ sealed class Trx(
         override val category: Category?,
         override val sourceAccount: Account,
         override val transactionAt: Instant,
-        override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt) {
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Expense
     }
 
@@ -51,10 +48,9 @@ sealed class Trx(
         override val sourceAccount: Account,
         val targetAccount: Account,
         override val transactionAt: Instant,
-        override val note: String?,
         override val createdAt: Instant,
         override val updatedAt: Instant?
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, note, createdAt, updatedAt) {
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Transfer
     }
 }

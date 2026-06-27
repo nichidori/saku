@@ -104,7 +104,6 @@ class MapperExtTest {
             sourceAccountId = account.id,
             targetAccountId = null,
             transactionAt = 1_000_000L,
-            note = "Monthly salary",
             createdAt = 1_000_001L,
             updatedAt = null,
             type = TrxTypeEntity.Income
@@ -144,7 +143,6 @@ class MapperExtTest {
             sourceAccountId = account.id,
             targetAccountId = null,
             transactionAt = 1_111_111L,
-            note = "Weekly groceries",
             createdAt = 1_111_112L,
             updatedAt = 1_111_113L,
             type = TrxTypeEntity.Expense
@@ -185,7 +183,6 @@ class MapperExtTest {
             sourceAccountId = source.id,
             targetAccountId = target.id,
             transactionAt = 1_000_000L,
-            note = null,
             createdAt = 1_000_100L,
             updatedAt = null,
             type = TrxTypeEntity.Transfer
@@ -225,7 +222,6 @@ class MapperExtTest {
             sourceAccountId = source.id,
             targetAccountId = "acc2",
             transactionAt = 1_000_000L,
-            note = null,
             createdAt = 1_000_100L,
             updatedAt = null,
             type = TrxTypeEntity.Transfer
@@ -268,7 +264,6 @@ class MapperExtTest {
             sourceAccountId = sourceAccount.id,
             targetAccountId = null,
             transactionAt = 1_650_000_000L,
-            note = "July salary",
             createdAt = 1_650_000_100L,
             updatedAt = 1_650_000_200L,
             type = TrxTypeEntity.Income
@@ -288,7 +283,6 @@ class MapperExtTest {
         assertEquals(trxEntity.description, domain.description)
         assertEquals(trxEntity.amount, domain.amount)
         assertEquals(trxEntity.transactionAt, domain.transactionAt.toEpochMilliseconds())
-        assertEquals(trxEntity.note, domain.note)
         assertEquals(trxEntity.createdAt, domain.createdAt.toEpochMilliseconds())
         assertEquals(trxEntity.updatedAt, domain.updatedAt?.toEpochMilliseconds())
         assertEquals(sourceAccount.toDomain(), domain.sourceAccount)
@@ -306,7 +300,6 @@ class MapperExtTest {
                 sourceAccountId = "acc-wallet",
                 targetAccountId = null,
                 transactionAt = 1_000_000L,
-                note = "Friday night dinner",
                 createdAt = 1_000_001L,
                 updatedAt = 1_000_002L,
                 type = TrxTypeEntity.Expense
@@ -342,7 +335,6 @@ class MapperExtTest {
         assertEquals(50000L, domain.amount)
         assertEquals("Food & Dining", domain.category?.name)
         assertEquals("Wallet", domain.sourceAccount.name)
-        assertEquals("Friday night dinner", domain.note)
         assertEquals(1_000_001L, domain.createdAt.toEpochMilliseconds())
         assertEquals(1_000_002L, domain.updatedAt?.toEpochMilliseconds())
     }
@@ -358,7 +350,6 @@ class MapperExtTest {
                 sourceAccountId = "acc-wallet",
                 targetAccountId = "acc-bank",
                 transactionAt = 1_000_100L,
-                note = "Monthly transfer",
                 createdAt = 1_000_101L,
                 updatedAt = null,
                 type = TrxTypeEntity.Transfer
@@ -392,7 +383,6 @@ class MapperExtTest {
         assertEquals(100_000L, domain.amount)
         assertEquals("Wallet", domain.sourceAccount.name)
         assertEquals("Bank", domain.targetAccount.name)
-        assertEquals("Monthly transfer", domain.note)
         assertEquals(1_000_101L, domain.createdAt.toEpochMilliseconds())
         assertNull(domain.updatedAt)
     }
