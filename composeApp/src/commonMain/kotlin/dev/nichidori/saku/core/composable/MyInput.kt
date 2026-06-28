@@ -263,6 +263,7 @@ fun AccountType.label(): String {
     return when (this) {
         AccountType.Cash -> "Cash"
         AccountType.Bank -> "Bank"
+        AccountType.Credit -> "Credit"
         AccountType.Ewallet -> "E-wallet"
         AccountType.Emoney -> "E-money"
     }

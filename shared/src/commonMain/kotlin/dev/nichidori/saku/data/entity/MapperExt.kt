@@ -73,6 +73,7 @@ fun AccountTypeEntity.toDomain(): AccountType = when (this) {
 fun AccountType.toEntity(): AccountTypeEntity = when (this) {
     AccountType.Cash -> AccountTypeEntity.Cash
     AccountType.Bank -> AccountTypeEntity.Bank
+    AccountType.Credit -> throw IllegalStateException("Credit type cannot be persisted to account table")
     AccountType.Ewallet -> AccountTypeEntity.Ewallet
     AccountType.Emoney -> AccountTypeEntity.Emoney
 }

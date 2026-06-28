@@ -63,7 +63,7 @@ class MapperExtTest {
 
     @Test
     fun toDomainAndBack_withAccountType_shouldMatch() {
-        AccountType.entries.forEach {
+        AccountType.entries.filter { it != AccountType.Credit }.forEach {
             val roundTrip = it.toEntity().toDomain()
             assertEquals(it, roundTrip)
         }

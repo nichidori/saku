@@ -9,6 +9,7 @@ import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
+import dev.nichidori.saku.domain.model.Credit
 import dev.nichidori.saku.domain.model.MonthlyAccountBalance
 import dev.nichidori.saku.domain.model.MonthlyCreditBalance
 import dev.nichidori.saku.domain.model.TrxAccount
@@ -158,6 +159,59 @@ class DefaultAccountRepository(
                 endMonth.year,
                 endMonth.month.number
             ).map { it.toDomain() }
+        }
+    }
+
+    override suspend fun addCredit(name: String, limit: Long, currentAmount: Long) {
+        val currentTime = Clock.System.now()
+        val credit = Credit(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            limit = limit,
+            currentAmount = currentAmount,
+            createdAt = currentTime,
+            updatedAt = null
+        )
+        db.useWriterConnection {
+            db.creditDao().insert(credit.toEntity())
+        }
+        val currentMonth = currentTime.toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+        updateMonthlySnapshots(currentMonth)
+    }
+
+    override suspend fun getCreditById(id: String): Credit? {
+        return db.useReaderConnection {
+            db.creditDao().getById(id)?.toDomain()
+        }
+    }
+
+    override suspend fun updateCredit(id: String, name: String, limit: Long, currentAmount: Long) {
+        val currentTime = Clock.System.now()
+        db.useWriterConnection {
+            it.immediateTransaction {
+                val updated = db.creditDao().getById(id)?.toDomain()
+                    ?.copy(
+                        name = name,
+                        limit = limit,
+                        currentAmount = currentAmount,
+                        updatedAt = currentTime
+                    )
+                    ?: throw NoSuchElementException("Credit not found")
+                db.creditDao().update(updated.toEntity())
+            }
+        }
+        val currentMonth = currentTime.toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+        updateMonthlySnapshots(currentMonth)
+    }
+
+    override suspend fun deleteCredit(id: String) {
+        db.useWriterConnection {
+            it.immediateTransaction {
+                db.creditDao().getById(id) ?: throw NoSuchElementException("Credit not found")
+                db.creditDao().deleteById(id)
+            }
         }
     }
 

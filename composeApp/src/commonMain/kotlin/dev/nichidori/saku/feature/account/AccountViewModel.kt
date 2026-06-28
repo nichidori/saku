@@ -21,13 +21,17 @@ data class AccountUiState(
     val isLoading: Boolean = false,
     val name: String = "",
     val balance: Long? = null,
+    val limit: Long? = null,
     val type: AccountType? = null,
     val canDelete: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
     val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
+    val showLimitInput = type == AccountType.Credit
     val canSave = name.isNotBlank() && balance != null && type != null
+            && (if (type == AccountType.Credit) limit != null else true)
     val balanceFormatted = balance?.toRupiah().orEmpty()
+    val limitFormatted = limit?.toRupiah().orEmpty()
 }
 
 class AccountViewModel(
@@ -46,13 +50,15 @@ class AccountViewModel(
                     it.copy(isLoading = true)
                 }
                 val account = accountRepository.getAccountById(id)
+                val credit = if (account == null) accountRepository.getCreditById(id) else null
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        name = account?.name.orEmpty(),
-                        balance = account?.currentAmount,
-                        type = account?.type,
-                        canDelete = account != null
+                        name = account?.name ?: credit?.name.orEmpty(),
+                        balance = account?.currentAmount ?: credit?.currentAmount,
+                        limit = credit?.limit,
+                        type = if (credit != null) AccountType.Credit else account?.type,
+                        canDelete = account != null || credit != null
                     )
                 }
             }
@@ -70,7 +76,18 @@ class AccountViewModel(
     }
 
     fun onTypeChange(newValue: AccountType) {
-        _uiState.update { it.copy(type = newValue) }
+        _uiState.update {
+            it.copy(
+                type = newValue,
+                limit = if (newValue != AccountType.Credit) null else it.limit
+            )
+        }
+    }
+
+    fun onLimitChange(newValue: String) {
+        if (newValue.all { it.isDigit() }) {
+            _uiState.update { it.copy(limit = newValue.toLongOrNull()) }
+        }
     }
 
     fun saveAccount() {
@@ -79,22 +96,40 @@ class AccountViewModel(
                 if (uiState.value.name.isBlank()) throw Exception("Name cannot be empty")
                 if (uiState.value.balance == null) throw Exception("Balance cannot be empty")
                 if (uiState.value.type == null) throw Exception("Type cannot be empty")
+                if (uiState.value.type == AccountType.Credit && uiState.value.limit == null) throw Exception("Limit cannot be empty")
                 _uiState.update {
                     it.copy(saveStatus = Loading)
                 }
-                if (id != null) {
-                    accountRepository.updateAccount(
-                        id = id,
-                        name = uiState.value.name,
-                        initialAmount = uiState.value.balance!!,
-                        type = uiState.value.type!!
-                    )
+                if (uiState.value.type == AccountType.Credit) {
+                    if (id != null) {
+                        accountRepository.updateCredit(
+                            id = id,
+                            name = uiState.value.name,
+                            limit = uiState.value.limit!!,
+                            currentAmount = uiState.value.balance!!
+                        )
+                    } else {
+                        accountRepository.addCredit(
+                            name = uiState.value.name,
+                            limit = uiState.value.limit!!,
+                            currentAmount = uiState.value.balance!!
+                        )
+                    }
                 } else {
-                    accountRepository.addAccount(
-                        name = uiState.value.name,
-                        initialAmount = uiState.value.balance!!,
-                        type = uiState.value.type!!
-                    )
+                    if (id != null) {
+                        accountRepository.updateAccount(
+                            id = id,
+                            name = uiState.value.name,
+                            initialAmount = uiState.value.balance!!,
+                            type = uiState.value.type!!
+                        )
+                    } else {
+                        accountRepository.addAccount(
+                            name = uiState.value.name,
+                            initialAmount = uiState.value.balance!!,
+                            type = uiState.value.type!!
+                        )
+                    }
                 }
                 _uiState.update {
                     it.copy(saveStatus = Success(Unit))
@@ -114,7 +149,11 @@ class AccountViewModel(
                 _uiState.update {
                     it.copy(deleteStatus = Loading)
                 }
-                accountRepository.deleteAccount(id!!)
+                if (uiState.value.type == AccountType.Credit) {
+                    accountRepository.deleteCredit(id!!)
+                } else {
+                    accountRepository.deleteAccount(id!!)
+                }
                 _uiState.update {
                     it.copy(deleteStatus = Success(Unit))
                 }

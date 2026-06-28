@@ -78,6 +78,7 @@ fun AccountPage(
             onUp = onUp,
             onNameChange = viewModel::onNameChange,
             onBalanceChange = viewModel::onBalanceChange,
+            onLimitChange = viewModel::onLimitChange,
             onTypeChange = viewModel::onTypeChange,
             onSaveClick = viewModel::saveAccount,
             onDeleteClick = viewModel::deleteAccount,
@@ -94,12 +95,14 @@ fun AccountPageContent(
     onUp: () -> Unit,
     onNameChange: (String) -> Unit,
     onBalanceChange: (String) -> Unit,
+    onLimitChange: (String) -> Unit,
     onTypeChange: (AccountType) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showBalanceInput by remember { mutableStateOf(false) }
+    var showLimitInput by remember { mutableStateOf(false) }
     var showTypeInput by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -181,6 +184,25 @@ fun AccountPageContent(
                     )
                 }
 
+                showLimitInput -> {
+                    NumberKeyboard(
+                        actionLabel = "Next",
+                        onValueClick = {
+                            onLimitChange(
+                                uiState.limit?.toString().orEmpty() + it.toString()
+                            )
+                        },
+                        onDeleteClick = {
+                            onLimitChange(
+                                uiState.limit?.toString().orEmpty().dropLast(1)
+                            )
+                        },
+                        onActionClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                    )
+                }
+
                 showTypeInput -> {
                     AccountTypeSelector(
                         types = typeOptions,
@@ -228,6 +250,17 @@ fun AccountPageContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             MyTextField(
+                value = uiState.type?.label().orEmpty(),
+                onValueChange = {},
+                label = "Type",
+                readOnly = true,
+                modifier = Modifier.onFocusChanged { focusState ->
+                    showTypeInput = focusState.isFocused
+                }
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            MyTextField(
                 value = uiState.balanceFormatted,
                 onValueChange = { },
                 label = "Balance",
@@ -238,15 +271,17 @@ fun AccountPageContent(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            MyTextField(
-                value = uiState.type?.label().orEmpty(),
-                onValueChange = {},
-                label = "Type",
-                readOnly = true,
-                modifier = Modifier.onFocusChanged { focusState ->
-                    showTypeInput = focusState.isFocused
-                }
-            )
+            if (uiState.showLimitInput) {
+                MyTextField(
+                    value = uiState.limitFormatted,
+                    onValueChange = { },
+                    label = "Limit",
+                    readOnly = true,
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        showLimitInput = focusState.isFocused
+                    }
+                )
+            }
         }
     }
 }
