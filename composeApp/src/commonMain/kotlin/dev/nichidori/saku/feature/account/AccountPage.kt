@@ -1,5 +1,6 @@
 package dev.nichidori.saku.feature.account
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -271,7 +272,7 @@ fun AccountPageContent(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (uiState.showLimitInput) {
+            AnimatedVisibility(visible = uiState.type == AccountType.Credit) {
                 MyTextField(
                     value = uiState.limitFormatted,
                     onValueChange = { },
