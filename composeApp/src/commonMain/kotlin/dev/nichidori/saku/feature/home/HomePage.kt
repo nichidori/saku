@@ -37,7 +37,7 @@ import dev.nichidori.saku.core.composable.MySunFlowerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.Account
+import dev.nichidori.saku.domain.model.TrxAccount
 import kotlinx.datetime.*
 import kotlinx.datetime.format.MonthNames
 import kotlin.time.Clock
@@ -212,7 +212,7 @@ fun TrendCard(
 
 @Composable
 fun AccountSection(
-    accountAndTrends: List<Pair<Account, List<Long>>>,
+    accountAndTrends: List<Pair<TrxAccount, List<Long>>>,
     showBalance: Boolean,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
@@ -273,7 +273,7 @@ fun AccountSection(
 
 @Composable
 fun AccountCard(
-    accountAndTrend: Pair<Account, List<Long>>,
+    accountAndTrend: Pair<TrxAccount, List<Long>>,
     showBalance: Boolean,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier

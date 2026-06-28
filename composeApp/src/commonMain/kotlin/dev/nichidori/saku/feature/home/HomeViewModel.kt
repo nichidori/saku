@@ -6,7 +6,7 @@ import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
-import dev.nichidori.saku.domain.model.Account
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Budget
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
@@ -33,7 +33,7 @@ data class HomeUiState(
     val month: YearMonth? = null,
     val netWorth: Long = 0,
     val netWorthTrend: List<Long> = emptyList(),
-    val accounts: List<Account> = emptyList(),
+    val accounts: List<TrxAccount> = emptyList(),
     val budgets: List<ActiveBudget> = emptyList(),
     val trxs: List<Trx> = emptyList(),
     val monthlyBalancesByAccount: Map<String, List<Long>> = emptyMap(),
@@ -43,7 +43,7 @@ data class HomeUiState(
     val accountAndTrends = accounts.map { Pair(it, monthlyBalancesByAccount[it.id] ?: listOf()) }
 }
 
-fun Account.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah() else "****"
+fun TrxAccount.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah() else "****"
 
 class HomeViewModel(
     private val accountRepository: AccountRepository,
@@ -71,15 +71,17 @@ class HomeViewModel(
                 val netWorthHistory = accountRepository.getNetWorthHistory(startMonth, month)
                 val netWorthTrend = fullRange.map { netWorthHistory[it] ?: 0L }
 
-                val accounts = accountRepository.getAllAccounts()
+                val accounts = accountRepository.getAllTrxAccounts()
                 val monthlyBalancesByAccount = accounts.associate { account ->
-                    val history = accountRepository.getAccountBalanceHistory(
-                        accountId = account.id,
-                        startMonth = startMonth,
-                        endMonth = month,
-                    ).associateBy { it.yearMonth }
-
-                    account.id to fullRange.map { history[it]?.balance ?: 0L }
+                    val history = when (account) {
+                        is TrxAccount.Regular -> accountRepository.getAccountBalanceHistory(
+                            account.id, startMonth, month
+                        ).associate { it.yearMonth to it.balance }
+                        is TrxAccount.Credit -> accountRepository.getCreditBalanceHistory(
+                            account.id, startMonth, month
+                        ).associate { it.yearMonth to it.balance }
+                    }
+                    account.id to fullRange.map { history[it] ?: 0L }
                 }
 
                 val netWorth = accountRepository.getNetWorthByMonth(month)
