@@ -86,16 +86,22 @@ class StatisticViewModel(
                     .mapValues { it.value.sum() }
 
                 val incomesOfAccountType = incomes
-                    .mapNotNull { trx ->
-                        val type = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
-                        if (type != null) type to trx.amount else null
+                    .map { trx ->
+                        val type = when (val account = trx.sourceAccount) {
+                            is TrxAccount.Regular -> account.account.type
+                            is TrxAccount.Credit -> AccountType.Credit
+                        }
+                        type to trx.amount
                     }
                     .groupBy({ it.first }, { it.second })
                     .mapValues { it.value.sum() }
                 val expensesOfAccountType = expenses
-                    .mapNotNull { trx ->
-                        val type = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
-                        if (type != null) type to trx.amount else null
+                    .map { trx ->
+                        val type = when (val account = trx.sourceAccount) {
+                            is TrxAccount.Regular -> account.account.type
+                            is TrxAccount.Credit -> AccountType.Credit
+                        }
+                        type to trx.amount
                     }
                     .groupBy({ it.first }, { it.second })
                     .mapValues { it.value.sum() }
