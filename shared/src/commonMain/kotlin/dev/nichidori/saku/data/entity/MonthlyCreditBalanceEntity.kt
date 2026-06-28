@@ -6,21 +6,21 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "monthly_account_balance",
-    primaryKeys = ["year", "month", "account_id"],
+    tableName = "monthly_credit_balance",
+    primaryKeys = ["year", "month", "credit_id"],
     foreignKeys = [
         ForeignKey(
-            entity = AccountEntity::class,
+            entity = CreditEntity::class,
             parentColumns = ["id"],
-            childColumns = ["account_id"],
+            childColumns = ["credit_id"],
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("account_id")]
+    indices = [Index("credit_id")]
 )
-data class MonthlyAccountBalanceEntity(
+data class MonthlyCreditBalanceEntity(
     @ColumnInfo(name = "year") val year: Int,
     @ColumnInfo(name = "month") val month: Int,
-    @ColumnInfo(name = "account_id") val accountId: String,
+    @ColumnInfo(name = "credit_id") val creditId: String,
     @ColumnInfo(name = "balance") val balance: Long
 )

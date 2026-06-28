@@ -17,11 +17,23 @@ data class TrxWithDetailsEntity(
         parentColumn = "source_account_id",
         entityColumn = "id"
     )
-    val sourceAccount: AccountEntity,
+    val sourceAccount: AccountEntity?,
+
+    @Relation(
+        parentColumn = "source_credit_id",
+        entityColumn = "id"
+    )
+    val sourceCredit: CreditEntity?,
 
     @Relation(
         parentColumn = "target_account_id",
         entityColumn = "id"
     )
-    val targetAccount: AccountEntity?
+    val targetAccount: AccountEntity?,
+
+    @Relation(
+        parentColumn = "target_credit_id",
+        entityColumn = "id"
+    )
+    val targetCredit: CreditEntity?,
 )

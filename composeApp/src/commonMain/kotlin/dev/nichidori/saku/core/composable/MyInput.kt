@@ -35,16 +35,14 @@ import dev.darkokoa.datetimewheelpicker.core.WheelPickerDefaults
 import dev.darkokoa.datetimewheelpicker.core.format.TimeFormat
 import dev.darkokoa.datetimewheelpicker.core.format.dateFormatter
 import dev.darkokoa.datetimewheelpicker.core.format.timeFormatter
-import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.TrxAccount
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
-import kotlin.time.Instant
 
 val defaultInputHeight = 320.dp
 
@@ -140,8 +138,6 @@ fun NumberKeyboard(
     }
 }
 
-
-
 @Composable
 fun KeyboardKey(
     label: String,
@@ -192,13 +188,12 @@ fun KeyboardKey(
 }
 
 
-
 @Composable
 fun AccountTypeSelector(
     types: List<AccountType>,
     onSelected: (AccountType) -> Unit,
-    selectedWhen: (AccountType) -> Boolean = { false },
     modifier: Modifier = Modifier,
+    selectedWhen: (AccountType) -> Boolean = { false },
     height: Dp = defaultInputHeight,
 ) {
     Column(
@@ -264,13 +259,10 @@ fun AccountTypeSelector(
     }
 }
 
-
-
 fun AccountType.label(): String {
     return when (this) {
         AccountType.Cash -> "Cash"
         AccountType.Bank -> "Bank"
-        AccountType.Credit -> "Credit"
         AccountType.Ewallet -> "E-wallet"
         AccountType.Emoney -> "E-money"
     }
@@ -278,11 +270,11 @@ fun AccountType.label(): String {
 
 @Composable
 fun AccountSelector(
-    accounts: List<Account>,
-    onSelected: (Account) -> Unit,
+    accounts: List<TrxAccount>,
+    onSelected: (TrxAccount) -> Unit,
     modifier: Modifier = Modifier,
-    selectedWhen: (Account) -> Boolean = { false },
-    enabledWhen: (Account) -> Boolean = { true },
+    selectedWhen: (TrxAccount) -> Boolean = { false },
+    enabledWhen: (TrxAccount) -> Boolean = { true },
     height: Dp = defaultInputHeight,
     header: @Composable RowScope.() -> Unit = {},
 ) {
@@ -352,8 +344,6 @@ fun AccountSelector(
         }
     }
 }
-
-
 
 @Composable
 fun CategorySelector(
@@ -431,8 +421,6 @@ fun CategorySelector(
         }
     }
 }
-
-
 
 @Composable
 fun MyDateTimePicker(

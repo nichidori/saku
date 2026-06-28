@@ -34,12 +34,12 @@ private val bankAccount = AccountEntity(
     updatedAt = null
 )
 
-private val creditCardAccount = AccountEntity(
-    id = "acc-credit",
-    name = "Credit Card",
+private val ewalletAccount = AccountEntity(
+    id = "acc-ewallet",
+    name = "E-Wallet",
     initialAmount = 0,
     currentAmount = -200_000,
-    type = AccountTypeEntity.Credit,
+    type = AccountTypeEntity.Ewallet,
     createdAt = System.currentTimeMillis(),
     updatedAt = null
 )
@@ -135,14 +135,14 @@ class AccountDaoTest {
     fun getAll_withMultipleAccounts_shouldReturnAllOrderedByName() = runTest {
         accountDao.insert(cashAccount)
         accountDao.insert(bankAccount)
-        accountDao.insert(creditCardAccount)
+        accountDao.insert(ewalletAccount)
 
         val results = accountDao.getAll()
 
         assertEquals(3, results.size)
         assertEquals("Bank Account", results[0].name)
         assertEquals("Cash Wallet", results[1].name)
-        assertEquals("Credit Card", results[2].name)
+        assertEquals("E-Wallet", results[2].name)
     }
 
     @Test
@@ -165,7 +165,7 @@ class AccountDaoTest {
     fun getTotalBalance_withMultipleAccounts_shouldReturnSumOfCurrentAmounts() = runTest {
         accountDao.insert(cashAccount)
         accountDao.insert(bankAccount)
-        accountDao.insert(creditCardAccount)
+        accountDao.insert(ewalletAccount)
 
         val totalBalance = accountDao.getTotalBalance()
 
@@ -191,11 +191,11 @@ class AccountDaoTest {
 
     @Test
     fun getTotalBalance_withNegativeBalances_shouldCalculateCorrectly() = runTest {
-        val debtAccount1 = creditCardAccount.copy(
+        val debtAccount1 = ewalletAccount.copy(
             id = "debt-1",
             currentAmount = -500_000
         )
-        val debtAccount2 = creditCardAccount.copy(
+        val debtAccount2 = ewalletAccount.copy(
             id = "debt-2",
             currentAmount = -300_000
         )
@@ -233,19 +233,19 @@ class AccountDaoTest {
     fun insert_withDifferentAccountTypes_shouldAllBeRetrievable() = runTest {
         accountDao.insert(cashAccount)
         accountDao.insert(bankAccount)
-        accountDao.insert(creditCardAccount)
+        accountDao.insert(ewalletAccount)
 
         val cashResult = accountDao.getById(cashAccount.id)
         val bankResult = accountDao.getById(bankAccount.id)
-        val creditResult = accountDao.getById(creditCardAccount.id)
+        val ewalletResult = accountDao.getById(ewalletAccount.id)
 
         assertNotNull(cashResult)
         assertNotNull(bankResult)
-        assertNotNull(creditResult)
+        assertNotNull(ewalletResult)
 
         assertEquals(AccountTypeEntity.Cash, cashResult.type)
         assertEquals(AccountTypeEntity.Bank, bankResult.type)
-        assertEquals(AccountTypeEntity.Credit, creditResult.type)
+        assertEquals(AccountTypeEntity.Ewallet, ewalletResult.type)
     }
 
     @Test

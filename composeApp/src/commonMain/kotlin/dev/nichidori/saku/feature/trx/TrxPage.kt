@@ -31,8 +31,8 @@ import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
-import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.LocalDateTime
@@ -113,12 +113,12 @@ fun TrxPageContent(
     onTimeChange: (Instant) -> Unit,
     onAmountChange: ((String) -> String) -> Unit,
     onDescriptionChange: (String) -> Unit,
-    onSourceAccountChange: (Account) -> Unit,
-    onTargetAccountChange: (Account) -> Unit,
+    onSourceAccountChange: (TrxAccount) -> Unit,
+    onTargetAccountChange: (TrxAccount) -> Unit,
     onCategoryChange: (Category) -> Unit,
     onEnableFeeToggle: () -> Unit,
     onFeeAmountChange: ((String) -> String) -> Unit,
-    onFeeAccountChange: (Account) -> Unit,
+    onFeeAccountChange: (TrxAccount) -> Unit,
     onFeeCategoryChange: (Category) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,

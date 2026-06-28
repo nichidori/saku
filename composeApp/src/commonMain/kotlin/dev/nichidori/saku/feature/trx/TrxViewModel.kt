@@ -9,8 +9,8 @@ import dev.nichidori.saku.core.model.Status.Loading
 import dev.nichidori.saku.core.model.Status.Success
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
-import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
@@ -31,14 +31,14 @@ data class TrxUiState(
     val time: Instant? = null,
     val amount: Long? = null,
     val description: String = "",
-    val sourceAccount: Account? = null,
-    val targetAccount: Account? = null,
+    val sourceAccount: TrxAccount? = null,
+    val targetAccount: TrxAccount? = null,
     val category: Category? = null,
     val enableFee: Boolean = false,
     val feeAmount: Long? = null,
-    val feeAccount: Account? = null,
+    val feeAccount: TrxAccount? = null,
     val feeCategory: Category? = null,
-    val accountOptions: List<Account> = listOf(),
+    val accountOptions: List<TrxAccount> = listOf(),
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
     val canDelete: Boolean = false,
@@ -76,7 +76,7 @@ class TrxViewModel(
             _uiState.update {
                 it.copy(isLoading = true)
             }
-            val accounts = accountRepository.getAllAccounts()
+            val accounts = accountRepository.getAllTrxAccounts()
             val categories = categoryRepository.getAllCategories()
             val (parents, children) = categories.partition { it.parent == null }
             val childrenByParentId = children.groupBy { it.parent?.id }
@@ -138,11 +138,11 @@ class TrxViewModel(
         _uiState.update { it.copy(description = newValue) }
     }
 
-    fun onSourceAccountChange(newValue: Account) {
+    fun onSourceAccountChange(newValue: TrxAccount) {
         _uiState.update { it.copy(sourceAccount = newValue) }
     }
 
-    fun onTargetAccountChange(newValue: Account) {
+    fun onTargetAccountChange(newValue: TrxAccount) {
         _uiState.update { it.copy(targetAccount = newValue) }
     }
 
@@ -169,7 +169,7 @@ class TrxViewModel(
         }
     }
 
-    fun onFeeAccountChange(newValue: Account) {
+    fun onFeeAccountChange(newValue: TrxAccount) {
         _uiState.update { it.copy(feeAccount = newValue) }
     }
 

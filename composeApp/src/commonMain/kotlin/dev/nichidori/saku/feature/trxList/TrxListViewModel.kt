@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
-import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxFilter
@@ -32,7 +32,7 @@ data class DailyTrxRecord(
 
 data class TrxListUiState(
     val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
-    val accounts: List<Account> = emptyList(),
+    val accounts: List<TrxAccount> = emptyList(),
     val incomeCategories: List<Category> = emptyList(),
     val expenseCategories: List<Category> = emptyList(),
     val filterAccountIds: Set<String> = emptySet(),
@@ -106,7 +106,7 @@ class TrxListViewModel(
     fun loadAccounts() {
         viewModelScope.launch {
             try {
-                val accounts = accountRepository.getAllAccounts()
+                val accounts = accountRepository.getAllTrxAccounts()
 
                 _uiState.update {
                     it.copy(accounts = accounts)
@@ -184,9 +184,12 @@ class TrxListViewModel(
                     || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
             val matchCategory = categoryIds.isEmpty()
                     || trx.category?.let { categoryIds.contains(it.id) } ?: false
+            val sourceType = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
+            val targetType = (trx as? Trx.Transfer)
+                ?.let { (it.targetAccount as? TrxAccount.Regular)?.account?.type }
             val matchAccountType = accountTypes.isEmpty()
-                    || accountTypes.contains(trx.sourceAccount.type)
-                    || (trx as? Trx.Transfer)?.let { accountTypes.contains(it.targetAccount.type) } ?: false
+                    || (sourceType != null && accountTypes.contains(sourceType))
+                    || (targetType != null && accountTypes.contains(targetType))
             val matchTrxType = trxTypes.isEmpty() || trxTypes.contains(trx.type)
 
             matchAccount && matchCategory && matchAccountType && matchTrxType

@@ -4,6 +4,7 @@ import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxType
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -102,14 +103,16 @@ class MapperExtTest {
             amount = 1_000_000L,
             categoryId = category.id,
             sourceAccountId = account.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = 1_000_000L,
             createdAt = 1_000_001L,
             updatedAt = null,
             type = TrxTypeEntity.Income
         )
 
-        val domain = entity.toDomain(category, account)
+        val domain = entity.toDomain(category, TrxAccount.Regular(account))
         val roundTrip = domain.toEntity()
 
         assertEquals(entity, roundTrip)
@@ -141,14 +144,16 @@ class MapperExtTest {
             amount = 20000L,
             categoryId = category.id,
             sourceAccountId = account.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = 1_111_111L,
             createdAt = 1_111_112L,
             updatedAt = 1_111_113L,
             type = TrxTypeEntity.Expense
         )
 
-        val domain = entity.toDomain(category, account)
+        val domain = entity.toDomain(category, TrxAccount.Regular(account))
         val roundTrip = domain.toEntity()
 
         assertEquals(entity, roundTrip)
@@ -181,14 +186,16 @@ class MapperExtTest {
             amount = 2000L,
             categoryId = null,
             sourceAccountId = source.id,
+            sourceCreditId = null,
             targetAccountId = target.id,
+            targetCreditId = null,
             transactionAt = 1_000_000L,
             createdAt = 1_000_100L,
             updatedAt = null,
             type = TrxTypeEntity.Transfer
         )
 
-        val domain = entity.toDomain(null, source, target)
+        val domain = entity.toDomain(null, TrxAccount.Regular(source), TrxAccount.Regular(target))
         val roundTrip = domain.toEntity()
 
         assertEquals(entity, roundTrip)
@@ -220,7 +227,9 @@ class MapperExtTest {
             amount = 2000L,
             categoryId = category.id,
             sourceAccountId = source.id,
+            sourceCreditId = null,
             targetAccountId = "acc2",
+            targetCreditId = null,
             transactionAt = 1_000_000L,
             createdAt = 1_000_100L,
             updatedAt = null,
@@ -228,7 +237,7 @@ class MapperExtTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            entity.toDomain(category, source, null)
+            entity.toDomain(category, TrxAccount.Regular(source), null)
         }
     }
 
@@ -262,7 +271,9 @@ class MapperExtTest {
             amount = 10_000_000L,
             categoryId = categoryWithParent.category.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = 1_650_000_000L,
             createdAt = 1_650_000_100L,
             updatedAt = 1_650_000_200L,
@@ -273,7 +284,9 @@ class MapperExtTest {
             trx = trxEntity,
             categoryWithParent = categoryWithParent,
             sourceAccount = sourceAccount,
-            targetAccount = null
+            targetAccount = null,
+            sourceCredit = null,
+            targetCredit = null
         )
 
         val domain = trxWithDetails.toDomain()
@@ -285,7 +298,7 @@ class MapperExtTest {
         assertEquals(trxEntity.transactionAt, domain.transactionAt.toEpochMilliseconds())
         assertEquals(trxEntity.createdAt, domain.createdAt.toEpochMilliseconds())
         assertEquals(trxEntity.updatedAt, domain.updatedAt?.toEpochMilliseconds())
-        assertEquals(sourceAccount.toDomain(), domain.sourceAccount)
+        assertEquals(TrxAccount.Regular(sourceAccount.toDomain()), domain.sourceAccount)
         assertEquals(categoryWithParent.category.toDomain(), domain.category)
     }
 
@@ -298,7 +311,9 @@ class MapperExtTest {
                 amount = 50000L,
                 categoryId = "cat-expense",
                 sourceAccountId = "acc-wallet",
+                sourceCreditId = null,
                 targetAccountId = null,
+                targetCreditId = null,
                 transactionAt = 1_000_000L,
                 createdAt = 1_000_001L,
                 updatedAt = 1_000_002L,
@@ -324,7 +339,9 @@ class MapperExtTest {
                 createdAt = 800_000L,
                 updatedAt = 800_001L
             ),
-            targetAccount = null
+            targetAccount = null,
+            sourceCredit = null,
+            targetCredit = null
         )
 
         val domain = entity.toDomain()
@@ -348,7 +365,9 @@ class MapperExtTest {
                 amount = 100_000L,
                 categoryId = "cat-transfer",
                 sourceAccountId = "acc-wallet",
+                sourceCreditId = null,
                 targetAccountId = "acc-bank",
+                targetCreditId = null,
                 transactionAt = 1_000_100L,
                 createdAt = 1_000_101L,
                 updatedAt = null,
@@ -372,7 +391,9 @@ class MapperExtTest {
                 type = AccountTypeEntity.Bank,
                 createdAt = 850_000L,
                 updatedAt = null
-            )
+            ),
+            sourceCredit = null,
+            targetCredit = null
         )
 
         val domain = entity.toDomain()

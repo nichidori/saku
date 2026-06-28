@@ -1,8 +1,8 @@
 package dev.nichidori.saku.domain.repo
 
-import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxFilter
 import dev.nichidori.saku.domain.model.TrxType
 import kotlin.time.Instant
@@ -13,8 +13,8 @@ interface TrxRepository {
         transactionAt: Instant,
         amount: Long,
         description: String,
-        sourceAccount: Account,
-        targetAccount: Account?,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
         category: Category?,
     )
 
@@ -26,8 +26,8 @@ interface TrxRepository {
         transactionAt: Instant,
         amount: Long,
         description: String,
-        sourceAccount: Account,
-        targetAccount: Account?,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
         category: Category?,
     )
 

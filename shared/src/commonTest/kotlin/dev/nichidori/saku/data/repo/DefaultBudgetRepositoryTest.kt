@@ -107,14 +107,14 @@ class DefaultBudgetRepositoryTest {
     fun ensureBudgetsExist_shouldCreateBudgets() = runTest {
         val templateCreatedAt = Clock.System.now()
         val templateWithDate = template.copy(createdAt = templateCreatedAt)
-        
+
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(templateWithDate.toEntity())
 
         val timeZone = TimeZone.currentSystemDefault()
         val startDateTime = templateCreatedAt.toLocalDateTime(timeZone)
         val startYearMonth = YearMonth(startDateTime.year, startDateTime.month)
-        
+
         val nextMonth = startYearMonth.plusMonth()
         val twoMonthsLater = nextMonth.plusMonth()
 
@@ -127,7 +127,7 @@ class DefaultBudgetRepositoryTest {
         assertEquals(1, startBudget.size)
         assertEquals(1, nextMonthBudget.size)
         assertEquals(1, twoMonthsLaterBudget.size)
-        
+
         assertEquals(templateWithDate.defaultAmount, startBudget.first().baseAmount)
         assertEquals(0L, startBudget.first().spentAmount)
     }
@@ -136,14 +136,14 @@ class DefaultBudgetRepositoryTest {
     fun ensureBudgetsExist_withTransactions_shouldSetSpentAmount() = runTest {
         val templateCreatedAt = Clock.System.now()
         val templateWithDate = template.copy(createdAt = templateCreatedAt)
-        
+
         db.categoryDao().insert(category.toEntity())
         db.budgetTemplateDao().insert(templateWithDate.toEntity())
 
         val timeZone = TimeZone.currentSystemDefault()
         val startDateTime = templateCreatedAt.toLocalDateTime(timeZone)
         val startYearMonth = YearMonth(startDateTime.year, startDateTime.month)
-        
+
         val sourceAccount = dev.nichidori.saku.data.entity.AccountEntity(
             id = "acc-1",
             name = "Cash",
@@ -162,7 +162,9 @@ class DefaultBudgetRepositoryTest {
             amount = 50_000,
             categoryId = category.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = trxTime,
             createdAt = 0L,
             updatedAt = null,
@@ -173,7 +175,7 @@ class DefaultBudgetRepositoryTest {
         repository.ensureBudgetsExist(startYearMonth)
 
         val startBudget = repository.getBudgetsByYearMonth(startYearMonth)
-        
+
         assertEquals(1, startBudget.size)
         assertEquals(50_000L, startBudget.first().spentAmount)
     }

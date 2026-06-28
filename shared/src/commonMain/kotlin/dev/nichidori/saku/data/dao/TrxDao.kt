@@ -30,20 +30,23 @@ interface TrxDao {
     @Transaction
     @Query(
         """
-    SELECT * FROM trx
-    INNER JOIN account source_acc ON trx.source_account_id = source_acc.id
-    WHERE transaction_at >= :startTime
-      AND transaction_at < :endTime
-      AND (:type IS NULL OR trx.type = :type)
-      AND (:categoryId IS NULL OR category_id = :categoryId)
-      AND (:accountType IS NULL OR source_acc.type = :accountType)
-      AND (
-          :accountId IS NULL OR 
-          source_account_id = :accountId OR 
-          target_account_id = :accountId
-      )
-    ORDER BY transaction_at DESC
-"""
+        SELECT * FROM trx
+        WHERE transaction_at >= :startTime
+          AND transaction_at < :endTime
+          AND (:type IS NULL OR trx.type = :type)
+          AND (:categoryId IS NULL OR category_id = :categoryId)
+          AND (
+              :accountId IS NULL OR 
+              source_account_id = :accountId OR 
+              source_credit_id = :accountId OR
+              target_account_id = :accountId OR
+              target_credit_id = :accountId
+          )
+          AND (:accountType IS NULL OR
+               source_account_id IN (SELECT id FROM account WHERE type = :accountType) OR
+               target_account_id IN (SELECT id FROM account WHERE type = :accountType))
+        ORDER BY transaction_at DESC
+        """
     )
     suspend fun getFilteredWithDetails(
         startTime: Long,
@@ -56,23 +59,27 @@ interface TrxDao {
 
     @Query(
         """
-    SELECT SUM(t.amount) FROM trx t
-    INNER JOIN category c ON t.category_id = c.id
-    WHERE t.transaction_at >= :startTime
-    AND t.transaction_at < :endTime
-    AND t.type = :type
-    AND (t.category_id = :categoryId OR c.parent_id = :categoryId)
-"""
+        SELECT SUM(t.amount) FROM trx t
+        INNER JOIN category c ON t.category_id = c.id
+        WHERE t.transaction_at >= :startTime
+        AND t.transaction_at < :endTime
+        AND t.type = :type
+        AND (t.category_id = :categoryId OR c.parent_id = :categoryId)
+        """
     )
     suspend fun getTotalAmount(startTime: Long, endTime: Long, categoryId: String, type: TrxTypeEntity): Long?
 
+    @Transaction
     @Query(
         """
-    SELECT * FROM trx
-    WHERE source_account_id = :accountId OR target_account_id = :accountId
-    ORDER BY transaction_at ASC
-    LIMIT 1
-"""
+        SELECT * FROM trx
+        WHERE source_account_id = :accountId
+           OR source_credit_id = :accountId
+           OR target_account_id = :accountId
+           OR target_credit_id = :accountId
+        ORDER BY transaction_at ASC
+        LIMIT 1
+        """
     )
     suspend fun getEarliestByAccountId(accountId: String): TrxWithDetailsEntity?
 }

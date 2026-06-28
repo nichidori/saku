@@ -7,7 +7,7 @@ sealed class Trx(
     open val description: String,
     open val amount: Long,
     open val category: Category?,
-    open val sourceAccount: Account,
+    open val sourceAccount: TrxAccount,
     open val transactionAt: Instant,
     open val createdAt: Instant,
     open val updatedAt: Instant?
@@ -19,7 +19,7 @@ sealed class Trx(
         override val description: String,
         override val amount: Long,
         override val category: Category?,
-        override val sourceAccount: Account,
+        override val sourceAccount: TrxAccount,
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?
@@ -32,7 +32,7 @@ sealed class Trx(
         override val description: String,
         override val amount: Long,
         override val category: Category?,
-        override val sourceAccount: Account,
+        override val sourceAccount: TrxAccount,
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?
@@ -45,8 +45,8 @@ sealed class Trx(
         override val description: String,
         override val amount: Long,
         override val category: Category?,
-        override val sourceAccount: Account,
-        val targetAccount: Account,
+        override val sourceAccount: TrxAccount,
+        val targetAccount: TrxAccount,
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?

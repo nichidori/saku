@@ -70,7 +70,9 @@ private val transferTrx = TrxEntity(
     amount = 500_000,
     categoryId = transferCategory.id,
     sourceAccountId = sourceAccount.id,
+    sourceCreditId = null,
     targetAccountId = targetAccount.id,
+    targetCreditId = null,
     transactionAt = System.currentTimeMillis(),
     createdAt = System.currentTimeMillis(),
     updatedAt = null,
@@ -83,7 +85,9 @@ private val incomeTrx = TrxEntity(
     amount = 10_000_000,
     categoryId = incomeCategory.id,
     sourceAccountId = sourceAccount.id,
+    sourceCreditId = null,
     targetAccountId = null,
+    targetCreditId = null,
     transactionAt = System.currentTimeMillis(),
     createdAt = System.currentTimeMillis(),
     updatedAt = null,
@@ -129,7 +133,7 @@ class TrxDaoTest {
         assertNotNull(result)
         assertEquals(incomeTrx.id, result.trx.id)
         assertEquals(incomeCategory.id, result.categoryWithParent?.category?.id)
-        assertEquals(sourceAccount.id, result.sourceAccount.id)
+        assertEquals(sourceAccount.id, result.sourceAccount!!.id)
         assertNull(result.targetAccount)
     }
 
@@ -145,8 +149,8 @@ class TrxDaoTest {
         assertNotNull(result)
         assertEquals(transferTrx.id, result.trx.id)
         assertEquals(transferCategory.id, result.categoryWithParent?.category?.id)
-        assertEquals(sourceAccount.id, result.sourceAccount.id)
-        assertEquals(targetAccount.id, result.targetAccount?.id)
+        assertEquals(sourceAccount.id, result.sourceAccount!!.id)
+        assertEquals(targetAccount.id, result.targetAccount!!.id)
     }
 
     @Test
@@ -365,7 +369,9 @@ class TrxDaoTest {
             amount = 50_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = System.currentTimeMillis(),
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
@@ -507,7 +513,9 @@ class TrxDaoTest {
             amount = 50_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = baseTime + 1000,
             createdAt = baseTime,
             updatedAt = null,
@@ -520,7 +528,9 @@ class TrxDaoTest {
             amount = 75_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = baseTime + 5000,
             createdAt = baseTime,
             updatedAt = null,
@@ -533,7 +543,9 @@ class TrxDaoTest {
             amount = 100_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = baseTime - 1000,
             createdAt = baseTime,
             updatedAt = null,
@@ -546,7 +558,9 @@ class TrxDaoTest {
             amount = 200_000,
             categoryId = incomeCategory.id, // technically mismatch but for test
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = baseTime + 2000,
             createdAt = baseTime,
             updatedAt = null,
@@ -559,7 +573,9 @@ class TrxDaoTest {
             amount = 500_000,
             categoryId = expenseCategory.id,
             sourceAccountId = sourceAccount.id,
+            sourceCreditId = null,
             targetAccountId = null,
+            targetCreditId = null,
             transactionAt = baseTime + 3000,
             createdAt = baseTime,
             updatedAt = null,

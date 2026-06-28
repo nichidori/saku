@@ -23,7 +23,7 @@ enum class StatisticGroupBy { Category, Account, AccountType }
 
 sealed interface StatisticItemKey {
     data class ByCategory(val category: Category) : StatisticItemKey
-    data class ByAccount(val account: Account) : StatisticItemKey
+    data class ByAccount(val account: TrxAccount) : StatisticItemKey
     data class ByAccountType(val type: AccountType) : StatisticItemKey
 }
 
@@ -35,8 +35,8 @@ data class StatisticUiState(
         val loadStatus: Status<Unit, Exception> = Initial,
         val incomesOfCategory: Map<Category, Long> = emptyMap(),
         val expensesOfCategory: Map<Category, Long> = emptyMap(),
-        val incomesOfAccount: Map<Account, Long> = emptyMap(),
-        val expensesOfAccount: Map<Account, Long> = emptyMap(),
+        val incomesOfAccount: Map<TrxAccount, Long> = emptyMap(),
+        val expensesOfAccount: Map<TrxAccount, Long> = emptyMap(),
         val incomesOfAccountType: Map<AccountType, Long> = emptyMap(),
         val expensesOfAccountType: Map<AccountType, Long> = emptyMap(),
         val expandedItemKey: StatisticItemKey? = null,
@@ -86,10 +86,18 @@ class StatisticViewModel(
                     .mapValues { it.value.sum() }
 
                 val incomesOfAccountType = incomes
-                    .groupBy({ it.sourceAccount.type }, { it.amount })
+                    .mapNotNull { trx ->
+                        val type = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
+                        if (type != null) type to trx.amount else null
+                    }
+                    .groupBy({ it.first }, { it.second })
                     .mapValues { it.value.sum() }
                 val expensesOfAccountType = expenses
-                    .groupBy({ it.sourceAccount.type }, { it.amount })
+                    .mapNotNull { trx ->
+                        val type = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
+                        if (type != null) type to trx.amount else null
+                    }
+                    .groupBy({ it.first }, { it.second })
                     .mapValues { it.value.sum() }
 
                 _uiState.update { currentState ->
