@@ -12,16 +12,12 @@ import dev.nichidori.saku.data.dao.BudgetDao
 import dev.nichidori.saku.data.dao.BudgetTemplateDao
 import dev.nichidori.saku.data.dao.CategoryDao
 import dev.nichidori.saku.data.dao.CreditDao
-import dev.nichidori.saku.data.dao.MonthlyAccountBalanceDao
-import dev.nichidori.saku.data.dao.MonthlyCreditBalanceDao
 import dev.nichidori.saku.data.dao.TrxDao
 import dev.nichidori.saku.data.entity.AccountEntity
 import dev.nichidori.saku.data.entity.BudgetEntity
 import dev.nichidori.saku.data.entity.BudgetTemplateEntity
 import dev.nichidori.saku.data.entity.CategoryEntity
 import dev.nichidori.saku.data.entity.CreditEntity
-import dev.nichidori.saku.data.entity.MonthlyAccountBalanceEntity
-import dev.nichidori.saku.data.entity.MonthlyCreditBalanceEntity
 import dev.nichidori.saku.data.entity.TrxEntity
 import kotlinx.coroutines.Dispatchers
 
@@ -32,11 +28,9 @@ import kotlinx.coroutines.Dispatchers
         TrxEntity::class,
         BudgetEntity::class,
         BudgetTemplateEntity::class,
-        MonthlyAccountBalanceEntity::class,
-        MonthlyCreditBalanceEntity::class,
         CreditEntity::class,
     ],
-    version = 6,
+    version = 7,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -44,8 +38,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun trxDao(): TrxDao
     abstract fun budgetDao(): BudgetDao
     abstract fun budgetTemplateDao(): BudgetTemplateDao
-    abstract fun monthlyAccountBalanceDao(): MonthlyAccountBalanceDao
-    abstract fun monthlyCreditBalanceDao(): MonthlyCreditBalanceDao
     abstract fun creditDao(): CreditDao
 }
 
@@ -275,11 +267,18 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
     }
 }
 
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("DROP TABLE IF EXISTS monthly_account_balance")
+        connection.execSQL("DROP TABLE IF EXISTS monthly_credit_balance")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
     return builder
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)

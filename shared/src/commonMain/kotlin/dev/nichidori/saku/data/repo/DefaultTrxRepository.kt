@@ -12,8 +12,6 @@ import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.datetime.*
 import kotlinx.datetime.DateTimeUnit.Companion.DAY
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.YearMonth
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -26,30 +24,6 @@ class DefaultTrxRepository(
     private val accountDao = db.accountDao()
     private val creditDao = db.creditDao()
     private val budgetDao = db.budgetDao()
-    private val monthlyAccountBalanceDao = db.monthlyAccountBalanceDao()
-    private val monthlyCreditBalanceDao = db.monthlyCreditBalanceDao()
-
-    private suspend fun updateSnapshot(yearMonth: YearMonth) {
-        val accounts = accountDao.getAll()
-        val snapshots = accounts.map { account ->
-            MonthlyAccountBalance(
-                yearMonth = yearMonth,
-                accountId = account.id,
-                balance = account.currentAmount
-            ).toEntity()
-        }
-        monthlyAccountBalanceDao.insertAll(snapshots)
-
-        val credits = creditDao.getAll()
-        val creditSnapshots = credits.map { credit ->
-            MonthlyCreditBalance(
-                yearMonth = yearMonth,
-                creditId = credit.id,
-                balance = credit.currentAmount
-            ).toEntity()
-        }
-        monthlyCreditBalanceDao.insertAll(creditSnapshots)
-    }
 
     override suspend fun addTrx(
         type: TrxType,
@@ -172,11 +146,6 @@ class DefaultTrxRepository(
                     }
                 }
 
-                val transactionMonth = YearMonth(
-                    transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).year,
-                    transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).month
-                )
-                updateSnapshot(transactionMonth)
             }
         }
     }
@@ -379,12 +348,6 @@ class DefaultTrxRepository(
                 }
 
                 trxDao.update(updatedTrx.toEntity())
-
-                val transactionMonth = YearMonth(
-                    transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).year,
-                    transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).month
-                )
-                updateSnapshot(transactionMonth)
             }
         }
     }
@@ -452,12 +415,6 @@ class DefaultTrxRepository(
                         )
                     }
                 }
-
-                val transactionMonth = YearMonth(
-                    trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).year,
-                    trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).month
-                )
-                updateSnapshot(transactionMonth)
 
                 trxDao.deleteById(id)
             }

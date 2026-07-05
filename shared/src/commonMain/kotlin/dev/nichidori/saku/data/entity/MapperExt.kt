@@ -278,28 +278,4 @@ fun BudgetTemplate.toEntity(): BudgetTemplateEntity = BudgetTemplateEntity(
     updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
-fun MonthlyAccountBalanceEntity.toDomain(): MonthlyAccountBalance = MonthlyAccountBalance(
-    yearMonth = YearMonth(year, month),
-    accountId = accountId,
-    balance = balance
-)
 
-fun MonthlyAccountBalance.toEntity(): MonthlyAccountBalanceEntity = MonthlyAccountBalanceEntity(
-    year = yearMonth.year,
-    month = yearMonth.month.number,
-    accountId = accountId,
-    balance = balance
-)
-
-fun MonthlyCreditBalanceEntity.toDomain(): MonthlyCreditBalance = MonthlyCreditBalance(
-    yearMonth = YearMonth(year, month),
-    creditId = creditId,
-    balance = balance
-)
-
-fun MonthlyCreditBalance.toEntity(): MonthlyCreditBalanceEntity = MonthlyCreditBalanceEntity(
-    year = yearMonth.year,
-    month = yearMonth.month.number,
-    creditId = creditId,
-    balance = balance
-)

@@ -7,10 +7,7 @@ import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.domain.model.Credit
-import dev.nichidori.saku.domain.model.MonthlyAccountBalance
 import dev.nichidori.saku.domain.repo.CreditRepository
-import kotlinx.datetime.*
-import kotlinx.datetime.TimeZone
 import java.util.*
 import kotlin.time.Clock
 
@@ -31,9 +28,6 @@ class DefaultCreditRepository(
         db.useWriterConnection {
             db.creditDao().insert(credit.toEntity())
         }
-        val currentMonth = currentTime.toLocalDateTime(TimeZone.currentSystemDefault())
-            .let { YearMonth(it.year, it.month) }
-        updateMonthlySnapshots(currentMonth)
     }
 
     override suspend fun getCreditById(id: String): Credit? {
@@ -60,9 +54,6 @@ class DefaultCreditRepository(
                 db.creditDao().update(updated.toEntity())
             }
         }
-        val currentMonth = currentTime.toLocalDateTime(TimeZone.currentSystemDefault())
-            .let { YearMonth(it.year, it.month) }
-        updateMonthlySnapshots(currentMonth)
     }
 
     override suspend fun deleteCredit(id: String) {
@@ -86,17 +77,4 @@ class DefaultCreditRepository(
         }
     }
 
-    suspend fun updateMonthlySnapshots(yearMonth: YearMonth) {
-        val credits = db.useReaderConnection { db.creditDao().getAll() }
-        val snapshots = credits.map { credit ->
-            MonthlyAccountBalance(
-                yearMonth = yearMonth,
-                accountId = credit.id,
-                balance = credit.currentAmount
-            )
-        }
-        db.useWriterConnection {
-            db.monthlyAccountBalanceDao().insertAll(snapshots.map { it.toEntity() })
-        }
-    }
 }

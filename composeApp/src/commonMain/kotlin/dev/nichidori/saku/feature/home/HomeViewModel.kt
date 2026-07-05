@@ -66,31 +66,27 @@ class HomeViewModel(
                     it.copy(loadStatus = Loading, trxs = listOf())
                 }
                 budgetRepository.ensureBudgetsExist(month)
-                accountRepository.ensureMonthlyBalancesExist(month)
 
-                // Get the latest 12 months trend for net worth and account balances
                 val startMonth = month.minus(11, DateTimeUnit.MONTH)
                 val fullRange = generateSequence(startMonth) { it.plus(1, DateTimeUnit.MONTH) }
                     .takeWhile { it <= month }
                     .toList()
 
-                val netWorthHistory = accountRepository.getNetWorthHistory(startMonth, month)
-                val netWorthTrend = fullRange.map { netWorthHistory[it] ?: 0L }
-
                 val accounts = accountRepository.getAllTrxAccounts()
-                val monthlyBalancesByAccount = accounts.associate { account ->
-                    val history = when (account) {
-                        is TrxAccount.Regular -> accountRepository.getAccountBalanceHistory(
-                            account.id, startMonth, month
-                        ).associate { it.yearMonth to it.balance }
-                        is TrxAccount.Credit -> accountRepository.getCreditBalanceHistory(
-                            account.id, startMonth, month
-                        ).associate { it.yearMonth to -it.balance }
+                val timeZone = TimeZone.currentSystemDefault()
+                val histories = accountRepository.getBalanceHistory(accounts, fullRange, timeZone)
+
+                val netWorthTrend = histories.netWorthPerMonth
+
+                val monthlyBalancesByAccount = histories.balancePerAccountPerMonth.mapValues { (accountId, balances) ->
+                    val account = accounts.first { it.id == accountId }
+                    when (account) {
+                        is TrxAccount.Credit -> balances.map { -it }
+                        is TrxAccount.Regular -> balances
                     }
-                    account.id to fullRange.map { history[it] ?: 0L }
                 }
 
-                val netWorth = accountRepository.getNetWorthByMonth(month)
+                val netWorth = netWorthTrend.lastOrNull() ?: 0L
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
 
                 val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())

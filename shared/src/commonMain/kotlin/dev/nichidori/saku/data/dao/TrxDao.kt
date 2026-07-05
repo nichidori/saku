@@ -66,6 +66,9 @@ interface TrxDao {
         isCredit: Boolean? = null,
     ): List<TrxWithDetailsEntity>
 
+    @Query("SELECT * FROM trx WHERE transaction_at < :endTime ORDER BY transaction_at ASC")
+    suspend fun getAllUpTo(endTime: Long): List<TrxEntity>
+
     @Query(
         """
         SELECT SUM(t.amount) FROM trx t
