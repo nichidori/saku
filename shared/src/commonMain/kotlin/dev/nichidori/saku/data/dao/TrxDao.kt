@@ -42,9 +42,17 @@ interface TrxDao {
               target_account_id = :accountId OR
               target_credit_id = :accountId
           )
-          AND (:accountType IS NULL OR
-               source_account_id IN (SELECT id FROM account WHERE type = :accountType) OR
-               target_account_id IN (SELECT id FROM account WHERE type = :accountType))
+          AND (
+              (:accountType IS NULL AND :isCredit IS NULL)
+              OR
+              (:accountType IS NOT NULL AND (
+                  source_account_id IN (SELECT id FROM account WHERE type = :accountType)
+                  OR
+                  target_account_id IN (SELECT id FROM account WHERE type = :accountType)
+              ))
+              OR
+              (:isCredit = 1 AND (source_credit_id IS NOT NULL OR target_credit_id IS NOT NULL))
+          )
         ORDER BY transaction_at DESC
         """
     )
@@ -55,6 +63,7 @@ interface TrxDao {
         categoryId: String? = null,
         accountId: String? = null,
         accountType: AccountTypeEntity? = null,
+        isCredit: Boolean? = null,
     ): List<TrxWithDetailsEntity>
 
     @Query(

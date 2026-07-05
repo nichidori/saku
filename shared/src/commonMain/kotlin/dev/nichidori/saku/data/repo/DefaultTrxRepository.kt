@@ -198,7 +198,10 @@ class DefaultTrxRepository(
                 type = filter.type?.toEntity(),
                 categoryId = filter.categoryId,
                 accountId = filter.accountId,
-                accountType = filter.accountType?.toEntity(),
+                accountType = if (filter.accountType == AccountType.Credit)
+                    null else filter.accountType?.toEntity(),
+                isCredit = if (filter.accountType == AccountType.Credit)
+                    true else null,
             ).map { it.toDomain() }
         }
     }
