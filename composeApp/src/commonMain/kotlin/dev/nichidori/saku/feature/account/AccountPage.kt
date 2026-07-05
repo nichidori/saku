@@ -272,7 +272,7 @@ fun AccountPageContent(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            AnimatedVisibility(visible = uiState.type == AccountType.Credit) {
+            AnimatedVisibility(visible = uiState.showLimitInput) {
                 MyTextField(
                     value = uiState.limitFormatted,
                     onValueChange = { },
