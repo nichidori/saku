@@ -184,11 +184,18 @@ class TrxListViewModel(
                     || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
             val matchCategory = categoryIds.isEmpty()
                     || trx.category?.let { categoryIds.contains(it.id) } ?: false
-            val sourceType = (trx.sourceAccount as? TrxAccount.Regular)?.account?.type
-            val targetType = (trx as? Trx.Transfer)
-                ?.let { (it.targetAccount as? TrxAccount.Regular)?.account?.type }
+            val sourceType = when (val account = trx.sourceAccount) {
+                is TrxAccount.Regular -> account.account.type
+                is TrxAccount.Credit -> AccountType.Credit
+            }
+            val targetType = (trx as? Trx.Transfer)?.let {
+                when (val account = it.targetAccount) {
+                    is TrxAccount.Regular -> account.account.type
+                    is TrxAccount.Credit -> AccountType.Credit
+                }
+            }
             val matchAccountType = accountTypes.isEmpty()
-                    || (sourceType != null && accountTypes.contains(sourceType))
+                    || accountTypes.contains(sourceType)
                     || (targetType != null && accountTypes.contains(targetType))
             val matchTrxType = trxTypes.isEmpty() || trxTypes.contains(trx.type)
 
