@@ -30,7 +30,12 @@ data class AccountUiState(
     val showLimitInput = type == AccountType.Credit
     val canSave = name.isNotBlank() && balance != null && type != null
             && (if (type == AccountType.Credit) limit != null else true)
-    val balanceFormatted = balance?.toRupiah().orEmpty()
+    val balanceFormatted: String
+        get() {
+            val b = balance ?: return ""
+            val displayAmount = if (type == AccountType.Credit) -b else b
+            return displayAmount.toRupiah()
+        }
     val limitFormatted = limit?.toRupiah().orEmpty()
 }
 

@@ -43,7 +43,13 @@ data class HomeUiState(
     val accountAndTrends = accounts.map { Pair(it, monthlyBalancesByAccount[it.id] ?: listOf()) }
 }
 
-fun TrxAccount.balanceFormatted(show: Boolean) = if (show) currentAmount.toRupiah() else "****"
+fun TrxAccount.balanceFormatted(show: Boolean) = if (show) {
+    val displayAmount = when (this) {
+        is TrxAccount.Credit -> -currentAmount
+        is TrxAccount.Regular -> currentAmount
+    }
+    displayAmount.toRupiah()
+} else "****"
 
 class HomeViewModel(
     private val accountRepository: AccountRepository,
@@ -79,7 +85,7 @@ class HomeViewModel(
                         ).associate { it.yearMonth to it.balance }
                         is TrxAccount.Credit -> accountRepository.getCreditBalanceHistory(
                             account.id, startMonth, month
-                        ).associate { it.yearMonth to it.balance }
+                        ).associate { it.yearMonth to -it.balance }
                     }
                     account.id to fullRange.map { history[it] ?: 0L }
                 }
