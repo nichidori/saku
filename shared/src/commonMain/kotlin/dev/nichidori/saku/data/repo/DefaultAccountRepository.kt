@@ -13,7 +13,6 @@ import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Credit
 import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.repo.AccountRepository
-import dev.nichidori.saku.domain.repo.BalanceHistory
 import kotlinx.datetime.DateTimeUnit.Companion.DAY
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
@@ -94,17 +93,8 @@ class DefaultAccountRepository(
         }
     }
 
-    override suspend fun getBalanceHistory(
-        accounts: List<TrxAccount>,
-        months: List<YearMonth>,
-        timeZone: TimeZone,
-    ): BalanceHistory {
-        if (accounts.isEmpty() || months.isEmpty()) {
-            return BalanceHistory(
-                netWorthPerMonth = months.map { 0L },
-                balancePerAccountPerMonth = accounts.associate { it.id to months.map { 0L } },
-            )
-        }
+    override suspend fun getBalanceHistory(months: List<YearMonth>, timeZone: TimeZone): List<Long> {
+        if (months.isEmpty()) return emptyList()
 
         val endTime = months.last()
             .lastDay.plus(1, DAY)
@@ -112,11 +102,16 @@ class DefaultAccountRepository(
             .toEpochMilliseconds()
         val allTrxs = db.trxDao().getAllUpTo(endTime)
 
+        val accounts = db.accountDao().getAll().map { TrxAccount.Regular(it.toDomain()) }
+        val credits = db.creditDao().getAll().map { TrxAccount.Credit(it.toDomain()) }
+        val trxAccounts = accounts + credits
+        if (trxAccounts.isEmpty()) return months.map { 0L }
+
         val accountTrxs = mutableMapOf<String, MutableList<TrxEntity>>()
         val initialBalances = mutableMapOf<String, Long>()
         val isCreditByAccount = mutableMapOf<String, Boolean>()
 
-        for (account in accounts) {
+        for (account in trxAccounts) {
             accountTrxs[account.id] = mutableListOf()
             when (account) {
                 is TrxAccount.Regular -> {
@@ -147,15 +142,14 @@ class DefaultAccountRepository(
         }
 
         val netWorthPerMonth = months.map { 0L }.toMutableList()
-        val balancePerAccountPerMonth = mutableMapOf<String, List<Long>>()
 
-        for (account in accounts) {
+        for (account in trxAccounts) {
             val trxs = accountTrxs[account.id]!!
             val isCredit = isCreditByAccount[account.id]!!
             var balance = initialBalances[account.id]!!
             var trxIndex = 0
 
-            val monthlyBalances = months.indices.map { i ->
+            for (i in months.indices) {
                 val end = monthEnds[i]
                 while (trxIndex < trxs.size && trxs[trxIndex].transactionAt < end) {
                     val trx = trxs[trxIndex]
@@ -184,18 +178,12 @@ class DefaultAccountRepository(
                     trxIndex++
                 }
 
-                balance
-            }
-
-            balancePerAccountPerMonth[account.id] = monthlyBalances
-
-            for (i in months.indices) {
-                val contribution = if (isCredit) -monthlyBalances[i] else monthlyBalances[i]
+                val contribution = if (isCredit) -balance else balance
                 netWorthPerMonth[i] = netWorthPerMonth[i] + contribution
             }
         }
 
-        return BalanceHistory(netWorthPerMonth, balancePerAccountPerMonth)
+        return netWorthPerMonth
     }
 
     override suspend fun addCredit(name: String, limit: Long, currentAmount: Long) {

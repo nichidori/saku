@@ -156,18 +156,11 @@ class DefaultAccountRepositoryTest {
         val previousMonth = currentMonth.minus(1, DateTimeUnit.MONTH)
         val months = listOf(previousMonth, currentMonth)
 
-        val accounts = repository.getAllTrxAccounts()
-        assertEquals(1, accounts.size)
+        val result = repository.getBalanceHistory(months, TimeZone.UTC)
 
-        val result = repository.getBalanceHistory(accounts, months, TimeZone.UTC)
-
-        assertEquals(2, result.netWorthPerMonth.size)
-        assertEquals(10_000L, result.netWorthPerMonth[0])
-        assertEquals(15_000L, result.netWorthPerMonth[1])
-
-        val accBalances = result.balancePerAccountPerMonth["acc-hist"]!!
-        assertEquals(10_000L, accBalances[0])
-        assertEquals(15_000L, accBalances[1])
+        assertEquals(2, result.size)
+        assertEquals(10_000L, result[0])
+        assertEquals(15_000L, result[1])
     }
 
     @Test
@@ -240,33 +233,22 @@ class DefaultAccountRepositoryTest {
         val previousMonth = currentMonth.minus(1, DateTimeUnit.MONTH)
         val months = listOf(previousMonth, currentMonth)
 
-        val accounts = repository.getAllTrxAccounts()
-        val result = repository.getBalanceHistory(accounts, months, TimeZone.UTC)
+        val result = repository.getBalanceHistory(months, TimeZone.UTC)
 
-        assertEquals(2, result.netWorthPerMonth.size)
-        assertEquals(25_000L, result.netWorthPerMonth[0])
-        assertEquals(22_000L, result.netWorthPerMonth[1])
-
-        val sourceBalances = result.balancePerAccountPerMonth["acc-source"]!!
-        assertEquals(20_000L, sourceBalances[0])
-        assertEquals(15_000L, sourceBalances[1])
-
-        val targetBalances = result.balancePerAccountPerMonth["acc-target"]!!
-        assertEquals(5_000L, targetBalances[0])
-        assertEquals(7_000L, targetBalances[1])
+        assertEquals(2, result.size)
+        assertEquals(25_000L, result[0])
+        assertEquals(22_000L, result[1])
     }
 
     @Test
     fun getBalanceHistory_withEmptyAccounts_shouldReturnAllZeros() = runTest {
         val month = YearMonth(2025, 1)
         val result = repository.getBalanceHistory(
-            accounts = emptyList(),
             months = listOf(month),
             timeZone = TimeZone.UTC,
         )
 
-        assertEquals(listOf(0L), result.netWorthPerMonth)
-        assertTrue(result.balancePerAccountPerMonth.isEmpty())
+        assertEquals(listOf(0L), result)
     }
 
     @Test
@@ -276,11 +258,8 @@ class DefaultAccountRepositoryTest {
         val month = YearMonth(2025, 1)
         val months = listOf(month)
 
-        val accounts = repository.getAllTrxAccounts()
-        val result = repository.getBalanceHistory(accounts, months, TimeZone.UTC)
+        val result = repository.getBalanceHistory(months, TimeZone.UTC)
 
-        assertEquals(listOf(10_000L), result.netWorthPerMonth)
-        val balances = result.balancePerAccountPerMonth["acc-1"]!!
-        assertEquals(listOf(10_000L), balances)
+        assertEquals(listOf(10_000L), result)
     }
 }

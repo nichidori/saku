@@ -36,11 +36,9 @@ data class HomeUiState(
     val accounts: List<TrxAccount> = emptyList(),
     val budgets: List<ActiveBudget> = emptyList(),
     val trxs: List<Trx> = emptyList(),
-    val monthlyBalancesByAccount: Map<String, List<Long>> = emptyMap(),
     val showBalance: Boolean = false,
 ) {
     val netWorthFormatted = if (showBalance) netWorth.toRupiah() else "****"
-    val accountAndTrends = accounts.map { Pair(it, monthlyBalancesByAccount[it.id] ?: listOf()) }
 }
 
 fun TrxAccount.balanceFormatted(show: Boolean) = if (show) {
@@ -74,17 +72,7 @@ class HomeViewModel(
 
                 val accounts = accountRepository.getAllTrxAccounts()
                 val timeZone = TimeZone.currentSystemDefault()
-                val histories = accountRepository.getBalanceHistory(accounts, fullRange, timeZone)
-
-                val netWorthTrend = histories.netWorthPerMonth
-
-                val monthlyBalancesByAccount = histories.balancePerAccountPerMonth.mapValues { (accountId, balances) ->
-                    val account = accounts.first { it.id == accountId }
-                    when (account) {
-                        is TrxAccount.Credit -> balances.map { -it }
-                        is TrxAccount.Regular -> balances
-                    }
-                }
+                val netWorthTrend = accountRepository.getBalanceHistory(fullRange, timeZone)
 
                 val netWorth = netWorthTrend.lastOrNull() ?: 0L
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
@@ -117,7 +105,6 @@ class HomeViewModel(
                         accounts = accounts,
                         budgets = budgets,
                         trxs = trxs,
-                        monthlyBalancesByAccount = monthlyBalancesByAccount,
                     )
                 }
             } catch (e: Exception) {

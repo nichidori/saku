@@ -150,7 +150,7 @@ fun HomePageContent(
                     || uiState.budgets.isNotEmpty()
                 ) item {
                     AccountSection(
-                        accountAndTrends = uiState.accountAndTrends,
+                        accounts = uiState.accounts,
                         showBalance = uiState.showBalance,
                         onAccountClick = onAccountClick,
                         onNewAccountClick = onNewAccountClick,
@@ -212,7 +212,7 @@ fun TrendCard(
 
 @Composable
 fun AccountSection(
-    accountAndTrends: List<Pair<TrxAccount, List<Long>>>,
+    accounts: List<TrxAccount>,
     showBalance: Boolean,
     onAccountClick: (String) -> Unit,
     onNewAccountClick: () -> Unit,
@@ -238,8 +238,8 @@ fun AccountSection(
                 )
             }
         }
-        if (accountAndTrends.isNotEmpty()) {
-            accountAndTrends.chunked(2).forEachIndexed { i, row ->
+        if (accounts.isNotEmpty()) {
+            accounts.chunked(2).forEachIndexed { i, row ->
                 if (i > 0) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -249,7 +249,7 @@ fun AccountSection(
                 ) {
                     row.forEach { account ->
                         AccountCard(
-                            accountAndTrend = account,
+                            account = account,
                             showBalance = showBalance,
                             onClick = onAccountClick,
                             modifier = Modifier.weight(1f)
@@ -273,41 +273,23 @@ fun AccountSection(
 
 @Composable
 fun AccountCard(
-    accountAndTrend: Pair<TrxAccount, List<Long>>,
+    account: TrxAccount,
     showBalance: Boolean,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (account, trend) = accountAndTrend
-
     MyBox(
         modifier = modifier
             .clip(MyDefaultShape)
             .clickable { onClick(account.id) },
     ) {
-        Column {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(account.name, style = MaterialTheme.typography.labelSmall)
-                Text(
-                    account.balanceFormatted(show = showBalance),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            AnimatedVisibility(
-                visible = showBalance,
-                enter = expandVertically(clip = false) + fadeIn(),
-                exit = shrinkVertically(clip = false) + fadeOut(),
-            ) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LineChart(
-                        data = trend,
-                        bottomPadding = 12.dp,
-                        modifier = Modifier.fillMaxWidth().height(40.dp)
-                    )
-                }
-            }
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(account.name, style = MaterialTheme.typography.labelSmall)
+            Text(
+                account.balanceFormatted(show = showBalance),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
