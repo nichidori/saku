@@ -4,17 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +17,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.*
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Trash
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.Success
@@ -32,7 +26,6 @@ import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.AccountType
-import androidx.compose.foundation.shape.ZeroCornerSize
 
 @Composable
 fun AccountPage(
@@ -148,7 +141,7 @@ fun AccountPageContent(
                 title = "Account",
                 onUp = onUp,
                 action = {
-                    if (uiState.canDelete) {
+                    if (uiState.isEditing) {
                         MyIconButton(
                             content = {
                                 Icon(
@@ -255,9 +248,9 @@ fun AccountPageContent(
                 onValueChange = {},
                 label = "Type",
                 readOnly = true,
-                modifier = Modifier.onFocusChanged { focusState ->
+                modifier = if (!uiState.isEditing) Modifier.onFocusChanged { focusState ->
                     showTypeInput = focusState.isFocused
-                }
+                } else Modifier
             )
             Spacer(modifier = Modifier.height(24.dp))
 

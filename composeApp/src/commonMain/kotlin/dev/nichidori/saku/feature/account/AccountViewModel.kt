@@ -23,7 +23,7 @@ data class AccountUiState(
     val balance: Long? = null,
     val limit: Long? = null,
     val type: AccountType? = null,
-    val canDelete: Boolean = false,
+    val isEditing: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
     val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
@@ -63,7 +63,7 @@ class AccountViewModel(
                         balance = account?.currentAmount ?: credit?.currentAmount,
                         limit = credit?.limit,
                         type = if (credit != null) AccountType.Credit else account?.type,
-                        canDelete = account != null || credit != null
+                        isEditing = account != null || credit != null
                     )
                 }
             }
@@ -82,6 +82,7 @@ class AccountViewModel(
 
     fun onTypeChange(newValue: AccountType) {
         _uiState.update {
+            if (it.isEditing) return
             it.copy(
                 type = newValue,
                 limit = if (newValue != AccountType.Credit) null else it.limit
