@@ -959,4 +959,183 @@ class DefaultTrxRepositoryTest {
         assertEquals(0L, updatedBudget.budget.spentAmount)
     }
 
+    // TrxTemplate tests
+
+    @Test
+    fun addTrxTemplate_shouldInsertWithGeneratedId() = runTest {
+        repository.addTrxTemplate(
+            name = "Groceries",
+            type = TrxType.Expense,
+            description = "Weekly groceries",
+            amount = 500_000L,
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+
+        val templates = repository.getAllTrxTemplates()
+        assertEquals(1, templates.size)
+        assertEquals("Groceries", templates[0].name)
+        assertEquals(TrxType.Expense, templates[0].type)
+        assertEquals("Weekly groceries", templates[0].description)
+        assertEquals(500_000L, templates[0].amount)
+        assertEquals(expenseCategory.id, templates[0].category?.id)
+        assertEquals(cashAccount.id, templates[0].sourceAccount.id)
+        assertNull(templates[0].targetAccount)
+        assertNotNull(templates[0].id)
+    }
+
+    @Test
+    fun addTrxTemplate_shouldThrowWhenSourceAndTargetAreSame() = runTest {
+        assertFailsWith<IllegalStateException> {
+            repository.addTrxTemplate(
+                name = "Self Transfer",
+                type = TrxType.Transfer,
+                description = "Transfer to self",
+                amount = 100_000L,
+                sourceAccount = TrxAccount.Regular(cashAccount),
+                targetAccount = TrxAccount.Regular(cashAccount),
+                category = null,
+            )
+        }
+    }
+
+    @Test
+    fun getTrxTemplateById_shouldReturnTemplate() = runTest {
+        repository.addTrxTemplate(
+            name = "Salary",
+            type = TrxType.Income,
+            description = "Monthly salary",
+            amount = 5_000_000L,
+            sourceAccount = TrxAccount.Regular(bankAccount),
+            targetAccount = null,
+            category = incomeCategory,
+        )
+
+        val all = repository.getAllTrxTemplates()
+        val template = repository.getTrxTemplateById(all[0].id)
+
+        assertNotNull(template)
+        assertEquals("Salary", template.name)
+        assertEquals(TrxType.Income, template.type)
+        assertEquals(5_000_000L, template.amount)
+        assertEquals(bankAccount.id, template.sourceAccount.id)
+    }
+
+    @Test
+    fun getTrxTemplateById_withNonExistentId_shouldReturnNull() = runTest {
+        val result = repository.getTrxTemplateById("non-existent-id")
+        assertNull(result)
+    }
+
+    @Test
+    fun getAllTrxTemplates_shouldReturnAllTemplates() = runTest {
+        repository.addTrxTemplate(
+            name = "Salary",
+            type = TrxType.Income,
+            description = "Monthly salary",
+            amount = 5_000_000L,
+            sourceAccount = TrxAccount.Regular(bankAccount),
+            targetAccount = null,
+            category = incomeCategory,
+        )
+        repository.addTrxTemplate(
+            name = "Groceries",
+            type = TrxType.Expense,
+            description = "Weekly groceries",
+            amount = 500_000L,
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+        repository.addTrxTemplate(
+            name = "Deposit",
+            type = TrxType.Transfer,
+            description = "Transfer to bank",
+            amount = 1_000_000L,
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = TrxAccount.Regular(bankAccount),
+            category = null,
+        )
+
+        val templates = repository.getAllTrxTemplates()
+        assertEquals(3, templates.size)
+    }
+
+    @Test
+    fun updateTrxTemplate_shouldUpdateFields() = runTest {
+        repository.addTrxTemplate(
+            name = "Groceries",
+            type = TrxType.Expense,
+            description = "Weekly groceries",
+            amount = 500_000L,
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+
+        val template = repository.getAllTrxTemplates()[0]
+
+        repository.updateTrxTemplate(
+            id = template.id,
+            name = "Monthly Groceries",
+            type = TrxType.Expense,
+            description = "Monthly groceries budget",
+            amount = 2_000_000L,
+            sourceAccount = TrxAccount.Regular(bankAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+
+        val updated = repository.getTrxTemplateById(template.id)
+        assertNotNull(updated)
+        assertEquals("Monthly Groceries", updated.name)
+        assertEquals("Monthly groceries budget", updated.description)
+        assertEquals(2_000_000L, updated.amount)
+        assertEquals(bankAccount.id, updated.sourceAccount.id)
+        assertNotNull(updated.updatedAt)
+    }
+
+    @Test
+    fun updateTrxTemplate_shouldThrowIfNotFound() = runTest {
+        assertFailsWith<NoSuchElementException> {
+            repository.updateTrxTemplate(
+                id = "non-existent-id",
+                name = "Updated",
+                type = TrxType.Expense,
+                description = "Updated",
+                amount = 100L,
+                sourceAccount = TrxAccount.Regular(cashAccount),
+                targetAccount = null,
+                category = expenseCategory,
+            )
+        }
+    }
+
+    @Test
+    fun deleteTrxTemplate_shouldDelete() = runTest {
+        repository.addTrxTemplate(
+            name = "Groceries",
+            type = TrxType.Expense,
+            description = "Weekly groceries",
+            amount = 500_000L,
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+
+        val template = repository.getAllTrxTemplates()[0]
+        repository.deleteTrxTemplate(template.id)
+
+        assertNull(repository.getTrxTemplateById(template.id))
+        assertEquals(0, repository.getAllTrxTemplates().size)
+    }
+
+    @Test
+    fun deleteTrxTemplate_shouldThrowIfNotFound() = runTest {
+        assertFailsWith<NoSuchElementException> {
+            repository.deleteTrxTemplate("non-existent-id")
+        }
+    }
+
 }
