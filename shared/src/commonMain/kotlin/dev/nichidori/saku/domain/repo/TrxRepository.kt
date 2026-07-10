@@ -1,10 +1,6 @@
 package dev.nichidori.saku.domain.repo
 
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxAccount
-import dev.nichidori.saku.domain.model.TrxFilter
-import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.*
 import kotlin.time.Instant
 
 interface TrxRepository {
@@ -32,4 +28,28 @@ interface TrxRepository {
     )
 
     suspend fun deleteTrx(id: String)
+    suspend fun addTrxTemplate(
+        name: String,
+        type: TrxType,
+        description: String,
+        amount: Long,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
+        category: Category?,
+    )
+
+    suspend fun getTrxTemplateById(id: String): TrxTemplate?
+    suspend fun getAllTrxTemplates(): List<TrxTemplate>
+    suspend fun updateTrxTemplate(
+        id: String,
+        name: String,
+        type: TrxType,
+        description: String,
+        amount: Long,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
+        category: Category?,
+    )
+
+    suspend fun deleteTrxTemplate(id: String)
 }

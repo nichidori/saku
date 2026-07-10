@@ -1,0 +1,64 @@
+package dev.nichidori.saku.data.entity
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "trx_template",
+    foreignKeys = [
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["category_id"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["source_account_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = CreditEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["source_credit_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["target_account_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = CreditEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["target_credit_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+    ],
+    indices = [
+        Index(value = ["category_id"]),
+        Index(value = ["source_account_id"]),
+        Index(value = ["source_credit_id"]),
+        Index(value = ["target_account_id"]),
+        Index(value = ["target_credit_id"]),
+    ]
+)
+data class TrxTemplateEntity(
+    @PrimaryKey @ColumnInfo(name = "id") val id: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: TrxTypeEntity,
+    @ColumnInfo(name = "description") val description: String,
+    @ColumnInfo(name = "amount") val amount: Long,
+    @ColumnInfo(name = "category_id") val categoryId: String?,
+    @ColumnInfo(name = "source_account_id") val sourceAccountId: String?,
+    @ColumnInfo(name = "source_credit_id") val sourceCreditId: String?,
+    @ColumnInfo(name = "target_account_id") val targetAccountId: String?,
+    @ColumnInfo(name = "target_credit_id") val targetCreditId: String?,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long?,
+)

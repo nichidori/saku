@@ -7,18 +7,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
-import dev.nichidori.saku.data.dao.AccountDao
-import dev.nichidori.saku.data.dao.BudgetDao
-import dev.nichidori.saku.data.dao.BudgetTemplateDao
-import dev.nichidori.saku.data.dao.CategoryDao
-import dev.nichidori.saku.data.dao.CreditDao
-import dev.nichidori.saku.data.dao.TrxDao
-import dev.nichidori.saku.data.entity.AccountEntity
-import dev.nichidori.saku.data.entity.BudgetEntity
-import dev.nichidori.saku.data.entity.BudgetTemplateEntity
-import dev.nichidori.saku.data.entity.CategoryEntity
-import dev.nichidori.saku.data.entity.CreditEntity
-import dev.nichidori.saku.data.entity.TrxEntity
+import dev.nichidori.saku.data.dao.*
+import dev.nichidori.saku.data.entity.*
 import kotlinx.coroutines.Dispatchers
 
 @Database(
@@ -29,8 +19,9 @@ import kotlinx.coroutines.Dispatchers
         BudgetEntity::class,
         BudgetTemplateEntity::class,
         CreditEntity::class,
+        TrxTemplateEntity::class,
     ],
-    version = 7,
+    version = 8,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -39,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun budgetTemplateDao(): BudgetTemplateDao
     abstract fun creditDao(): CreditDao
+    abstract fun trxTemplateDao(): TrxTemplateDao
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -274,11 +266,58 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
     }
 }
 
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `trx_template` (
+                `id` TEXT NOT NULL,
+                `name` TEXT NOT NULL,
+                `type` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `amount` INTEGER NOT NULL,
+                `category_id` TEXT,
+                `source_account_id` TEXT,
+                `source_credit_id` TEXT,
+                `target_account_id` TEXT,
+                `target_credit_id` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`category_id`) REFERENCES `category`(`id`)
+                    ON UPDATE NO ACTION ON DELETE SET NULL,
+                FOREIGN KEY(`source_account_id`) REFERENCES `account`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`source_credit_id`) REFERENCES `credit`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`target_account_id`) REFERENCES `account`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`target_credit_id`) REFERENCES `credit`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_template_category_id` ON `trx_template` (`category_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_template_source_account_id` ON `trx_template` (`source_account_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_template_source_credit_id` ON `trx_template` (`source_credit_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_template_target_account_id` ON `trx_template` (`target_account_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_template_target_credit_id` ON `trx_template` (`target_credit_id`)")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
     return builder
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+        .addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+            MIGRATION_3_4,
+            MIGRATION_4_5,
+            MIGRATION_5_6,
+            MIGRATION_6_7,
+            MIGRATION_7_8
+        )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)

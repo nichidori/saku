@@ -21,6 +21,7 @@ class DefaultTrxRepository(
 ) : TrxRepository {
 
     private val trxDao = db.trxDao()
+    private val trxTemplateDao = db.trxTemplateDao()
     private val accountDao = db.accountDao()
     private val creditDao = db.creditDao()
     private val budgetDao = db.budgetDao()
@@ -417,6 +418,99 @@ class DefaultTrxRepository(
                 }
 
                 trxDao.deleteById(id)
+            }
+        }
+    }
+
+    override suspend fun addTrxTemplate(
+        name: String,
+        type: TrxType,
+        description: String,
+        amount: Long,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
+        category: Category?,
+    ) {
+        if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
+            error("Target account cannot be the same as source account")
+        }
+
+        val template = TrxTemplate(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            type = type,
+            description = description,
+            amount = amount,
+            category = category,
+            sourceAccount = sourceAccount,
+            targetAccount = targetAccount,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+
+        db.useWriterConnection {
+            it.immediateTransaction {
+                try {
+                    trxTemplateDao.insert(template.toEntity())
+                } catch (e: SQLiteException) {
+                    if (e.message?.contains("FOREIGN KEY constraint failed") == true) {
+                        error("Referenced account or category not found")
+                    }
+                    throw e
+                }
+            }
+        }
+    }
+
+    override suspend fun getTrxTemplateById(id: String): TrxTemplate? {
+        return trxTemplateDao.getByIdWithDetails(id)?.toDomain()
+    }
+
+    override suspend fun getAllTrxTemplates(): List<TrxTemplate> {
+        return db.useReaderConnection {
+            trxTemplateDao.getAllWithDetails().map { it.toDomain() }
+        }
+    }
+
+    override suspend fun updateTrxTemplate(
+        id: String,
+        name: String,
+        type: TrxType,
+        description: String,
+        amount: Long,
+        sourceAccount: TrxAccount,
+        targetAccount: TrxAccount?,
+        category: Category?,
+    ) {
+        if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
+            error("Target account cannot be the same as source account")
+        }
+
+        db.useWriterConnection {
+            it.immediateTransaction {
+                val existing = trxTemplateDao.getByIdWithDetails(id)?.toDomain()
+                    ?: throw NoSuchElementException("Transaction template not found")
+                val updated = existing.copy(
+                    name = name,
+                    type = type,
+                    description = description,
+                    amount = amount,
+                    sourceAccount = sourceAccount,
+                    targetAccount = targetAccount,
+                    category = category,
+                    updatedAt = Clock.System.now()
+                )
+                trxTemplateDao.update(updated.toEntity())
+            }
+        }
+    }
+
+    override suspend fun deleteTrxTemplate(id: String) {
+        db.useWriterConnection {
+            it.immediateTransaction {
+                trxTemplateDao.getByIdWithDetails(id)
+                    ?: throw NoSuchElementException("Transaction template not found")
+                trxTemplateDao.deleteById(id)
             }
         }
     }

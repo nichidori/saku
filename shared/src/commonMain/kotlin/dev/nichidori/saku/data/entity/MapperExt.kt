@@ -258,6 +258,69 @@ fun Budget.toEntity(): BudgetEntity = BudgetEntity(
     updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
+fun TrxTemplateEntity.toDomain(
+    category: Category?,
+    sourceAccount: TrxAccount,
+    targetAccount: TrxAccount?,
+): TrxTemplate = TrxTemplate(
+    id = id,
+    name = name,
+    type = type.toDomain(),
+    description = description,
+    amount = amount,
+    category = category,
+    sourceAccount = sourceAccount,
+    targetAccount = targetAccount,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+)
+
+fun TrxTemplateWithDetailsEntity.toDomain(): TrxTemplate {
+    val source = resolveSourceAccount()
+        ?: error("Source account not found for trx template ${trxTemplate.id}")
+    val target = resolveTargetAccount()
+
+    return TrxTemplate(
+        id = trxTemplate.id,
+        name = trxTemplate.name,
+        type = trxTemplate.type.toDomain(),
+        description = trxTemplate.description,
+        amount = trxTemplate.amount,
+        category = categoryWithParent?.category?.toDomain(
+            parent = categoryWithParent.parent?.toDomain()
+        ),
+        sourceAccount = source,
+        targetAccount = target,
+        createdAt = Instant.fromEpochMilliseconds(trxTemplate.createdAt),
+        updatedAt = trxTemplate.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+    )
+}
+
+fun TrxTemplate.toEntity(): TrxTemplateEntity = TrxTemplateEntity(
+    id = id,
+    name = name,
+    type = type.toEntity(),
+    description = description,
+    amount = amount,
+    categoryId = category?.id,
+    sourceAccountId = (sourceAccount as? TrxAccount.Regular)?.account?.id,
+    sourceCreditId = (sourceAccount as? TrxAccount.Credit)?.credit?.id,
+    targetAccountId = (targetAccount as? TrxAccount.Regular)?.account?.id,
+    targetCreditId = (targetAccount as? TrxAccount.Credit)?.credit?.id,
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
+)
+
+private fun TrxTemplateWithDetailsEntity.resolveSourceAccount(): TrxAccount? {
+    return sourceAccount?.toDomain()?.let { TrxAccount.Regular(it) }
+        ?: sourceCredit?.toDomain()?.let { TrxAccount.Credit(it) }
+}
+
+private fun TrxTemplateWithDetailsEntity.resolveTargetAccount(): TrxAccount? {
+    return targetAccount?.toDomain()?.let { TrxAccount.Regular(it) }
+        ?: targetCredit?.toDomain()?.let { TrxAccount.Credit(it) }
+}
+
 fun BudgetTemplateEntity.toDomain(category: Category): BudgetTemplate = BudgetTemplate(
     id = id,
     category = category,
