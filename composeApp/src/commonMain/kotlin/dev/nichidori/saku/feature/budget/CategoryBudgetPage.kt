@@ -2,9 +2,12 @@ package dev.nichidori.saku.feature.budget
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -19,9 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
@@ -127,6 +132,70 @@ fun CategoryBudgetPageContent(
         }
     }
 
+    val listState = rememberLazyListState()
+    val chartScrollState = rememberScrollState()
+    val density = LocalDensity.current
+    val columnWidthPx = with(density) { 56.dp.toPx() }
+
+    val sortedBudgets = remember(uiState.budgets) { uiState.budgets.sortedBy { it.month } }
+
+    val minVisibleMonths = 6
+    val chartMonthCount = sortedBudgets.size.coerceAtLeast(minVisibleMonths)
+    val chartWidthDp = with(density) { (chartMonthCount * columnWidthPx).toDp() }
+    val isScrollable = sortedBudgets.size > minVisibleMonths
+
+    LaunchedEffect(sortedBudgets.size) {
+        if (isScrollable) {
+            val initialScroll = ((sortedBudgets.size - minVisibleMonths) * columnWidthPx).toInt()
+            chartScrollState.scrollTo(initialScroll)
+        }
+    }
+
+    var isSyncing by remember { mutableStateOf(false) }
+    var chartUserScrolled by remember { mutableStateOf(false) }
+
+    LaunchedEffect(chartScrollState) {
+        snapshotFlow { chartScrollState.isScrollInProgress }
+            .collect { inProgress ->
+                if (inProgress) chartUserScrolled = true
+            }
+    }
+
+    // List → Chart sync
+    LaunchedEffect(listState, sortedBudgets.size) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { firstIndex ->
+                if (isSyncing || sortedBudgets.isEmpty()) return@collect
+                // Budget items start at index 2 (after template + header)
+                val budgetItemIndex = firstIndex - 2
+                if (budgetItemIndex < 0) return@collect
+                val ascendingIndex = (sortedBudgets.size - 1 - budgetItemIndex).coerceIn(0, sortedBudgets.lastIndex)
+                val targetScroll = (ascendingIndex * columnWidthPx).toInt().coerceIn(0, chartScrollState.maxValue)
+                if (kotlin.math.abs(chartScrollState.value - targetScroll) > columnWidthPx / 2) {
+                    isSyncing = true
+                    chartScrollState.animateScrollTo(targetScroll)
+                    isSyncing = false
+                }
+            }
+    }
+
+    // Chart → List sync
+    LaunchedEffect(chartScrollState, sortedBudgets.size) {
+        snapshotFlow { chartScrollState.value }
+            .collect { scrollValue ->
+                if (isSyncing || !chartUserScrolled || sortedBudgets.isEmpty()) return@collect
+                val ascendingIndex = (scrollValue / columnWidthPx).toInt().coerceIn(0, sortedBudgets.lastIndex)
+                val descendingIndex = sortedBudgets.size - 1 - ascendingIndex
+                val listChildIndex = descendingIndex + 2 // offset for template + header items
+                val firstVisible = listState.firstVisibleItemIndex
+                if (kotlin.math.abs(firstVisible - listChildIndex) > 0) {
+                    isSyncing = true
+                    listState.animateScrollToItem(listChildIndex)
+                    isSyncing = false
+                }
+            }
+    }
+
     Scaffold(
         topBar = {
             MyAppBar(
@@ -150,62 +219,88 @@ fun CategoryBudgetPageContent(
         modifier = modifier
     ) { contentPadding ->
         LazyColumn(
+            state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(contentPadding).fillMaxSize()
         ) {
             uiState.template?.let { template ->
                 item {
-                    Text(
-                        "Category",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    Text(
-                        template.category.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    MyBox(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onDefaultBudgetClick(template.id) }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Row {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Default",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
+                                "Category",
+                                style = MaterialTheme.typography.labelSmall,
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                template.defaultAmount.toRupiah(),
-                                style = MaterialTheme.typography.bodyMedium,
+                                template.category.name,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        MyBox(
+                            modifier = Modifier
+                                .clickable { onDefaultBudgetClick(template.id) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Default",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    template.defaultAmount.toRupiah(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
-            }
 
-            if (uiState.budgets.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Monthly Budget",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                if (sortedBudgets.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val chartModifier = if (isScrollable) {
+                            Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(chartScrollState)
+                        } else {
+                            Modifier.fillMaxWidth()
+                        }
+                        Box(
+                            modifier = chartModifier,
+                            contentAlignment = if (isScrollable) Alignment.CenterEnd else Alignment.Center
+                        ) {
+                        BudgetComparisonChart(
+                            budgets = sortedBudgets,
+                            chartMonthCount = chartMonthCount,
+                            modifier = Modifier.width(chartWidthDp)
+                        )
+                        }
+                    }
                 }
 
-                items(uiState.budgets) { budget ->
-                    MonthBudgetItem(
-                        budget = budget,
-                        onClick = { onMonthBudgetClick(budget.id) }
-                    )
+                if (sortedBudgets.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Monthly Budget",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    items(uiState.budgets) { budget ->
+                        MonthBudgetItem(
+                            budget = budget,
+                            onClick = { onMonthBudgetClick(budget.id) }
+                        )
+                    }
                 }
             }
         }
