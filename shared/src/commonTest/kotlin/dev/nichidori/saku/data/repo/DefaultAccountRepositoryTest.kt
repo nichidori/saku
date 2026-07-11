@@ -117,6 +117,7 @@ class DefaultAccountRepositoryTest {
             id = "acc-hist",
             initialAmount = 10_000L,
             currentAmount = 10_000L,
+            createdAt = Instant.fromEpochMilliseconds(0),
         )
         db.accountDao().insert(testAccount.toEntity())
 
@@ -175,11 +176,13 @@ class DefaultAccountRepositoryTest {
             id = "acc-source",
             initialAmount = 20_000L,
             currentAmount = 20_000L,
+            createdAt = Instant.fromEpochMilliseconds(0),
         )
         val target = account.copy(
             id = "acc-target",
             initialAmount = 5_000L,
             currentAmount = 5_000L,
+            createdAt = Instant.fromEpochMilliseconds(0),
         )
         db.accountDao().insert(source.toEntity())
         db.accountDao().insert(target.toEntity())
@@ -253,7 +256,7 @@ class DefaultAccountRepositoryTest {
 
     @Test
     fun getBalanceHistory_withNoTransactions_shouldUseInitialBalances() = runTest {
-        db.accountDao().insert(account.toEntity())
+        db.accountDao().insert(account.copy(createdAt = Instant.fromEpochMilliseconds(0)).toEntity())
 
         val month = YearMonth(2025, 1)
         val months = listOf(month)

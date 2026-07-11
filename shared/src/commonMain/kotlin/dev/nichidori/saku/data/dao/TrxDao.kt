@@ -71,6 +71,15 @@ interface TrxDao {
 
     @Query(
         """
+        SELECT * FROM trx
+        WHERE source_credit_id = :creditId OR target_credit_id = :creditId
+        ORDER BY transaction_at ASC
+        """
+    )
+    suspend fun getAllByCreditId(creditId: String): List<TrxEntity>
+
+    @Query(
+        """
         SELECT SUM(t.amount) FROM trx t
         INNER JOIN category c ON t.category_id = c.id
         WHERE t.transaction_at >= :startTime

@@ -18,6 +18,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import java.util.*
 import kotlin.time.Clock
 
@@ -110,6 +111,7 @@ class DefaultAccountRepository(
         val accountTrxs = mutableMapOf<String, MutableList<TrxEntity>>()
         val initialBalances = mutableMapOf<String, Long>()
         val isCreditByAccount = mutableMapOf<String, Boolean>()
+        val creationMonth = mutableMapOf<String, YearMonth>()
 
         for (account in trxAccounts) {
             accountTrxs[account.id] = mutableListOf()
@@ -117,11 +119,17 @@ class DefaultAccountRepository(
                 is TrxAccount.Regular -> {
                     initialBalances[account.id] = account.account.initialAmount
                     isCreditByAccount[account.id] = false
+                    creationMonth[account.id] = account.account.createdAt
+                        .toLocalDateTime(timeZone)
+                        .let { YearMonth(it.year, it.month) }
                 }
 
                 is TrxAccount.Credit -> {
                     initialBalances[account.id] = 0L
                     isCreditByAccount[account.id] = true
+                    creationMonth[account.id] = account.credit.createdAt
+                        .toLocalDateTime(timeZone)
+                        .let { YearMonth(it.year, it.month) }
                 }
             }
         }
@@ -137,6 +145,18 @@ class DefaultAccountRepository(
             trxs.sortBy { it.transactionAt }
         }
 
+        // Derive credit opening balance: current stored debt minus all transaction deltas
+        for (account in trxAccounts) {
+            if (account is TrxAccount.Credit) {
+                val creditTrxs = db.trxDao().getAllByCreditId(account.id)
+                var sumDeltas = 0L
+                for (trx in creditTrxs) {
+                    sumDeltas += accountDelta(account.id, trx, isCredit = true)
+                }
+                initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+            }
+        }
+
         val monthEnds = months.map { month ->
             month.lastDay.plus(1, DAY).atStartOfDayIn(timeZone).toEpochMilliseconds()
         }
@@ -146,35 +166,18 @@ class DefaultAccountRepository(
         for (account in trxAccounts) {
             val trxs = accountTrxs[account.id]!!
             val isCredit = isCreditByAccount[account.id]!!
+            val creation = creationMonth[account.id]!!
+            if (months.none { it >= creation }) continue
+
             var balance = initialBalances[account.id]!!
             var trxIndex = 0
 
             for (i in months.indices) {
+                if (months[i] < creation) continue
+
                 val end = monthEnds[i]
                 while (trxIndex < trxs.size && trxs[trxIndex].transactionAt < end) {
-                    val trx = trxs[trxIndex]
-                    val isSource = trx.sourceAccountId == account.id || trx.sourceCreditId == account.id
-                    val isTarget = trx.targetAccountId == account.id || trx.targetCreditId == account.id
-
-                    balance += when (trx.type) {
-                        TrxTypeEntity.Income -> {
-                            if (isSource) if (isCredit) -trx.amount else trx.amount else 0L
-                        }
-
-                        TrxTypeEntity.Expense -> {
-                            if (isSource) if (isCredit) trx.amount else -trx.amount else 0L
-                        }
-
-                        TrxTypeEntity.Transfer -> {
-                            when {
-                                isSource && isTarget -> 0L
-                                isSource -> if (isCredit) trx.amount else -trx.amount
-                                isTarget -> if (isCredit) -trx.amount else trx.amount
-                                else -> 0L
-                            }
-                        }
-                    }
-
+                    balance += accountDelta(account.id, trxs[trxIndex], isCredit)
                     trxIndex++
                 }
 
@@ -184,6 +187,30 @@ class DefaultAccountRepository(
         }
 
         return netWorthPerMonth
+    }
+
+    private fun accountDelta(accountId: String, trx: TrxEntity, isCredit: Boolean): Long {
+        val isSource = trx.sourceAccountId == accountId || trx.sourceCreditId == accountId
+        val isTarget = trx.targetAccountId == accountId || trx.targetCreditId == accountId
+
+        return when (trx.type) {
+            TrxTypeEntity.Income -> {
+                if (isSource) if (isCredit) -trx.amount else trx.amount else 0L
+            }
+
+            TrxTypeEntity.Expense -> {
+                if (isSource) if (isCredit) trx.amount else -trx.amount else 0L
+            }
+
+            TrxTypeEntity.Transfer -> {
+                when {
+                    isSource && isTarget -> 0L
+                    isSource -> if (isCredit) trx.amount else -trx.amount
+                    isTarget -> if (isCredit) -trx.amount else trx.amount
+                    else -> 0L
+                }
+            }
+        }
     }
 
     override suspend fun addCredit(name: String, limit: Long, currentAmount: Long) {
