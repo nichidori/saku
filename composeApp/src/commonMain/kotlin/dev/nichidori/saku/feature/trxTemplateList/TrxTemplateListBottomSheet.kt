@@ -1,21 +1,17 @@
 package dev.nichidori.saku.feature.trxTemplateList
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.nichidori.saku.core.composable.MyButton
 import dev.nichidori.saku.core.composable.MyDefaultShape
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.domain.model.TrxType
@@ -26,6 +22,7 @@ fun TrxTemplateListBottomSheet(
     viewModel: TrxTemplateListBottomSheetViewModel,
     onDismissRequest: () -> Unit,
     onTrxCreated: (String) -> Unit,
+    onManageClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -54,6 +51,7 @@ fun TrxTemplateListBottomSheet(
             onTemplateClick = { templateId ->
                 pendingTemplateId = templateId
             },
+            onManageClick = onManageClick,
         )
     }
 }
@@ -62,7 +60,33 @@ fun TrxTemplateListBottomSheet(
 private fun TrxTemplateListBottomSheetContent(
     templates: List<dev.nichidori.saku.domain.model.TrxTemplate>,
     onTemplateClick: (String) -> Unit,
+    onManageClick: () -> Unit,
 ) {
+    if (templates.isEmpty()) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "No transaction template created yet",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                MyButton(
+                    text = "Manage template",
+                    onClick = onManageClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+        return
+    }
+
     val grouped = TrxType.entries.mapNotNull { type ->
         val items = templates.filter { it.type == type }
         if (items.isNotEmpty()) type to items else null

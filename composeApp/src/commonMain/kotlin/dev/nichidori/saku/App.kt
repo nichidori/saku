@@ -552,6 +552,10 @@ fun MainContainer(
                         }
                     }
                 },
+                onManageClick = {
+                    showTemplateSheet = false
+                    rootNavController.navigate(Route.TrxTemplateList)
+                },
             )
         }
     }
