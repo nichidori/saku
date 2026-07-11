@@ -34,7 +34,7 @@ class DefaultTrxRepository(
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
-    ) {
+    ): String {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
         }
@@ -149,6 +149,8 @@ class DefaultTrxRepository(
 
             }
         }
+
+        return newId
     }
 
     override suspend fun getTrxById(id: String): Trx? {

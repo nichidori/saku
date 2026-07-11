@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -69,8 +68,11 @@ import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplatePage
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplateViewModel
+import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListBottomSheet
+import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListBottomSheetViewModel
 import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListPage
 import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListViewModel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 import kotlin.time.Clock
@@ -385,8 +387,8 @@ fun MainContainer(
     onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showInputOption by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var showTemplateSheet by remember { mutableStateOf(false) }
     var selectedMonth by rememberSaveable { mutableStateOf(Clock.System.now().toYearMonth()) }
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -439,7 +441,7 @@ fun MainContainer(
                     rootNavController.navigate(Route.Trx(id = null))
                 },
                 onAddLongPress = {
-                    showInputOption = true
+                    showTemplateSheet = true
                 },
             )
         }
@@ -531,28 +533,26 @@ fun MainContainer(
             }
         }
 
-        if (showInputOption) {
-            ModalBottomSheet(
-                onDismissRequest = { showInputOption = false },
-                shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
-                sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                InputOptionSelector(
-                    onAccountClick = {
-                        rootNavController.navigate(Route.Account(id = null))
-                        showInputOption = false
-                    },
-                    onCategoryClick = {
-                        rootNavController.navigate(Route.Category(id = null))
-                        showInputOption = false
-                    },
-                    onTrxClick = {
-                        rootNavController.navigate(Route.Trx(id = null))
-                        showInputOption = false
-                    },
-                )
-            }
+        if (showTemplateSheet) {
+            TrxTemplateListBottomSheet(
+                viewModel = viewModel {
+                    TrxTemplateListBottomSheetViewModel(trxRepository)
+                },
+                onDismissRequest = { showTemplateSheet = false },
+                onTrxCreated = { newTrxId ->
+                    showTemplateSheet = false
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Transaction created!",
+                            actionLabel = "View",
+                            duration = SnackbarDuration.Short
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            rootNavController.navigate(Route.Trx(id = newTrxId))
+                        }
+                    }
+                },
+            )
         }
     }
 }
@@ -744,58 +744,6 @@ fun SettingsMenu(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun InputOptionSelector(
-    onAccountClick: () -> Unit,
-    onCategoryClick: () -> Unit,
-    onTrxClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(
-            "Add",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 16.dp
-            )
-        )
-        InputOption(label = "Account", onClick = onAccountClick)
-        InputOption(label = "Category", onClick = onCategoryClick)
-        InputOption(label = "Transaction", onClick = onTrxClick)
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun InputOption(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    MyBox(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable { onClick() }
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
         }
     }
 }

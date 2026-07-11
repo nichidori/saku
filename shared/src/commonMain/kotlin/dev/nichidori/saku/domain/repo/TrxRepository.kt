@@ -12,7 +12,7 @@ interface TrxRepository {
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
-    )
+    ): String
 
     suspend fun getTrxById(id: String): Trx?
     suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx>

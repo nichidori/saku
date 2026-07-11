@@ -151,13 +151,6 @@ fun TrxTemplateCard(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                imageVector = Lucide.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
