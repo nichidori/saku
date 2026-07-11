@@ -67,6 +67,8 @@ import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
 import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
+import dev.nichidori.saku.feature.trxTemplate.TrxTemplatePage
+import dev.nichidori.saku.feature.trxTemplate.TrxTemplateViewModel
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 import kotlin.time.Clock
@@ -96,6 +98,9 @@ sealed interface Route {
 
     @Serializable
     data class Trx(val id: String?) : Route
+
+    @Serializable
+    data class TrxTemplate(val id: String?) : Route
 
     @Serializable
     data class CategoryBudget(val templateId: String) : Route
@@ -285,6 +290,22 @@ fun App(
                                 appViewModel.onTrxDeleted(deletedTrx)
                                 rootNavController.popBackStack()
                             },
+                        )
+                    }
+                    composable<Route.TrxTemplate> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Route.TrxTemplate>()
+                        TrxTemplatePage(
+                            viewModel = viewModel {
+                                TrxTemplateViewModel(
+                                    accountRepository,
+                                    categoryRepository,
+                                    trxRepository,
+                                    route.id
+                                )
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onSaveSuccess = { rootNavController.popBackStack() },
+                            onDeleteSuccess = { rootNavController.popBackStack() },
                         )
                     }
                     composable<Route.CategoryBudget> { backStackEntry ->
