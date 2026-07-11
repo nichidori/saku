@@ -52,7 +52,8 @@ class TrxTemplateViewModel(
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
     private val trxRepository: TrxRepository,
-    private val id: String?
+    private val id: String?,
+    type: TrxType? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TrxTemplateUiState())
     val uiState: StateFlow<TrxTemplateUiState> = _uiState.asStateFlow()
@@ -78,7 +79,7 @@ class TrxTemplateViewModel(
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    type = template?.type ?: it.type,
+                    type = template?.type ?: type ?: it.type,
                     name = template?.name ?: it.name,
                     amount = template?.amount ?: it.amount,
                     description = template?.description ?: it.description,

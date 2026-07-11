@@ -233,6 +233,14 @@ fun TrxTemplatePageContent(
                 .padding(bottom = 20.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                MyTextField(
+                    value = uiState.name,
+                    onValueChange = onNameChange,
+                    label = "Template Name",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
                 MySegmentedControl(
                     items = types,
                     selectedItem = uiState.type,
@@ -260,14 +268,6 @@ fun TrxTemplatePageContent(
                         .onFocusChanged { focusState ->
                             showAmountInput = focusState.isFocused
                         }
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                MyTextField(
-                    value = uiState.name,
-                    onValueChange = onNameChange,
-                    label = "Name",
-                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 

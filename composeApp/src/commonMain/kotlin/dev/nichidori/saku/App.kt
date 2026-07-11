@@ -69,6 +69,8 @@ import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplatePage
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplateViewModel
+import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListPage
+import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListViewModel
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 import kotlin.time.Clock
@@ -88,6 +90,9 @@ sealed interface Route {
     data object CategoryList : Route
 
     @Serializable
+    data object TrxTemplateList : Route
+
+    @Serializable
     data object TrxList : Route
 
     @Serializable
@@ -100,7 +105,7 @@ sealed interface Route {
     data class Trx(val id: String?) : Route
 
     @Serializable
-    data class TrxTemplate(val id: String?) : Route
+    data class TrxTemplate(val id: String?, val type: TrxType = TrxType.Expense) : Route
 
     @Serializable
     data class CategoryBudget(val templateId: String) : Route
@@ -213,6 +218,10 @@ fun App(
                                 showMenu = false
                                 rootNavController.navigate(Route.CategoryList)
                             },
+                            onTrxTemplateClick = {
+                                showMenu = false
+                                rootNavController.navigate(Route.TrxTemplateList)
+                            },
                             onThemeToggleRequest = {
                                 appViewModel.toggleDarkTheme()
                             },
@@ -246,6 +255,20 @@ fun App(
                             },
                             onCategoryClick = { id ->
                                 rootNavController.navigate(Route.Category(id))
+                            }
+                        )
+                    }
+                    composable<Route.TrxTemplateList> {
+                        TrxTemplateListPage(
+                            viewModel = viewModel {
+                                TrxTemplateListViewModel(trxRepository)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onNewTemplateClick = { type ->
+                                rootNavController.navigate(Route.TrxTemplate(id = null, type = type))
+                            },
+                            onTemplateClick = { id ->
+                                rootNavController.navigate(Route.TrxTemplate(id))
                             }
                         )
                     }
@@ -292,7 +315,9 @@ fun App(
                             },
                         )
                     }
-                    composable<Route.TrxTemplate> { backStackEntry ->
+                    composable<Route.TrxTemplate>(
+                        typeMap = mapOf(typeOf<TrxType>() to TrxTypeNavType)
+                    ) { backStackEntry ->
                         val route = backStackEntry.toRoute<Route.TrxTemplate>()
                         TrxTemplatePage(
                             viewModel = viewModel {
@@ -300,7 +325,8 @@ fun App(
                                     accountRepository,
                                     categoryRepository,
                                     trxRepository,
-                                    route.id
+                                    route.id,
+                                    route.type
                                 )
                             },
                             onUp = { rootNavController.popBackStack() },
@@ -539,6 +565,7 @@ fun SettingsMenu(
     darkTheme: Boolean,
     onMenuClose: () -> Unit,
     onCategoryClick: () -> Unit,
+    onTrxTemplateClick: () -> Unit,
     onThemeToggleRequest: () -> Unit,
     onThemeToggleOffsetChange: (Offset) -> Unit,
     appVersion: () -> String?,
@@ -626,6 +653,30 @@ fun SettingsMenu(
                     ) {
                         Text(
                             "Categories",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = Lucide.ChevronRight,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                MyBox(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onTrxTemplateClick() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Text(
+                            "Templates",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
