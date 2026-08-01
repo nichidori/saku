@@ -75,6 +75,7 @@ class AccountViewModel(
     }
 
     fun onBalanceChange(newValue: String) {
+        if (uiState.value.isEditing) return
         if (newValue.all { it.isDigit() }) {
             _uiState.update { it.copy(balance = newValue.toLongOrNull()) }
         }
