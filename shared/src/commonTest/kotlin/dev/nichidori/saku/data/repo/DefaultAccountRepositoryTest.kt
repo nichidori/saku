@@ -7,6 +7,10 @@ import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -26,10 +30,21 @@ class DefaultAccountRepositoryTest {
         updatedAt = null
     )
 
+    private val currentMonth: YearMonth
+        get() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+
     @BeforeTest
     fun setup() {
         db = getRoomDatabase(builder = Room.inMemoryDatabaseBuilder<AppDatabase>())
         repository = DefaultAccountRepository(db)
+    }
+
+    private suspend fun currentMonthRecord(): MonthlyNetWorthEntity? {
+        return db.monthlyNetWorthDao().getByYearMonth(
+            year = currentMonth.year,
+            month = currentMonth.month.number
+        )
     }
 
     @AfterTest
@@ -106,5 +121,146 @@ class DefaultAccountRepositoryTest {
         val emptyRepo = DefaultAccountRepository(emptyDb)
         val balance = emptyRepo.getTotalBalance()
         assertEquals(0, balance)
+    }
+
+    @Test
+    fun getNetWorthHistory_withNoRecords_shouldReturnAllZeros() = runTest {
+        val months = listOf(YearMonth(2025, 1), YearMonth(2025, 2), YearMonth(2025, 3))
+
+        val result = repository.getNetWorthHistory(months)
+
+        assertEquals(listOf(0L, 0L, 0L), result)
+    }
+
+    @Test
+    fun getNetWorthHistory_withMissingMonths_shouldCarryForwardLastKnownValue() = runTest {
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(year = 2025, month = 1, netWorth = 100L, createdAt = 1_000L, updatedAt = null)
+        )
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(year = 2025, month = 3, netWorth = 300L, createdAt = 2_000L, updatedAt = null)
+        )
+
+        val result = repository.getNetWorthHistory(
+            listOf(YearMonth(2025, 1), YearMonth(2025, 2), YearMonth(2025, 3))
+        )
+
+        assertEquals(listOf(100L, 100L, 300L), result)
+    }
+
+    @Test
+    fun getNetWorthHistory_leadingMissingMonths_shouldUseZeroUntilFirstRecord() = runTest {
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(year = 2025, month = 2, netWorth = 200L, createdAt = 1_000L, updatedAt = null)
+        )
+
+        val result = repository.getNetWorthHistory(
+            listOf(YearMonth(2025, 1), YearMonth(2025, 2), YearMonth(2025, 3))
+        )
+
+        assertEquals(listOf(0L, 200L, 200L), result)
+    }
+
+    @Test
+    fun getNetWorthHistory_withExactMatches_shouldReturnCachedValues() = runTest {
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(year = 2025, month = 1, netWorth = 100L, createdAt = 1_000L, updatedAt = null)
+        )
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(year = 2025, month = 2, netWorth = 200L, createdAt = 2_000L, updatedAt = null)
+        )
+
+        val result = repository.getNetWorthHistory(
+            listOf(YearMonth(2025, 1), YearMonth(2025, 2))
+        )
+
+        assertEquals(listOf(100L, 200L), result)
+    }
+
+    @Test
+    fun getNetWorthHistory_withEmptyMonths_shouldReturnEmptyList() = runTest {
+        val result = repository.getNetWorthHistory(emptyList())
+
+        assertEquals(emptyList(), result)
+    }
+
+    @Test
+    fun ensureCurrentMonthNetWorth_withAccountsOnly_shouldComputeSum() = runTest {
+        db.accountDao().insert(account.copy(id = "acc-1", currentAmount = 1_000L).toEntity())
+        db.accountDao().insert(account.copy(id = "acc-2", currentAmount = 500L).toEntity())
+
+        repository.ensureCurrentMonthNetWorth()
+
+        assertEquals(1_500L, currentMonthRecord()?.netWorth)
+    }
+
+    @Test
+    fun ensureCurrentMonthNetWorth_withCredits_shouldSubtractCreditBalance() = runTest {
+        db.accountDao().insert(account.copy(id = "acc-1", currentAmount = 1_000L).toEntity())
+        db.creditDao().insert(
+            CreditEntity(id = "cred-1", name = "CC", limit = 5_000L, currentAmount = 300L, createdAt = 1_000L, updatedAt = null)
+        )
+
+        repository.ensureCurrentMonthNetWorth()
+
+        assertEquals(700L, currentMonthRecord()?.netWorth)
+    }
+
+    @Test
+    fun ensureCurrentMonthNetWorth_whenRecordExists_shouldPreserveCreatedAtAndUpdateUpdatedAt() = runTest {
+        db.accountDao().insert(account.copy(id = "acc-1", currentAmount = 1_000L).toEntity())
+        db.monthlyNetWorthDao().upsert(
+            MonthlyNetWorthEntity(
+                year = currentMonth.year,
+                month = currentMonth.month.number,
+                netWorth = 0L,
+                createdAt = 100L,
+                updatedAt = 100L
+            )
+        )
+
+        repository.ensureCurrentMonthNetWorth()
+
+        val record = currentMonthRecord()
+        assertEquals(1_000L, record?.netWorth)
+        assertEquals(100L, record?.createdAt)
+        assertTrue((record?.updatedAt ?: 0L) > 100L)
+    }
+
+    @Test
+    fun addAccount_shouldWriteCurrentMonthNetWorthRecord() = runTest {
+        repository.addAccount(account.name, 10_000L, account.type)
+
+        assertEquals(10_000L, currentMonthRecord()?.netWorth)
+    }
+
+    @Test
+    fun addCredit_shouldSubtractCreditBalanceFromNetWorth() = runTest {
+        repository.addAccount(account.name, 10_000L, account.type)
+        repository.addCredit(name = "CC", limit = 5_000L, currentAmount = 3_000L)
+
+        assertEquals(7_000L, currentMonthRecord()?.netWorth)
+    }
+
+    @Test
+    fun updateCredit_shouldRefreshMonthlyNetWorthRecord() = runTest {
+        repository.addAccount(account.name, 10_000L, account.type)
+        repository.addCredit(name = "CC", limit = 5_000L, currentAmount = 3_000L)
+        val creditId = db.creditDao().getAll().first().id
+
+        repository.updateCredit(id = creditId, name = "CC", limit = 5_000L, currentAmount = 8_000L)
+
+        assertEquals(2_000L, currentMonthRecord()?.netWorth)
+    }
+
+    @Test
+    fun deleteCredit_shouldRefreshMonthlyNetWorthRecord() = runTest {
+        repository.addAccount(account.name, 10_000L, account.type)
+        repository.addCredit(name = "CC", limit = 5_000L, currentAmount = 3_000L)
+        val creditId = db.creditDao().getAll().first().id
+
+        repository.deleteCredit(creditId)
+
+        assertEquals(10_000L, currentMonthRecord()?.netWorth)
     }
 }

@@ -4,6 +4,7 @@ import androidx.room.Room
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.BudgetEntity
 import dev.nichidori.saku.data.entity.BudgetTemplateEntity
+import dev.nichidori.saku.data.entity.MonthlyNetWorthEntity
 import dev.nichidori.saku.data.entity.toDomain
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.data.getRoomDatabase
@@ -1136,6 +1137,28 @@ class DefaultTrxRepositoryTest {
         assertFailsWith<NoSuchElementException> {
             repository.deleteTrxTemplate("non-existent-id")
         }
+    }
+
+    @Test
+    fun addTrx_shouldWriteMonthlyNetWorthRecord() = runTest {
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+        )
+
+        val currentMonth = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+        val record = db.monthlyNetWorthDao().getByYearMonth(
+            year = currentMonth.year,
+            month = currentMonth.month.number
+        )
+        assertNotNull(record)
+        assertEquals(28_000L, record.netWorth)
     }
 
 }

@@ -3,9 +3,12 @@ package dev.nichidori.saku.data.entity
 import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.MonthlyNetWorth
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxType
+import kotlinx.datetime.YearMonth
+import kotlinx.datetime.number
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -752,5 +755,56 @@ class MapperExtTest {
         assertNull(domain.category)
         assertEquals("Cash", domain.sourceAccount.name)
         assertEquals("Bank", domain.targetAccount?.name)
+    }
+
+    @Test
+    fun toDomainAndBack_withMonthlyNetWorthEntity_shouldPreserveData() {
+        val entity = MonthlyNetWorthEntity(
+            year = 2025,
+            month = 1,
+            netWorth = 100_000L,
+            createdAt = 1_000L,
+            updatedAt = 2_000L
+        )
+
+        val domain = entity.toDomain()
+        val roundTrip = domain.toEntity()
+
+        assertEquals(entity, roundTrip)
+    }
+
+    @Test
+    fun toDomain_shouldMapYearMonthAndFieldsCorrectly() {
+        val entity = MonthlyNetWorthEntity(
+            year = 2025,
+            month = 3,
+            netWorth = 200_000L,
+            createdAt = 5_000L,
+            updatedAt = 6_000L
+        )
+
+        val domain = entity.toDomain()
+
+        assertEquals(YearMonth(2025, 3), domain.month)
+        assertEquals(200_000L, domain.netWorth)
+        assertEquals(5_000L, domain.createdAt.toEpochMilliseconds())
+        assertEquals(6_000L, domain.updatedAt?.toEpochMilliseconds())
+    }
+
+    @Test
+    fun toDomainAndBack_withNullUpdatedAt_shouldPreserveNull() {
+        val entity = MonthlyNetWorthEntity(
+            year = 2025,
+            month = 2,
+            netWorth = 150_000L,
+            createdAt = 3_000L,
+            updatedAt = null
+        )
+
+        val domain = entity.toDomain()
+        val roundTrip = domain.toEntity()
+
+        assertEquals(entity, roundTrip)
+        assertEquals(MonthlyNetWorth(month = YearMonth(2025, 2), netWorth = 150_000L, createdAt = domain.createdAt, updatedAt = null), domain)
     }
 }
