@@ -20,8 +20,9 @@ import kotlinx.coroutines.Dispatchers
         BudgetTemplateEntity::class,
         CreditEntity::class,
         TrxTemplateEntity::class,
+        MonthlyNetWorthEntity::class,
     ],
-    version = 8,
+    version = 9,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -31,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetTemplateDao(): BudgetTemplateDao
     abstract fun creditDao(): CreditDao
     abstract fun trxTemplateDao(): TrxTemplateDao
+    abstract fun monthlyNetWorthDao(): MonthlyNetWorthDao
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -305,6 +307,23 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
     }
 }
 
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `monthly_net_worth` (
+                `year` INTEGER NOT NULL,
+                `month` INTEGER NOT NULL,
+                `net_worth` INTEGER NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`year`, `month`)
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
@@ -316,7 +335,8 @@ fun getRoomDatabase(
             MIGRATION_4_5,
             MIGRATION_5_6,
             MIGRATION_6_7,
-            MIGRATION_7_8
+            MIGRATION_7_8,
+            MIGRATION_8_9
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())

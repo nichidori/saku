@@ -16,6 +16,8 @@ interface AccountRepository {
     suspend fun getTotalBalance(): Long
     suspend fun getAllTrxAccounts(): List<TrxAccount>
     suspend fun getBalanceHistory(months: List<YearMonth>, timeZone: TimeZone): List<Long>
+    suspend fun getNetWorthHistory(months: List<YearMonth>): List<Long>
+    suspend fun ensureCurrentMonthNetWorth()
     suspend fun addCredit(name: String, limit: Long, currentAmount: Long)
     suspend fun getCreditById(id: String): Credit?
     suspend fun updateCredit(id: String, name: String, limit: Long, currentAmount: Long)

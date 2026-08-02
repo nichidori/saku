@@ -43,6 +43,21 @@ fun Credit.toEntity(): CreditEntity = CreditEntity(
     updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
+fun MonthlyNetWorthEntity.toDomain(): MonthlyNetWorth = MonthlyNetWorth(
+    month = YearMonth(year, month),
+    netWorth = netWorth,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+)
+
+fun MonthlyNetWorth.toEntity(): MonthlyNetWorthEntity = MonthlyNetWorthEntity(
+    year = month.year,
+    month = month.month.number,
+    netWorth = netWorth,
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
+)
+
 fun CategoryEntity.toDomain(parent: Category? = null): Category = Category(
     id = id,
     name = name,

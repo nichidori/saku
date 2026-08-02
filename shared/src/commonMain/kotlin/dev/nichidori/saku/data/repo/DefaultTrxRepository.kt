@@ -5,8 +5,7 @@ import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
 import androidx.sqlite.SQLiteException
 import dev.nichidori.saku.data.AppDatabase
-import dev.nichidori.saku.data.entity.toDomain
-import dev.nichidori.saku.data.entity.toEntity
+import dev.nichidori.saku.data.entity.*
 import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.datetime.*
@@ -146,6 +145,8 @@ class DefaultTrxRepository(
                         )
                     }
                 }
+
+                recalculateNetWorthFrom(transactionAt.toYearMonth())
 
             }
         }
@@ -351,6 +352,12 @@ class DefaultTrxRepository(
                 }
 
                 trxDao.update(updatedTrx.toEntity())
+
+                val affectedMonth = minOf(
+                    existing.transactionAt.toYearMonth(),
+                    updatedTrx.transactionAt.toYearMonth()
+                )
+                recalculateNetWorthFrom(affectedMonth)
             }
         }
     }
@@ -420,6 +427,7 @@ class DefaultTrxRepository(
                 }
 
                 trxDao.deleteById(id)
+                recalculateNetWorthFrom(trx.transactionAt.toYearMonth())
             }
         }
     }
@@ -573,5 +581,144 @@ class DefaultTrxRepository(
                 else -> amount
             }
         }
+    }
+
+    private suspend fun recalculateNetWorthFrom(startMonth: YearMonth) {
+        val timeZone = TimeZone.currentSystemDefault()
+        val currentMonth = Clock.System.now().toYearMonth()
+        val months = generateSequence(startMonth) { it.plus(1, DateTimeUnit.MONTH) }
+            .takeWhile { it <= currentMonth }
+            .toList()
+        if (months.isEmpty()) return
+
+        val endTime = currentMonth
+            .lastDay.plus(1, DAY)
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+        val allTrxs = db.trxDao().getAllUpTo(endTime)
+
+        val accounts = accountDao.getAll().map { TrxAccount.Regular(it.toDomain()) }
+        val credits = creditDao.getAll().map { TrxAccount.Credit(it.toDomain()) }
+        val trxAccounts = accounts + credits
+        if (trxAccounts.isEmpty()) return
+
+        val accountTrxs = mutableMapOf<String, MutableList<TrxEntity>>()
+        val initialBalances = mutableMapOf<String, Long>()
+        val isCreditByAccount = mutableMapOf<String, Boolean>()
+        val creationMonth = mutableMapOf<String, YearMonth>()
+
+        for (account in trxAccounts) {
+            accountTrxs[account.id] = mutableListOf()
+            when (account) {
+                is TrxAccount.Regular -> {
+                    initialBalances[account.id] = account.account.initialAmount
+                    isCreditByAccount[account.id] = false
+                    creationMonth[account.id] = account.account.createdAt.toYearMonth()
+                }
+
+                is TrxAccount.Credit -> {
+                    initialBalances[account.id] = 0L
+                    isCreditByAccount[account.id] = true
+                    creationMonth[account.id] = account.credit.createdAt.toYearMonth()
+                }
+            }
+        }
+
+        for (trx in allTrxs) {
+            val sourceId = trx.sourceAccountId ?: trx.sourceCreditId
+            if (sourceId in accountTrxs) accountTrxs[sourceId]!!.add(trx)
+            val targetId = trx.targetAccountId ?: trx.targetCreditId
+            if (targetId in accountTrxs) accountTrxs[targetId]!!.add(trx)
+        }
+
+        for (trxs in accountTrxs.values) {
+            trxs.sortBy { it.transactionAt }
+        }
+
+        for (account in trxAccounts) {
+            if (account is TrxAccount.Credit) {
+                val creditTrxs = db.trxDao().getAllByCreditId(account.id)
+                var sumDeltas = 0L
+                for (trx in creditTrxs) {
+                    sumDeltas += accountDelta(account.id, trx, isCredit = true)
+                }
+                initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+            }
+        }
+
+        val monthEnds = months.map { month ->
+            month.lastDay.plus(1, DAY).atStartOfDayIn(timeZone).toEpochMilliseconds()
+        }
+
+        val netWorthPerMonth = months.map { 0L }.toMutableList()
+
+        for (account in trxAccounts) {
+            val trxs = accountTrxs[account.id]!!
+            val isCredit = isCreditByAccount[account.id]!!
+            val creation = creationMonth[account.id]!!
+            if (months.none { it >= creation }) continue
+
+            var balance = initialBalances[account.id]!!
+            var trxIndex = 0
+
+            for (i in months.indices) {
+                if (months[i] < creation) continue
+
+                val end = monthEnds[i]
+                while (trxIndex < trxs.size && trxs[trxIndex].transactionAt < end) {
+                    balance += accountDelta(account.id, trxs[trxIndex], isCredit)
+                    trxIndex++
+                }
+
+                val contribution = if (isCredit) -balance else balance
+                netWorthPerMonth[i] = netWorthPerMonth[i] + contribution
+            }
+        }
+
+        val currentTime = Clock.System.now()
+        for (i in months.indices) {
+            val existing = db.monthlyNetWorthDao().getByYearMonth(
+                year = months[i].year,
+                month = months[i].month.number
+            )
+            db.monthlyNetWorthDao().upsert(
+                MonthlyNetWorthEntity(
+                    year = months[i].year,
+                    month = months[i].month.number,
+                    netWorth = netWorthPerMonth[i],
+                    createdAt = existing?.createdAt ?: currentTime.toEpochMilliseconds(),
+                    updatedAt = currentTime.toEpochMilliseconds()
+                )
+            )
+        }
+    }
+
+    private fun accountDelta(accountId: String, trx: TrxEntity, isCredit: Boolean): Long {
+        val isSource = trx.sourceAccountId == accountId || trx.sourceCreditId == accountId
+        val isTarget = trx.targetAccountId == accountId || trx.targetCreditId == accountId
+
+        return when (trx.type) {
+            TrxTypeEntity.Income -> {
+                if (isSource) if (isCredit) -trx.amount else trx.amount else 0L
+            }
+
+            TrxTypeEntity.Expense -> {
+                if (isSource) if (isCredit) trx.amount else -trx.amount else 0L
+            }
+
+            TrxTypeEntity.Transfer -> {
+                when {
+                    isSource && isTarget -> 0L
+                    isSource -> if (isCredit) trx.amount else -trx.amount
+                    isTarget -> if (isCredit) -trx.amount else trx.amount
+                    else -> 0L
+                }
+            }
+        }
+    }
+
+    private fun Instant.toYearMonth(): YearMonth {
+        return toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
     }
 }
