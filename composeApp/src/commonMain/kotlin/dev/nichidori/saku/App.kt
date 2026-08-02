@@ -129,7 +129,7 @@ fun App(
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
     val appViewModel: AppViewModel = viewModel {
-        AppViewModel(dataStore = dataStore, trxRepository = trxRepository)
+        AppViewModel(dataStore = dataStore, trxRepository = trxRepository, accountRepository = accountRepository)
     }
 
     val focusManager = LocalFocusManager.current

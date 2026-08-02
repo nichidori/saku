@@ -10,13 +10,9 @@ import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
@@ -30,6 +26,7 @@ data class AppUiState(
 class AppViewModel(
     private val dataStore: DataStore<Preferences>,
     private val trxRepository: TrxRepository,
+    private val accountRepository: AccountRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppUiState())
@@ -44,6 +41,13 @@ class AppViewModel(
                         it.copy(darkTheme = dark)
                     }
                 }
+        }
+        viewModelScope.launch {
+            try {
+                accountRepository.ensureCurrentMonthNetWorth()
+            } catch (e: Exception) {
+                this@AppViewModel.log(e)
+            }
         }
     }
 
