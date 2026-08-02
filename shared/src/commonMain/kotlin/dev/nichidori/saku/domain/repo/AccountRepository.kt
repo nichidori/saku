@@ -4,7 +4,6 @@ import dev.nichidori.saku.domain.model.Account
 import dev.nichidori.saku.domain.model.AccountType
 import dev.nichidori.saku.domain.model.Credit
 import dev.nichidori.saku.domain.model.TrxAccount
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 
 interface AccountRepository {
@@ -15,7 +14,6 @@ interface AccountRepository {
     suspend fun deleteAccount(id: String)
     suspend fun getTotalBalance(): Long
     suspend fun getAllTrxAccounts(): List<TrxAccount>
-    suspend fun getBalanceHistory(months: List<YearMonth>, timeZone: TimeZone): List<Long>
     suspend fun getNetWorthHistory(months: List<YearMonth>): List<Long>
     suspend fun ensureCurrentMonthNetWorth()
     suspend fun addCredit(name: String, limit: Long, currentAmount: Long)

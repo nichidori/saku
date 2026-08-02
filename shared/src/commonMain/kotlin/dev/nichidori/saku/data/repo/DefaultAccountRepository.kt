@@ -92,101 +92,6 @@ class DefaultAccountRepository(
         }
     }
 
-    override suspend fun getBalanceHistory(months: List<YearMonth>, timeZone: TimeZone): List<Long> {
-        if (months.isEmpty()) return emptyList()
-
-        val endTime = months.last()
-            .lastDay.plus(1, DAY)
-            .atStartOfDayIn(timeZone)
-            .toEpochMilliseconds()
-        val allTrxs = db.trxDao().getAllUpTo(endTime)
-
-        val accounts = db.accountDao().getAll().map { TrxAccount.Regular(it.toDomain()) }
-        val credits = db.creditDao().getAll().map { TrxAccount.Credit(it.toDomain()) }
-        val trxAccounts = accounts + credits
-        if (trxAccounts.isEmpty()) return months.map { 0L }
-
-        val accountTrxs = mutableMapOf<String, MutableList<TrxEntity>>()
-        val initialBalances = mutableMapOf<String, Long>()
-        val isCreditByAccount = mutableMapOf<String, Boolean>()
-        val creationMonth = mutableMapOf<String, YearMonth>()
-
-        for (account in trxAccounts) {
-            accountTrxs[account.id] = mutableListOf()
-            when (account) {
-                is TrxAccount.Regular -> {
-                    initialBalances[account.id] = account.account.initialAmount
-                    isCreditByAccount[account.id] = false
-                    creationMonth[account.id] = account.account.createdAt
-                        .toLocalDateTime(timeZone)
-                        .let { YearMonth(it.year, it.month) }
-                }
-
-                is TrxAccount.Credit -> {
-                    initialBalances[account.id] = 0L
-                    isCreditByAccount[account.id] = true
-                    creationMonth[account.id] = account.credit.createdAt
-                        .toLocalDateTime(timeZone)
-                        .let { YearMonth(it.year, it.month) }
-                }
-            }
-        }
-
-        for (trx in allTrxs) {
-            val sourceId = trx.sourceAccountId ?: trx.sourceCreditId
-            if (sourceId in accountTrxs) accountTrxs[sourceId]!!.add(trx)
-            val targetId = trx.targetAccountId ?: trx.targetCreditId
-            if (targetId in accountTrxs) accountTrxs[targetId]!!.add(trx)
-        }
-
-        for (trxs in accountTrxs.values) {
-            trxs.sortBy { it.transactionAt }
-        }
-
-        // Derive credit opening balance: current stored debt minus all transaction deltas
-        for (account in trxAccounts) {
-            if (account is TrxAccount.Credit) {
-                val creditTrxs = db.trxDao().getAllByCreditId(account.id)
-                var sumDeltas = 0L
-                for (trx in creditTrxs) {
-                    sumDeltas += accountDelta(account.id, trx, isCredit = true)
-                }
-                initialBalances[account.id] = account.credit.currentAmount - sumDeltas
-            }
-        }
-
-        val monthEnds = months.map { month ->
-            month.lastDay.plus(1, DAY).atStartOfDayIn(timeZone).toEpochMilliseconds()
-        }
-
-        val netWorthPerMonth = months.map { 0L }.toMutableList()
-
-        for (account in trxAccounts) {
-            val trxs = accountTrxs[account.id]!!
-            val isCredit = isCreditByAccount[account.id]!!
-            val creation = creationMonth[account.id]!!
-            if (months.none { it >= creation }) continue
-
-            var balance = initialBalances[account.id]!!
-            var trxIndex = 0
-
-            for (i in months.indices) {
-                if (months[i] < creation) continue
-
-                val end = monthEnds[i]
-                while (trxIndex < trxs.size && trxs[trxIndex].transactionAt < end) {
-                    balance += accountDelta(account.id, trxs[trxIndex], isCredit)
-                    trxIndex++
-                }
-
-                val contribution = if (isCredit) -balance else balance
-                netWorthPerMonth[i] = netWorthPerMonth[i] + contribution
-            }
-        }
-
-        return netWorthPerMonth
-    }
-
     private fun accountDelta(accountId: String, trx: TrxEntity, isCredit: Boolean): Long {
         val isSource = trx.sourceAccountId == accountId || trx.sourceCreditId == accountId
         val isTarget = trx.targetAccountId == accountId || trx.targetCreditId == accountId
@@ -271,26 +176,36 @@ class DefaultAccountRepository(
         }
         val byMonth = all.associate { YearMonth(it.year, it.month) to it.netWorth }
 
-        return months.map { month -> byMonth[month] ?: 0L }
+        var lastKnownValue = 0L
+        return months.map { month ->
+            byMonth[month]?.let {
+                lastKnownValue = it
+                it
+            } ?: lastKnownValue
+        }
     }
 
     override suspend fun ensureCurrentMonthNetWorth() {
         val currentMonth = Clock.System.now().toYearMonth()
         val currentTime = Clock.System.now()
-        val netWorth = (db.accountDao().getTotalBalance() ?: 0L) - (db.creditDao().getTotalBalance() ?: 0L)
-        val existing = db.monthlyNetWorthDao().getByYearMonth(
-            year = currentMonth.year,
-            month = currentMonth.month.number
-        )
-        db.monthlyNetWorthDao().upsert(
-            MonthlyNetWorthEntity(
-                year = currentMonth.year,
-                month = currentMonth.month.number,
-                netWorth = netWorth,
-                createdAt = existing?.createdAt ?: currentTime.toEpochMilliseconds(),
-                updatedAt = currentTime.toEpochMilliseconds()
-            )
-        )
+        db.useWriterConnection {
+            it.immediateTransaction {
+                val netWorth = (db.accountDao().getTotalBalance() ?: 0L) - (db.creditDao().getTotalBalance() ?: 0L)
+                val existing = db.monthlyNetWorthDao().getByYearMonth(
+                    year = currentMonth.year,
+                    month = currentMonth.month.number
+                )
+                db.monthlyNetWorthDao().upsert(
+                    MonthlyNetWorthEntity(
+                        year = currentMonth.year,
+                        month = currentMonth.month.number,
+                        netWorth = netWorth,
+                        createdAt = existing?.createdAt ?: currentTime.toEpochMilliseconds(),
+                        updatedAt = currentTime.toEpochMilliseconds()
+                    )
+                )
+            }
+        }
     }
 
     private suspend fun recalculateNetWorthFrom(startMonth: YearMonth) {

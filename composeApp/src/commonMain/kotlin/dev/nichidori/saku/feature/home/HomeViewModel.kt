@@ -71,8 +71,7 @@ class HomeViewModel(
                     .toList()
 
                 val accounts = accountRepository.getAllTrxAccounts()
-                val timeZone = TimeZone.currentSystemDefault()
-                val netWorthTrend = accountRepository.getBalanceHistory(fullRange, timeZone)
+                val netWorthTrend = accountRepository.getNetWorthHistory(fullRange)
 
                 val netWorth = netWorthTrend.lastOrNull() ?: 0L
                 val trxs = trxRepository.getFilteredTrxs(TrxFilter(month = month))
