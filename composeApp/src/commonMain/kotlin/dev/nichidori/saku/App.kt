@@ -39,13 +39,12 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.navigation.TrxTypeNavType
 import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
-import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.BudgetRepository
@@ -125,6 +124,7 @@ fun App(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
+    appEventBus: AppEventBus,
     dataStore: DataStore<Preferences>,
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
@@ -236,12 +236,8 @@ fun App(
                                 categoryRepository = categoryRepository,
                                 trxRepository = trxRepository,
                                 budgetRepository = budgetRepository,
+                                appEventBus = appEventBus,
                                 snackbarHostState = snackbarHostState,
-                                restoredTrx = when (val status = appUiState.trxRestoreStatus) {
-                                    is Success -> status.data
-                                    else -> null
-                                },
-                                onRestoredTrxConsumed = appViewModel::clearTrxRestoreStatus,
                                 onMenuClick = { showMenu = !showMenu },
                             )
                         }
@@ -381,9 +377,8 @@ fun MainContainer(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
+    appEventBus: AppEventBus,
     snackbarHostState: SnackbarHostState,
-    restoredTrx: Trx?,
-    onRestoredTrxConsumed: () -> Unit,
     onMenuClick: () -> Unit,
 ) {
     val innerNavController = rememberNavController()
@@ -459,14 +454,7 @@ fun MainContainer(
         ) {
             composable<Route.Home> {
                 val viewModel = viewModel {
-                    HomeViewModel(accountRepository, trxRepository, budgetRepository)
-                }
-
-                LaunchedEffect(restoredTrx) {
-                    restoredTrx?.let { trx ->
-                        viewModel.load(month = trx.transactionAt.toYearMonth())
-                        onRestoredTrxConsumed()
-                    }
+                    HomeViewModel(appEventBus, accountRepository, trxRepository, budgetRepository)
                 }
 
                 HomePage(
@@ -488,14 +476,7 @@ fun MainContainer(
             }
             composable<Route.TrxList> {
                 val viewModel = viewModel {
-                    TrxListViewModel(accountRepository, categoryRepository, trxRepository)
-                }
-
-                LaunchedEffect(restoredTrx) {
-                    restoredTrx?.let { trx ->
-                        viewModel.loadTrxs(month = trx.transactionAt.toYearMonth())
-                        onRestoredTrxConsumed()
-                    }
+                    TrxListViewModel(appEventBus, accountRepository, categoryRepository, trxRepository)
                 }
 
                 TrxListPage(
@@ -512,14 +493,7 @@ fun MainContainer(
             }
             composable<Route.Statistic> {
                 val viewModel = viewModel {
-                    StatisticViewModel(trxRepository)
-                }
-
-                LaunchedEffect(restoredTrx) {
-                    restoredTrx?.let { trx ->
-                        viewModel.load(month = trx.transactionAt.toYearMonth())
-                        onRestoredTrxConsumed()
-                    }
+                    StatisticViewModel(appEventBus, trxRepository)
                 }
 
                 StatisticPage(

@@ -2,27 +2,23 @@ package dev.nichidori.saku.feature.trxList
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.event.AppEvent
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
-import dev.nichidori.saku.domain.model.AccountType
-import dev.nichidori.saku.domain.model.TrxAccount
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxFilter
-import dev.nichidori.saku.domain.model.TrxType
+import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
 data class DailyTrxRecord(
     val trxs: List<Trx>,
@@ -54,7 +50,9 @@ data class TrxListUiState(
     )
 }
 
+@OptIn(FlowPreview::class)
 class TrxListViewModel(
+    private val appEventBus: AppEventBus,
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
     private val trxRepository: TrxRepository,
@@ -62,6 +60,14 @@ class TrxListViewModel(
     init {
         loadAccounts()
         loadCategories()
+        viewModelScope.launch {
+            appEventBus.events
+                .filterIsInstance<AppEvent.TrxChanged>()
+                .debounce(150.milliseconds)
+                .collect {
+                    _uiState.value.stateByMonth.keys.forEach { month -> loadTrxs(month) }
+                }
+        }
     }
 
     private val _uiState = MutableStateFlow(TrxListUiState())

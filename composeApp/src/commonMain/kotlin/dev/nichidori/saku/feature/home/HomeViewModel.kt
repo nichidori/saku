@@ -2,25 +2,26 @@ package dev.nichidori.saku.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.event.AppEvent
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
-import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Budget
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxFilter
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
 import kotlin.math.roundToLong
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 data class ActiveBudget(
     val budget: Budget,
@@ -49,13 +50,28 @@ fun TrxAccount.balanceFormatted(show: Boolean) = if (show) {
     displayAmount.toRupiah()
 } else "****"
 
+@OptIn(FlowPreview::class)
 class HomeViewModel(
+    private val appEventBus: AppEventBus,
     private val accountRepository: AccountRepository,
     private val trxRepository: TrxRepository,
     private val budgetRepository: BudgetRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            appEventBus.events
+                .filterIsInstance<AppEvent.TrxChanged>()
+                .debounce(150.milliseconds)
+                .collect {
+                    if (_uiState.value.loadStatus is Loading) return@collect
+                    val month = _uiState.value.month ?: return@collect
+                    load(month)
+                }
+        }
+    }
 
     fun load(month: YearMonth) {
         viewModelScope.launch {

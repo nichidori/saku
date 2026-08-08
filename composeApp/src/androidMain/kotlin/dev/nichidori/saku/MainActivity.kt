@@ -18,6 +18,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.room.Room
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.platform.setToastActivityProvider
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.createDataStore
@@ -73,6 +74,7 @@ class MainActivity : ComponentActivity() {
             }
         )
         val dataStore = createDataStore(this)
+        val appEventBus = AppEventBus()
 
         setContent {
             val view = LocalView.current
@@ -81,8 +83,9 @@ class MainActivity : ComponentActivity() {
             App(
                 accountRepository = DefaultAccountRepository(db = db),
                 categoryRepository = DefaultCategoryRepository(db = db),
-                trxRepository = DefaultTrxRepository(db = db),
+                trxRepository = DefaultTrxRepository(db = db, appEventBus = appEventBus),
                 budgetRepository = DefaultBudgetRepository(db = db),
+                appEventBus = appEventBus,
                 dataStore = dataStore,
                 onDarkTheme = { darkTheme ->
                     if (!themeInitialized) {

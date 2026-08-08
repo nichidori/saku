@@ -6,8 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.repo.AccountRepository
@@ -20,7 +18,6 @@ private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
 data class AppUiState(
     val darkTheme: Boolean? = null,
     val deletedTrx: Trx? = null,
-    val trxRestoreStatus: Status<Trx, Exception> = Initial,
 )
 
 class AppViewModel(
@@ -70,9 +67,6 @@ class AppViewModel(
     fun restoreTrx(trx: Trx) {
         viewModelScope.launch {
             try {
-                _uiState.update {
-                    it.copy(trxRestoreStatus = Loading)
-                }
                 trxRepository.addTrx(
                     type = trx.type,
                     transactionAt = trx.transactionAt,
@@ -82,14 +76,8 @@ class AppViewModel(
                     targetAccount = (trx as? Trx.Transfer)?.targetAccount,
                     category = trx.category,
                 )
-                _uiState.update {
-                    it.copy(trxRestoreStatus = Success(trx))
-                }
             } catch (e: Exception) {
                 this@AppViewModel.log(e)
-                _uiState.update {
-                    it.copy(trxRestoreStatus = Failure(e))
-                }
             }
         }
     }
@@ -103,12 +91,6 @@ class AppViewModel(
     fun clearDeletedTrx() {
         _uiState.update {
             it.copy(deletedTrx = null)
-        }
-    }
-
-    fun clearTrxRestoreStatus() {
-        _uiState.update {
-            it.copy(trxRestoreStatus = Initial)
         }
     }
 }

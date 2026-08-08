@@ -8,6 +8,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.room.Room
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.data.createDataStore
 import dev.nichidori.saku.data.getDatabaseBuilder
 import dev.nichidori.saku.data.getRoomDatabase
@@ -40,11 +41,13 @@ fun main() = application {
             }
         )
         val dataStore = createDataStore()
+        val appEventBus = AppEventBus()
         App(
             accountRepository = DefaultAccountRepository(db = db),
             categoryRepository = DefaultCategoryRepository(db = db),
-            trxRepository = DefaultTrxRepository(db = db),
+            trxRepository = DefaultTrxRepository(db = db, appEventBus = appEventBus),
             budgetRepository = DefaultBudgetRepository(db = db),
+            appEventBus = appEventBus,
             dataStore = dataStore
         )
     }

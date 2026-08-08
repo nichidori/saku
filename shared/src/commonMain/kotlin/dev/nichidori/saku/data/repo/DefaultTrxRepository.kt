@@ -4,6 +4,8 @@ import androidx.room.immediateTransaction
 import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
 import androidx.sqlite.SQLiteException
+import dev.nichidori.saku.core.event.AppEvent
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.*
 import dev.nichidori.saku.domain.model.*
@@ -17,6 +19,7 @@ import kotlin.time.Instant
 
 class DefaultTrxRepository(
     private val db: AppDatabase,
+    private val appEventBus: AppEventBus = AppEventBus(),
 ) : TrxRepository {
 
     private val trxDao = db.trxDao()
@@ -151,6 +154,7 @@ class DefaultTrxRepository(
             }
         }
 
+        appEventBus.emit(AppEvent.TrxChanged(id = newId, action = AppEvent.WriteAction.Created))
         return newId
     }
 
@@ -360,6 +364,8 @@ class DefaultTrxRepository(
                 recalculateNetWorthFrom(affectedMonth)
             }
         }
+
+        appEventBus.emit(AppEvent.TrxChanged(id = id, action = AppEvent.WriteAction.Updated))
     }
 
     override suspend fun deleteTrx(id: String) {
@@ -430,6 +436,8 @@ class DefaultTrxRepository(
                 recalculateNetWorthFrom(trx.transactionAt.toYearMonth())
             }
         }
+
+        appEventBus.emit(AppEvent.TrxChanged(id = id, action = AppEvent.WriteAction.Deleted))
     }
 
     override suspend fun addTrxTemplate(

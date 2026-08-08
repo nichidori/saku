@@ -2,22 +2,18 @@ package dev.nichidori.saku.feature.statistic
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.nichidori.saku.core.event.AppEvent
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.*
-import dev.nichidori.saku.domain.model.AccountType
-import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.Trx
-import dev.nichidori.saku.domain.model.TrxFilter
-import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.TrxRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.YearMonth
+import kotlin.time.Duration.Companion.milliseconds
 
 enum class StatisticGroupBy { Category, Account, AccountType }
 
@@ -47,11 +43,24 @@ data class StatisticUiState(
     }
 }
 
+@OptIn(FlowPreview::class)
 class StatisticViewModel(
+    private val appEventBus: AppEventBus,
     private val trxRepository: TrxRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StatisticUiState())
     val uiState: StateFlow<StatisticUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            appEventBus.events
+                .filterIsInstance<AppEvent.TrxChanged>()
+                .debounce(150.milliseconds)
+                .collect {
+                    _uiState.value.stateByMonth.keys.forEach { month -> load(month) }
+                }
+        }
+    }
 
     fun setGroupBy(groupBy: StatisticGroupBy) {
         _uiState.update { it.copy(groupBy = groupBy) }
