@@ -6,6 +6,7 @@ import dev.nichidori.saku.core.event.AppEvent
 import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.core.model.Status
 import dev.nichidori.saku.core.model.Status.*
+import dev.nichidori.saku.core.util.affectedMonths
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.*
 import dev.nichidori.saku.domain.repo.AccountRepository
@@ -64,8 +65,10 @@ class TrxListViewModel(
             appEventBus.events
                 .filterIsInstance<AppEvent.TrxChanged>()
                 .debounce(150.milliseconds)
-                .collect {
-                    _uiState.value.stateByMonth.keys.forEach { month -> loadTrxs(month) }
+                .collect { event ->
+                    event.affectedMonths()
+                        .filter { it in _uiState.value.stateByMonth.keys }
+                        .forEach { month -> loadTrxs(month) }
                 }
         }
     }

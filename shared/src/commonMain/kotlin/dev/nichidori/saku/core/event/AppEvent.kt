@@ -1,10 +1,11 @@
 package dev.nichidori.saku.core.event
 
-sealed interface AppEvent {
-    enum class WriteAction { Created, Updated, Deleted }
+import dev.nichidori.saku.domain.model.Trx
 
-    data class TrxChanged(
-        val id: String? = null,
-        val action: WriteAction,
-    ) : AppEvent
+sealed interface AppEvent {
+    sealed interface TrxChanged : AppEvent {
+        data class Created(val trx: Trx) : TrxChanged
+        data class Updated(val before: Trx, val after: Trx) : TrxChanged
+        data class Deleted(val trx: Trx) : TrxChanged
+    }
 }

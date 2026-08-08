@@ -154,7 +154,7 @@ class DefaultTrxRepository(
             }
         }
 
-        appEventBus.emit(AppEvent.TrxChanged(id = newId, action = AppEvent.WriteAction.Created))
+        appEventBus.emit(AppEvent.TrxChanged.Created(trx))
         return newId
     }
 
@@ -197,10 +197,14 @@ class DefaultTrxRepository(
             error("Target account cannot be the same as source account")
         }
 
+        var oldTrx: Trx? = null
+        var newTrx: Trx? = null
+
         db.useWriterConnection {
             it.immediateTransaction {
                 val existing = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
+                oldTrx = existing
 
                 val currentTime = Clock.System.now()
 
@@ -297,6 +301,8 @@ class DefaultTrxRepository(
                     )
                 }
 
+                newTrx = updatedTrx
+
                 when (updatedTrx) {
                     is Trx.Income -> {
                         adjustAccountBalance(
@@ -365,14 +371,22 @@ class DefaultTrxRepository(
             }
         }
 
-        appEventBus.emit(AppEvent.TrxChanged(id = id, action = AppEvent.WriteAction.Updated))
+        appEventBus.emit(
+            AppEvent.TrxChanged.Updated(
+                before = oldTrx ?: error("Transaction not found"),
+                after = newTrx ?: error("Transaction not found")
+            )
+        )
     }
 
     override suspend fun deleteTrx(id: String) {
+        var deletedTrx: Trx? = null
+
         db.useWriterConnection {
             it.immediateTransaction {
                 val trx = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
+                deletedTrx = trx
 
                 val currentTime = Clock.System.now()
                 when (trx) {
@@ -437,7 +451,9 @@ class DefaultTrxRepository(
             }
         }
 
-        appEventBus.emit(AppEvent.TrxChanged(id = id, action = AppEvent.WriteAction.Deleted))
+        deletedTrx?.let {
+            appEventBus.emit(AppEvent.TrxChanged.Deleted(it))
+        }
     }
 
     override suspend fun addTrxTemplate(
