@@ -153,17 +153,20 @@ class StatisticViewModel(
                 is StatisticItemKey.ByCategory -> TrxFilter(
                     month = month,
                     type = type,
-                    categoryId = itemKey.category.id
+                    categoryId = itemKey.category.id,
+                    excludeInstallmentCharges = true
                 )
                 is StatisticItemKey.ByAccount -> TrxFilter(
                     month = month,
                     type = type,
-                    accountId = itemKey.account.id
+                    accountId = itemKey.account.id,
+                    excludeInstallmentCharges = true
                 )
                 is StatisticItemKey.ByAccountType -> TrxFilter(
                     month = month,
                     type = type,
-                    accountType = itemKey.type
+                    accountType = itemKey.type,
+                    excludeInstallmentCharges = true
                 )
             }
 
