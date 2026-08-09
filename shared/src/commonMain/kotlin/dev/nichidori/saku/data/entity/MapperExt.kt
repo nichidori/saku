@@ -154,8 +154,7 @@ fun TrxEntity.toDomain(
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
         updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
+        installment = null
     )
 
     TrxTypeEntity.Transfer -> Trx.Transfer(
@@ -199,8 +198,8 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Expense,
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
+        installmentId = installment?.installmentId,
+        installmentIndex = (installment as? InstallmentInfo.Installment)?.index,
     )
     is Trx.Transfer -> TrxEntity(
         id = id,
@@ -260,8 +259,18 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             ),
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-            installmentId = trx.installmentId,
-            installmentIndex = trx.installmentIndex
+            installment = when {
+                trx.installmentId == null -> null
+                trx.installmentIndex == null -> InstallmentInfo.Charge(
+                    installmentId = trx.installmentId,
+                    totalMonths = installmentPlan?.months ?: 0
+                )
+                else -> InstallmentInfo.Installment(
+                    installmentId = trx.installmentId,
+                    index = trx.installmentIndex,
+                    totalMonths = installmentPlan?.months ?: 0
+                )
+            },
         )
 
         TrxTypeEntity.Transfer -> Trx.Transfer(

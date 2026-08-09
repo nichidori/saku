@@ -36,4 +36,11 @@ data class TrxWithDetailsEntity(
         entityColumn = "id"
     )
     val targetCredit: CreditEntity?,
+
+    @Relation(
+        parentColumn = "installment_id",
+        entityColumn = "id",
+        entity = InstallmentEntity::class
+    )
+    val installmentPlan: InstallmentEntity? = null,
 )

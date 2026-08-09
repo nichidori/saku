@@ -81,8 +81,10 @@ class DefaultInstallmentRepository(
                 sourceAccount = TrxAccount.Credit(credit),
                 targetAccount = null,
                 category = category,
-                installmentId = installment.id,
-                installmentIndex = null
+                installment = InstallmentInfo.Charge(
+                    installmentId = installment.id,
+                    totalMonths = months
+                )
             )
         } catch (e: Exception) {
             db.useWriterConnection {
@@ -231,8 +233,11 @@ class DefaultInstallmentRepository(
                                 transactionAt = dueDate,
                                 createdAt = currentTime,
                                 updatedAt = null,
-                                installmentId = plan.id,
-                                installmentIndex = index
+                                installment = InstallmentInfo.Installment(
+                                    installmentId = plan.id,
+                                    index = index,
+                                    totalMonths = plan.months,
+                                ),
                             )
                         )
                     )

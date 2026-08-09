@@ -36,8 +36,7 @@ sealed class Trx(
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?,
-        val installmentId: String? = null,
-        val installmentIndex: Int? = null,
+        val installment: InstallmentInfo? = null,
     ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Expense
     }

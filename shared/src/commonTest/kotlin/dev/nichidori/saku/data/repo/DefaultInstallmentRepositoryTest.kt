@@ -234,9 +234,17 @@ class DefaultInstallmentRepositoryTest {
         val all = trxRepository.getFilteredTrxs(filter)
         val filtered = trxRepository.getFilteredTrxs(filter.copy(excludeInstallmentCharges = true))
 
-        assertTrue(all.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == null })
-        assertFalse(filtered.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == null })
-        assertTrue(filtered.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == 0 })
+        val isCharge = { t: Trx -> (t as? Trx.Expense)?.installment is InstallmentInfo.Charge }
+        val isChildAt = { t: Trx, index: Int -> (t as? Trx.Expense)?.installment == InstallmentInfo.Installment(installmentId = id, index = index, totalMonths = 12) }
+
+        assertTrue(all.any { isCharge(it) })
+        assertFalse(filtered.any { isCharge(it) })
+        assertTrue(filtered.any { isChildAt(it, 0) })
+
+        val child = filtered.first { isChildAt(it, 0) } as Trx.Expense
+        assertEquals(12, (child.installment as InstallmentInfo.Installment).totalMonths)
+        val charge = all.first { isCharge(it) } as Trx.Expense
+        assertEquals(12, (charge.installment as InstallmentInfo.Charge).totalMonths)
     }
 
     @Test

@@ -36,8 +36,7 @@ class DefaultTrxRepository(
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
-        installmentId: String?,
-        installmentIndex: Int?,
+        installment: InstallmentInfo?,
     ): String {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -67,8 +66,7 @@ class DefaultTrxRepository(
                 category = category ?: error("Category cannot be null"),
                 createdAt = currentTime,
                 updatedAt = null,
-                installmentId = installmentId,
-                installmentIndex = installmentIndex
+                installment = installment,
             )
 
             TrxType.Transfer -> Trx.Transfer(
@@ -105,7 +103,7 @@ class DefaultTrxRepository(
                     }
 
                     is Trx.Expense -> {
-                        if (installmentIndex == null) {
+                        if (installment !is InstallmentInfo.Installment) {
                             checkCreditLimit(trx.sourceAccount.id, trx.amount)
                             adjustAccountBalance(
                                 trx.sourceAccount.id,
@@ -114,7 +112,7 @@ class DefaultTrxRepository(
                             )
                         }
 
-                        if (installmentId == null || installmentIndex != null) {
+                        if (installment == null || installment is InstallmentInfo.Installment) {
                             val date = transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
                             val budgets = budgetDao.getByMonthAndYearWithCategory(
                                 month = date.month.number,
@@ -201,8 +199,7 @@ class DefaultTrxRepository(
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
-        installmentId: String?,
-        installmentIndex: Int?,
+        installment: InstallmentInfo?,
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -215,7 +212,7 @@ class DefaultTrxRepository(
             it.immediateTransaction {
                 val existing = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
-                if ((existing as? Trx.Expense)?.installmentId != null) {
+                if ((existing as? Trx.Expense)?.installment != null) {
                     throw UnsupportedOperationException("Installment transactions cannot be edited")
                 }
                 oldTrx = existing
@@ -300,8 +297,7 @@ class DefaultTrxRepository(
                         category = category ?: error("Category cannot be null"),
                         createdAt = existing.createdAt,
                         updatedAt = currentTime,
-                        installmentId = installmentId,
-                        installmentIndex = installmentIndex
+                        installment = installment
                     )
 
                     TrxType.Transfer -> Trx.Transfer(
@@ -415,7 +411,7 @@ class DefaultTrxRepository(
                     }
 
                     is Trx.Expense -> {
-                        if (trx.installmentIndex == null) {
+                        if (trx.installment !is InstallmentInfo.Installment) {
                             adjustAccountBalance(
                                 trx.sourceAccount.id,
                                 -balanceDelta(trx.sourceAccount, TrxType.Expense, "source", trx.amount),
@@ -423,7 +419,7 @@ class DefaultTrxRepository(
                             )
                         }
 
-                        if (trx.installmentId == null || trx.installmentIndex != null) {
+                        if (trx.installment == null || trx.installment is InstallmentInfo.Installment) {
                             val date = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
                             val budgets = budgetDao.getByMonthAndYearWithCategory(
                                 month = date.month.number,

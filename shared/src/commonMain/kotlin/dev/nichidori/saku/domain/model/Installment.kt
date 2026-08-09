@@ -2,6 +2,22 @@ package dev.nichidori.saku.domain.model
 
 import kotlin.time.Instant
 
+sealed interface InstallmentInfo {
+    val installmentId: String
+    val totalMonths: Int
+
+    data class Charge(
+        override val installmentId: String,
+        override val totalMonths: Int,
+    ) : InstallmentInfo
+
+    data class Installment(
+        override val installmentId: String,
+        val index: Int,
+        override val totalMonths: Int,
+    ) : InstallmentInfo
+}
+
 data class Installment(
     val id: String,
     val description: String,
