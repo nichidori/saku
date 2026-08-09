@@ -15,6 +15,7 @@ import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.data.repo.DefaultAccountRepository
 import dev.nichidori.saku.data.repo.DefaultBudgetRepository
 import dev.nichidori.saku.data.repo.DefaultCategoryRepository
+import dev.nichidori.saku.data.repo.DefaultInstallmentRepository
 import dev.nichidori.saku.data.repo.DefaultTrxRepository
 
 const val useInMemoryDb = false
@@ -42,11 +43,13 @@ fun main() = application {
         )
         val dataStore = createDataStore()
         val appEventBus = AppEventBus()
+        val trxRepository = DefaultTrxRepository(db = db, appEventBus = appEventBus)
         App(
             accountRepository = DefaultAccountRepository(db = db),
             categoryRepository = DefaultCategoryRepository(db = db),
-            trxRepository = DefaultTrxRepository(db = db, appEventBus = appEventBus),
+            trxRepository = trxRepository,
             budgetRepository = DefaultBudgetRepository(db = db),
+            installmentRepository = DefaultInstallmentRepository(db = db, trxRepository = trxRepository, appEventBus = appEventBus),
             appEventBus = appEventBus,
             dataStore = dataStore
         )

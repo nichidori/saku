@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.repo.AccountRepository
+import dev.nichidori.saku.domain.repo.InstallmentRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class AppViewModel(
     private val dataStore: DataStore<Preferences>,
     private val trxRepository: TrxRepository,
     private val accountRepository: AccountRepository,
+    private val installmentRepository: InstallmentRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppUiState())
@@ -38,6 +40,13 @@ class AppViewModel(
                         it.copy(darkTheme = dark)
                     }
                 }
+        }
+        viewModelScope.launch {
+            try {
+                installmentRepository.processDueInstallments()
+            } catch (e: Exception) {
+                this@AppViewModel.log(e)
+            }
         }
         viewModelScope.launch {
             try {

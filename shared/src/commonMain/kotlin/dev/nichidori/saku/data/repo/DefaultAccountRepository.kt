@@ -93,6 +93,7 @@ class DefaultAccountRepository(
     }
 
     private fun accountDelta(accountId: String, trx: TrxEntity, isCredit: Boolean): Long {
+        if (trx.installmentId != null && trx.installmentIndex != null) return 0L
         val isSource = trx.sourceAccountId == accountId || trx.sourceCreditId == accountId
         val isTarget = trx.targetAccountId == accountId || trx.targetCreditId == accountId
 

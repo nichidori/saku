@@ -36,6 +36,8 @@ class DefaultTrxRepository(
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
+        installmentId: String?,
+        installmentIndex: Int?,
     ): String {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -53,7 +55,9 @@ class DefaultTrxRepository(
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
                 createdAt = currentTime,
-                updatedAt = null
+                updatedAt = null,
+                installmentId = installmentId,
+                installmentIndex = installmentIndex
             )
 
             TrxType.Expense -> Trx.Expense(
@@ -64,7 +68,9 @@ class DefaultTrxRepository(
                 sourceAccount = sourceAccount,
                 category = category ?: error("Category cannot be null"),
                 createdAt = currentTime,
-                updatedAt = null
+                updatedAt = null,
+                installmentId = installmentId,
+                installmentIndex = installmentIndex
             )
 
             TrxType.Transfer -> Trx.Transfer(
@@ -76,7 +82,9 @@ class DefaultTrxRepository(
                 targetAccount = targetAccount ?: error("Target account cannot be null"),
                 category = category,
                 createdAt = currentTime,
-                updatedAt = null
+                updatedAt = null,
+                installmentId = installmentId,
+                installmentIndex = installmentIndex
             )
         }
 
@@ -101,37 +109,41 @@ class DefaultTrxRepository(
                     }
 
                     is Trx.Expense -> {
-                        checkCreditLimit(trx.sourceAccount.id, trx.amount)
-                        adjustAccountBalance(
-                            trx.sourceAccount.id,
-                            balanceDelta(trx.sourceAccount, TrxType.Expense, "source", trx.amount),
-                            currentTime
-                        )
-
-                        val date = transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val budgets = budgetDao.getByMonthAndYearWithCategory(
-                            month = date.month.number,
-                            year = date.year
-                        )
-                        val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
-                        val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
-
-                        if (budget != null) {
-                            budgetDao.update(
-                                budget.budget.copy(
-                                    spentAmount = budget.budget.spentAmount + trx.amount,
-                                    updatedAt = currentTime.toEpochMilliseconds(),
-                                )
+                        if (installmentIndex == null) {
+                            checkCreditLimit(trx.sourceAccount.id, trx.amount)
+                            adjustAccountBalance(
+                                trx.sourceAccount.id,
+                                balanceDelta(trx.sourceAccount, TrxType.Expense, "source", trx.amount),
+                                currentTime
                             )
                         }
 
-                        if (parentBudget != null) {
-                            budgetDao.update(
-                                parentBudget.budget.copy(
-                                    spentAmount = parentBudget.budget.spentAmount + trx.amount,
-                                    updatedAt = currentTime.toEpochMilliseconds(),
-                                )
+                        if (installmentId == null || installmentIndex != null) {
+                            val date = transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                            val budgets = budgetDao.getByMonthAndYearWithCategory(
+                                month = date.month.number,
+                                year = date.year
                             )
+                            val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
+                            val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
+
+                            if (budget != null) {
+                                budgetDao.update(
+                                    budget.budget.copy(
+                                        spentAmount = budget.budget.spentAmount + trx.amount,
+                                        updatedAt = currentTime.toEpochMilliseconds(),
+                                    )
+                                )
+                            }
+
+                            if (parentBudget != null) {
+                                budgetDao.update(
+                                    parentBudget.budget.copy(
+                                        spentAmount = parentBudget.budget.spentAmount + trx.amount,
+                                        updatedAt = currentTime.toEpochMilliseconds(),
+                                    )
+                                )
+                            }
                         }
                     }
 
@@ -179,6 +191,7 @@ class DefaultTrxRepository(
                     null else filter.accountType?.toEntity(),
                 isCredit = if (filter.accountType == AccountType.Credit)
                     true else null,
+                excludeInstallmentCharges = filter.excludeInstallmentCharges,
             ).map { it.toDomain() }
         }
     }
@@ -192,6 +205,8 @@ class DefaultTrxRepository(
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
+        installmentId: String?,
+        installmentIndex: Int?,
     ) {
         if (type == TrxType.Transfer && sourceAccount.id == targetAccount?.id) {
             error("Target account cannot be the same as source account")
@@ -204,6 +219,9 @@ class DefaultTrxRepository(
             it.immediateTransaction {
                 val existing = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
+                if (existing.installmentId != null) {
+                    throw UnsupportedOperationException("Installment transactions cannot be edited")
+                }
                 oldTrx = existing
 
                 val currentTime = Clock.System.now()
@@ -399,36 +417,40 @@ class DefaultTrxRepository(
                     }
 
                     is Trx.Expense -> {
-                        adjustAccountBalance(
-                            trx.sourceAccount.id,
-                            -balanceDelta(trx.sourceAccount, TrxType.Expense, "source", trx.amount),
-                            currentTime
-                        )
-
-                        val date = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val budgets = budgetDao.getByMonthAndYearWithCategory(
-                            month = date.month.number,
-                            year = date.year
-                        )
-                        val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
-                        val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
-
-                        if (budget != null) {
-                            budgetDao.update(
-                                budget.budget.copy(
-                                    spentAmount = budget.budget.spentAmount - trx.amount,
-                                    updatedAt = currentTime.toEpochMilliseconds(),
-                                )
+                        if (trx.installmentIndex == null) {
+                            adjustAccountBalance(
+                                trx.sourceAccount.id,
+                                -balanceDelta(trx.sourceAccount, TrxType.Expense, "source", trx.amount),
+                                currentTime
                             )
                         }
 
-                        if (parentBudget != null) {
-                            budgetDao.update(
-                                parentBudget.budget.copy(
-                                    spentAmount = parentBudget.budget.spentAmount - trx.amount,
-                                    updatedAt = currentTime.toEpochMilliseconds(),
-                                )
+                        if (trx.installmentId == null || trx.installmentIndex != null) {
+                            val date = trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault())
+                            val budgets = budgetDao.getByMonthAndYearWithCategory(
+                                month = date.month.number,
+                                year = date.year
                             )
+                            val budget = budgets.firstOrNull { b -> b.category.id == trx.category?.id }
+                            val parentBudget = budgets.firstOrNull { b -> b.category.id == trx.category?.parent?.id }
+
+                            if (budget != null) {
+                                budgetDao.update(
+                                    budget.budget.copy(
+                                        spentAmount = budget.budget.spentAmount - trx.amount,
+                                        updatedAt = currentTime.toEpochMilliseconds(),
+                                    )
+                                )
+                            }
+
+                            if (parentBudget != null) {
+                                budgetDao.update(
+                                    parentBudget.budget.copy(
+                                        spentAmount = parentBudget.budget.spentAmount - trx.amount,
+                                        updatedAt = currentTime.toEpochMilliseconds(),
+                                    )
+                                )
+                            }
                         }
                     }
 
@@ -718,6 +740,8 @@ class DefaultTrxRepository(
     }
 
     private fun accountDelta(accountId: String, trx: TrxEntity, isCredit: Boolean): Long {
+        if (trx.installmentId != null && trx.installmentIndex != null) return 0L
+
         val isSource = trx.sourceAccountId == accountId || trx.sourceCreditId == accountId
         val isTarget = trx.targetAccountId == accountId || trx.targetCreditId == accountId
 

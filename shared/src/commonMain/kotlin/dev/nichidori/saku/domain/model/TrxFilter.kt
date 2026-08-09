@@ -8,4 +8,5 @@ data class TrxFilter(
     val categoryId: String? = null,
     val accountId: String? = null,
     val accountType: AccountType? = null,
+    val excludeInstallmentCharges: Boolean = false,
 )

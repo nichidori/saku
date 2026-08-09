@@ -12,6 +12,8 @@ interface TrxRepository {
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
+        installmentId: String? = null,
+        installmentIndex: Int? = null,
     ): String
 
     suspend fun getTrxById(id: String): Trx?
@@ -25,6 +27,8 @@ interface TrxRepository {
         sourceAccount: TrxAccount,
         targetAccount: TrxAccount?,
         category: Category?,
+        installmentId: String? = null,
+        installmentIndex: Int? = null,
     )
 
     suspend fun deleteTrx(id: String)

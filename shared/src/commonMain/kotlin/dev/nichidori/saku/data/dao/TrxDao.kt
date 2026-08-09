@@ -53,6 +53,8 @@ interface TrxDao {
               OR
               (:isCredit = 1 AND (source_credit_id IS NOT NULL OR target_credit_id IS NOT NULL))
           )
+          AND (:excludeInstallmentCharges = 0
+               OR NOT (installment_id IS NOT NULL AND installment_index IS NULL))
         ORDER BY transaction_at DESC
         """
     )
@@ -64,6 +66,7 @@ interface TrxDao {
         accountId: String? = null,
         accountType: AccountTypeEntity? = null,
         isCredit: Boolean? = null,
+        excludeInstallmentCharges: Boolean = false,
     ): List<TrxWithDetailsEntity>
 
     @Query("SELECT * FROM trx WHERE transaction_at < :endTime ORDER BY transaction_at ASC")
@@ -80,12 +83,32 @@ interface TrxDao {
 
     @Query(
         """
+        SELECT * FROM trx
+        WHERE installment_id = :installmentId
+        ORDER BY installment_index ASC
+        """
+    )
+    suspend fun getByInstallmentId(installmentId: String): List<TrxEntity>
+
+    @Query(
+        """
+        SELECT * FROM trx
+        WHERE installment_id = :installmentId
+          AND installment_index = :index
+        LIMIT 1
+        """
+    )
+    suspend fun getByInstallmentIndex(installmentId: String, index: Int): TrxEntity?
+
+    @Query(
+        """
         SELECT SUM(t.amount) FROM trx t
         INNER JOIN category c ON t.category_id = c.id
         WHERE t.transaction_at >= :startTime
         AND t.transaction_at < :endTime
         AND t.type = :type
         AND (t.category_id = :categoryId OR c.parent_id = :categoryId)
+        AND (t.installment_id IS NULL OR t.installment_index IS NOT NULL)
         """
     )
     suspend fun getTotalAmount(startTime: Long, endTime: Long, categoryId: String, type: TrxTypeEntity): Long?

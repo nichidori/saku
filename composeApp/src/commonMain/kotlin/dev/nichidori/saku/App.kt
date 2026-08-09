@@ -49,6 +49,7 @@ import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.BudgetRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
+import dev.nichidori.saku.domain.repo.InstallmentRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import dev.nichidori.saku.feature.account.AccountPage
 import dev.nichidori.saku.feature.account.AccountViewModel
@@ -124,12 +125,18 @@ fun App(
     categoryRepository: CategoryRepository,
     trxRepository: TrxRepository,
     budgetRepository: BudgetRepository,
+    installmentRepository: InstallmentRepository,
     appEventBus: AppEventBus,
     dataStore: DataStore<Preferences>,
     onDarkTheme: (darkTheme: Boolean) -> Unit = {},
 ) {
     val appViewModel: AppViewModel = viewModel {
-        AppViewModel(dataStore = dataStore, trxRepository = trxRepository, accountRepository = accountRepository)
+        AppViewModel(
+            dataStore = dataStore,
+            trxRepository = trxRepository,
+            accountRepository = accountRepository,
+            installmentRepository = installmentRepository,
+        )
     }
 
     val focusManager = LocalFocusManager.current

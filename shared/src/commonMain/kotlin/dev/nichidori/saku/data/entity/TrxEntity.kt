@@ -39,6 +39,12 @@ import androidx.room.PrimaryKey
             childColumns = ["category_id"],
             onDelete = ForeignKey.SET_NULL
         ),
+        ForeignKey(
+            entity = InstallmentEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["installment_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
     ],
     indices = [
         Index(value = ["source_account_id"]),
@@ -46,6 +52,7 @@ import androidx.room.PrimaryKey
         Index(value = ["target_account_id"]),
         Index(value = ["target_credit_id"]),
         Index(value = ["category_id"]),
+        Index(value = ["installment_id"]),
     ]
 )
 data class TrxEntity(
@@ -60,5 +67,7 @@ data class TrxEntity(
     @ColumnInfo(name = "transaction_at") val transactionAt: Long,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long?,
-    @ColumnInfo(name = "type") val type: TrxTypeEntity
+    @ColumnInfo(name = "type") val type: TrxTypeEntity,
+    @ColumnInfo(name = "installment_id") val installmentId: String? = null,
+    @ColumnInfo(name = "installment_index") val installmentIndex: Int? = null,
 )

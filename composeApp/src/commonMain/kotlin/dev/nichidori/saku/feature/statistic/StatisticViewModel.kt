@@ -79,7 +79,7 @@ class StatisticViewModel(
                 val incomes = trxRepository
                     .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Income))
                 val expenses = trxRepository
-                    .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Expense))
+                    .getFilteredTrxs(TrxFilter(month = month, type = TrxType.Expense, excludeInstallmentCharges = true))
 
                 val incomesOfCategory = incomes
                     .filter { it.category != null }

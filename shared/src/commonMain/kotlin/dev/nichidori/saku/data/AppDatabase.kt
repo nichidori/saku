@@ -21,8 +21,9 @@ import kotlinx.coroutines.Dispatchers
         CreditEntity::class,
         TrxTemplateEntity::class,
         MonthlyNetWorthEntity::class,
+        InstallmentEntity::class,
     ],
-    version = 9,
+    version = 10,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun creditDao(): CreditDao
     abstract fun trxTemplateDao(): TrxTemplateDao
     abstract fun monthlyNetWorthDao(): MonthlyNetWorthDao
+    abstract fun installmentDao(): InstallmentDao
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -324,6 +326,101 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
     }
 }
 
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(connection: SQLiteConnection) {
+        // 1. Create installment table
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `installment` (
+                `id` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `category_id` TEXT NOT NULL,
+                `credit_id` TEXT NOT NULL,
+                `principal` INTEGER NOT NULL,
+                `months` INTEGER NOT NULL,
+                `monthly_rate` REAL NOT NULL,
+                `total_amount` INTEGER NOT NULL,
+                `monthly_payment` INTEGER NOT NULL,
+                `last_payment` INTEGER NOT NULL,
+                `start_at` INTEGER NOT NULL,
+                `due_day` INTEGER NOT NULL,
+                `next_index` INTEGER NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`category_id`) REFERENCES `category`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`credit_id`) REFERENCES `credit`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_installment_category_id` ON `installment` (`category_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_installment_credit_id` ON `installment` (`credit_id`)")
+
+        // 2. Recreate trx with installment columns + FK
+        connection.execSQL("ALTER TABLE `trx` RENAME TO `trx_old`")
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `trx` (
+                `id` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `amount` INTEGER NOT NULL,
+                `category_id` TEXT,
+                `source_account_id` TEXT,
+                `source_credit_id` TEXT,
+                `target_account_id` TEXT,
+                `target_credit_id` TEXT,
+                `transaction_at` INTEGER NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                `type` TEXT NOT NULL,
+                `installment_id` TEXT,
+                `installment_index` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`source_account_id`) REFERENCES `account`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`source_credit_id`) REFERENCES `credit`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`target_account_id`) REFERENCES `account`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`target_credit_id`) REFERENCES `credit`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(`category_id`) REFERENCES `category`(`id`)
+                    ON UPDATE NO ACTION ON DELETE SET NULL,
+                FOREIGN KEY(`installment_id`) REFERENCES `installment`(`id`)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        connection.execSQL(
+            """
+            INSERT INTO `trx` (
+                `id`, `description`, `amount`, `category_id`,
+                `source_account_id`, `source_credit_id`,
+                `target_account_id`, `target_credit_id`,
+                `transaction_at`, `created_at`, `updated_at`, `type`,
+                `installment_id`, `installment_index`
+            )
+            SELECT
+                `id`, `description`, `amount`, `category_id`,
+                `source_account_id`, `source_credit_id`,
+                `target_account_id`, `target_credit_id`,
+                `transaction_at`, `created_at`, `updated_at`, `type`,
+                NULL, NULL
+            FROM `trx_old`
+            """.trimIndent()
+        )
+        connection.execSQL("DROP TABLE `trx_old`")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_category_id` ON `trx` (`category_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_source_account_id` ON `trx` (`source_account_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_source_credit_id` ON `trx` (`source_credit_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_target_account_id` ON `trx` (`target_account_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_target_credit_id` ON `trx` (`target_credit_id`)")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_trx_installment_id` ON `trx` (`installment_id`)")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
@@ -336,7 +433,8 @@ fun getRoomDatabase(
             MIGRATION_5_6,
             MIGRATION_6_7,
             MIGRATION_7_8,
-            MIGRATION_8_9
+            MIGRATION_8_9,
+            MIGRATION_9_10
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())

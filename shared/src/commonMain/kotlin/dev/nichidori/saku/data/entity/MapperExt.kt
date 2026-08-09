@@ -43,6 +43,42 @@ fun Credit.toEntity(): CreditEntity = CreditEntity(
     updatedAt = updatedAt?.toEpochMilliseconds()
 )
 
+fun InstallmentEntity.toDomain(category: Category, credit: Credit): Installment = Installment(
+    id = id,
+    description = description,
+    category = category,
+    credit = credit,
+    principal = principal,
+    months = months,
+    monthlyRatePercent = monthlyRatePercent,
+    totalAmount = totalAmount,
+    monthlyPayment = monthlyPayment,
+    lastPayment = lastPayment,
+    startAt = Instant.fromEpochMilliseconds(startAt),
+    dueDay = dueDay,
+    nextIndex = nextIndex,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+)
+
+fun Installment.toEntity(): InstallmentEntity = InstallmentEntity(
+    id = id,
+    description = description,
+    categoryId = category.id,
+    creditId = credit.id,
+    principal = principal,
+    months = months,
+    monthlyRatePercent = monthlyRatePercent,
+    totalAmount = totalAmount,
+    monthlyPayment = monthlyPayment,
+    lastPayment = lastPayment,
+    startAt = startAt.toEpochMilliseconds(),
+    dueDay = dueDay,
+    nextIndex = nextIndex,
+    createdAt = createdAt.toEpochMilliseconds(),
+    updatedAt = updatedAt?.toEpochMilliseconds()
+)
+
 fun MonthlyNetWorthEntity.toDomain(): MonthlyNetWorth = MonthlyNetWorth(
     month = YearMonth(year, month),
     netWorth = netWorth,
@@ -106,7 +142,9 @@ fun TrxEntity.toDomain(
         sourceAccount = sourceAccount,
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
-        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
 
     TrxTypeEntity.Expense -> Trx.Expense(
@@ -117,7 +155,9 @@ fun TrxEntity.toDomain(
         sourceAccount = sourceAccount,
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
-        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
 
     TrxTypeEntity.Transfer -> Trx.Transfer(
@@ -129,7 +169,9 @@ fun TrxEntity.toDomain(
         targetAccount = requireNotNull(targetAccount),
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
-        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
 }
 
@@ -146,7 +188,9 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         transactionAt = transactionAt.toEpochMilliseconds(),
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
-        type = TrxTypeEntity.Income
+        type = TrxTypeEntity.Income,
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
     is Trx.Expense -> TrxEntity(
         id = id,
@@ -160,7 +204,9 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         transactionAt = transactionAt.toEpochMilliseconds(),
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
-        type = TrxTypeEntity.Expense
+        type = TrxTypeEntity.Expense,
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
     is Trx.Transfer -> TrxEntity(
         id = id,
@@ -174,7 +220,9 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         transactionAt = transactionAt.toEpochMilliseconds(),
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
-        type = TrxTypeEntity.Transfer
+        type = TrxTypeEntity.Transfer,
+        installmentId = installmentId,
+        installmentIndex = installmentIndex
     )
 }
 
@@ -206,7 +254,9 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
                 parent = categoryWithParent.parent?.toDomain()
             ),
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
-            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+            installmentId = trx.installmentId,
+            installmentIndex = trx.installmentIndex
         )
 
         TrxTypeEntity.Expense -> Trx.Expense(
@@ -219,7 +269,9 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
                 parent = categoryWithParent.parent?.toDomain()
             ),
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
-            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+            installmentId = trx.installmentId,
+            installmentIndex = trx.installmentIndex
         )
 
         TrxTypeEntity.Transfer -> Trx.Transfer(
@@ -231,7 +283,9 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             category = null,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
-            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+            installmentId = trx.installmentId,
+            installmentIndex = trx.installmentIndex
         )
     }
 }
