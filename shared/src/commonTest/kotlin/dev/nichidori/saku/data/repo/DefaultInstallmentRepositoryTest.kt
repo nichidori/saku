@@ -76,6 +76,12 @@ class DefaultInstallmentRepositoryTest {
         return month.firstDay.atStartOfDayIn(timeZone)
     }
 
+    private fun purchasesAtDay31(): Instant {
+        val month31 = generateSequence(currentMonth.minus(3, MONTH)) { it.minus(1, MONTH) }
+            .first { it.days.size >= 31 }
+        return LocalDate(month31.year, month31.month, 31).atStartOfDayIn(timeZone)
+    }
+
     @Test
     fun createInstallment_shouldCreateChargeTrxAndIncreaseCreditBalance() = runTest {
         val id = repository.createInstallment(
@@ -119,6 +125,54 @@ class DefaultInstallmentRepositoryTest {
         assertEquals(1_100_000L, plan.monthlyPayment)
         assertEquals(1_100_000L, plan.lastPayment)
         assertEquals(11_000_000L, credit().currentAmount)
+    }
+
+    @Test
+    fun createInstallment_shouldStoreRawPurchaseDayAsDueDay() = runTest {
+        val purchaseAt = purchasesAtDay31()
+        val id = repository.createInstallment(
+            description = "Camera",
+            category = expenseCategory(),
+            credit = credit(),
+            principal = 3_600_000L,
+            months = 12,
+            monthlyRatePercent = 0.0,
+            purchaseAt = purchaseAt,
+        )
+
+        val plan = repository.getInstallmentById(id)!!
+        assertEquals(31, plan.dueDay)
+    }
+
+    @Test
+    fun createInstallment_shouldClampChildDateOnlyAtMaterialization() = runTest {
+        val purchaseAt = purchasesAtDay31()
+        val startMonth = purchaseAt.toLocalDateTime(timeZone).let { YearMonth(it.year, it.month) }
+        val id = repository.createInstallment(
+            description = "Camera",
+            category = expenseCategory(),
+            credit = credit(),
+            principal = 3_600_000L,
+            months = 12,
+            monthlyRatePercent = 0.0,
+            purchaseAt = purchaseAt,
+        )
+
+        repository.processDueInstallments()
+
+        val children = db.trxDao().getByInstallmentId(id)
+            .filter { it.installmentIndex != null }
+        assertTrue(children.isNotEmpty())
+
+        for (child in children) {
+            val index = requireNotNull(child.installmentIndex)
+            val dueMonth = startMonth.plus(index, MONTH)
+            val expectedDay = minOf(31, dueMonth.days.size)
+            val actualDay = Instant.fromEpochMilliseconds(child.transactionAt)
+                .toLocalDateTime(timeZone)
+                .day
+            assertEquals(expectedDay, actualDay, "Index $index (month $dueMonth) should be clamped to $expectedDay")
+        }
     }
 
     @Test

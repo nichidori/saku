@@ -60,7 +60,7 @@ class DefaultInstallmentRepository(
             monthlyPayment = monthlyPayment,
             lastPayment = lastPayment,
             startAt = purchaseAt,
-            dueDay = minOf(purchaseDay, 28),
+            dueDay = purchaseDay,
             nextIndex = 0,
             createdAt = Clock.System.now(),
             updatedAt = null
