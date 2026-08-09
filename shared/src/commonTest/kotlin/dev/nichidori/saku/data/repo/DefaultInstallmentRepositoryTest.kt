@@ -234,9 +234,9 @@ class DefaultInstallmentRepositoryTest {
         val all = trxRepository.getFilteredTrxs(filter)
         val filtered = trxRepository.getFilteredTrxs(filter.copy(excludeInstallmentCharges = true))
 
-        assertTrue(all.any { it.installmentId == id && it.installmentIndex == null })
-        assertFalse(filtered.any { it.installmentId == id && it.installmentIndex == null })
-        assertTrue(filtered.any { it.installmentId == id && it.installmentIndex == 0 })
+        assertTrue(all.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == null })
+        assertFalse(filtered.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == null })
+        assertTrue(filtered.any { (it as? Trx.Expense)?.installmentId == id && it.installmentIndex == 0 })
     }
 
     @Test

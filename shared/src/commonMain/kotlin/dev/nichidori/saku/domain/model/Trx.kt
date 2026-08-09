@@ -11,16 +11,8 @@ sealed class Trx(
     open val transactionAt: Instant,
     open val createdAt: Instant,
     open val updatedAt: Instant?,
-    open val installmentId: String? = null,
-    open val installmentIndex: Int? = null,
 ) {
     abstract val type: TrxType
-
-    val isInstallmentCharge: Boolean
-        get() = installmentId != null && installmentIndex == null
-
-    val isInstallmentChild: Boolean
-        get() = installmentId != null && installmentIndex != null
 
     data class Income(
         override val id: String,
@@ -31,9 +23,7 @@ sealed class Trx(
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?,
-        override val installmentId: String? = null,
-        override val installmentIndex: Int? = null,
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt, installmentId, installmentIndex) {
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Income
     }
 
@@ -46,9 +36,9 @@ sealed class Trx(
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?,
-        override val installmentId: String? = null,
-        override val installmentIndex: Int? = null,
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt, installmentId, installmentIndex) {
+        val installmentId: String? = null,
+        val installmentIndex: Int? = null,
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Expense
     }
 
@@ -62,9 +52,7 @@ sealed class Trx(
         override val transactionAt: Instant,
         override val createdAt: Instant,
         override val updatedAt: Instant?,
-        override val installmentId: String? = null,
-        override val installmentIndex: Int? = null,
-    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt, installmentId, installmentIndex) {
+    ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Transfer
     }
 }

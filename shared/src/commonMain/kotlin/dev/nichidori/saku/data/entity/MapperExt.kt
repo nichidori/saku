@@ -143,8 +143,6 @@ fun TrxEntity.toDomain(
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
         updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
     )
 
     TrxTypeEntity.Expense -> Trx.Expense(
@@ -170,8 +168,6 @@ fun TrxEntity.toDomain(
         transactionAt = Instant.fromEpochMilliseconds(transactionAt),
         createdAt = Instant.fromEpochMilliseconds(createdAt),
         updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
     )
 }
 
@@ -189,8 +185,6 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Income,
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
     )
     is Trx.Expense -> TrxEntity(
         id = id,
@@ -221,8 +215,6 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         createdAt = createdAt.toEpochMilliseconds(),
         updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Transfer,
-        installmentId = installmentId,
-        installmentIndex = installmentIndex
     )
 }
 
@@ -255,8 +247,6 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             ),
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-            installmentId = trx.installmentId,
-            installmentIndex = trx.installmentIndex
         )
 
         TrxTypeEntity.Expense -> Trx.Expense(
@@ -284,8 +274,6 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             category = null,
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
-            installmentId = trx.installmentId,
-            installmentIndex = trx.installmentIndex
         )
     }
 }

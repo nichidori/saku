@@ -56,8 +56,6 @@ class DefaultTrxRepository(
                 category = category ?: error("Category cannot be null"),
                 createdAt = currentTime,
                 updatedAt = null,
-                installmentId = installmentId,
-                installmentIndex = installmentIndex
             )
 
             TrxType.Expense -> Trx.Expense(
@@ -83,8 +81,6 @@ class DefaultTrxRepository(
                 category = category,
                 createdAt = currentTime,
                 updatedAt = null,
-                installmentId = installmentId,
-                installmentIndex = installmentIndex
             )
         }
 
@@ -219,7 +215,7 @@ class DefaultTrxRepository(
             it.immediateTransaction {
                 val existing = trxDao.getByIdWithDetails(id)?.toDomain()
                     ?: throw NoSuchElementException("Transaction not found")
-                if (existing.installmentId != null) {
+                if ((existing as? Trx.Expense)?.installmentId != null) {
                     throw UnsupportedOperationException("Installment transactions cannot be edited")
                 }
                 oldTrx = existing
@@ -303,7 +299,9 @@ class DefaultTrxRepository(
                         sourceAccount = sourceAccount,
                         category = category ?: error("Category cannot be null"),
                         createdAt = existing.createdAt,
-                        updatedAt = currentTime
+                        updatedAt = currentTime,
+                        installmentId = installmentId,
+                        installmentIndex = installmentIndex
                     )
 
                     TrxType.Transfer -> Trx.Transfer(
