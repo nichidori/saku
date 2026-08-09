@@ -97,6 +97,9 @@ fun TrxPage(
             onFeeAmountChange = viewModel::onFeeAmountChange,
             onFeeAccountChange = viewModel::onFeeAccountChange,
             onFeeCategoryChange = viewModel::onFeeCategoryChange,
+            onEnableInstallmentToggle = viewModel::onEnableInstallmentToggle,
+            onMonthsChange = viewModel::onMonthsChange,
+            onMonthlyRateChange = viewModel::onMonthlyRateChange,
             onSaveClick = viewModel::saveTrx,
             onDeleteClick = viewModel::deleteTrx,
             modifier = modifier
@@ -120,6 +123,9 @@ fun TrxPageContent(
     onFeeAmountChange: ((String) -> String) -> Unit,
     onFeeAccountChange: (TrxAccount) -> Unit,
     onFeeCategoryChange: (Category) -> Unit,
+    onEnableInstallmentToggle: () -> Unit,
+    onMonthsChange: ((String) -> String) -> Unit,
+    onMonthlyRateChange: ((String) -> String) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -132,6 +138,8 @@ fun TrxPageContent(
     var showFeeAmountInput by remember { mutableStateOf(false) }
     var showFeeAccountInput by remember { mutableStateOf(false) }
     var showFeeCategoryInput by remember { mutableStateOf(false) }
+    var showMonthsInput by remember { mutableStateOf(false) }
+    var showRateInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
     Scaffold(
@@ -405,6 +413,50 @@ fun TrxPageContent(
                     )
                 }
 
+                showMonthsInput -> {
+                    NumberKeyboard(
+                        actionLabel = "Next",
+                        onValueClick = {
+                            onMonthsChange { current ->
+                                current + it
+                            }
+                        },
+                        onDeleteClick = {
+                            onMonthsChange { current ->
+                                current.dropLast(1)
+                            }
+                        },
+                        onActionClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                    )
+                }
+
+                showRateInput -> {
+                    NumberKeyboard(
+                        actionLabel = "Next",
+                        showDecimal = true,
+                        onDecimalClick = {
+                            onMonthlyRateChange { current ->
+                                current + "."
+                            }
+                        },
+                        onValueClick = {
+                            onMonthlyRateChange { current ->
+                                current + it
+                            }
+                        },
+                        onDeleteClick = {
+                            onMonthlyRateChange { current ->
+                                current.dropLast(1)
+                            }
+                        },
+                        onActionClick = {
+                            focusManager.moveFocus(FocusDirection.Next)
+                        },
+                    )
+                }
+
                 else -> {
                     MyButton(
                         text = "Save",
@@ -614,6 +666,70 @@ fun TrxPageContent(
                                         }
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = uiState.type == TrxType.Expense
+                    && uiState.sourceAccount is TrxAccount.Credit
+                    && !uiState.canDelete
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp)
+                    ) {
+                        Text(
+                            text = "Installment",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        MyIconButton(onClick = onEnableInstallmentToggle) {
+                            Icon(
+                                imageVector = if (uiState.enableInstallment) Lucide.X else Lucide.Plus,
+                                contentDescription = if (uiState.enableInstallment) "Hide Installment"
+                                else "Show Installment",
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(visible = uiState.enableInstallment) {
+                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            MyTextField(
+                                value = uiState.monthsFormatted,
+                                onValueChange = { },
+                                label = "Total Months",
+                                readOnly = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focusState ->
+                                        showMonthsInput = focusState.isFocused
+                                    }
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            MyTextField(
+                                value = uiState.monthlyRateFormatted,
+                                onValueChange = { },
+                                label = "Monthly Interest (%)",
+                                readOnly = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focusState ->
+                                        showRateInput = focusState.isFocused
+                                    }
+                            )
                         }
                     }
                 }

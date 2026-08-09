@@ -309,6 +309,7 @@ fun App(
                                     accountRepository,
                                     categoryRepository,
                                     trxRepository,
+                                    installmentRepository,
                                     trx.id
                                 )
                             },

@@ -3,18 +3,16 @@ package dev.nichidori.saku.feature.trx
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nichidori.saku.core.model.Status
-import dev.nichidori.saku.core.model.Status.Failure
-import dev.nichidori.saku.core.model.Status.Initial
-import dev.nichidori.saku.core.model.Status.Loading
-import dev.nichidori.saku.core.model.Status.Success
+import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
-import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxType
 import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
+import dev.nichidori.saku.domain.repo.InstallmentRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +36,9 @@ data class TrxUiState(
     val feeAmount: Long? = null,
     val feeAccount: TrxAccount? = null,
     val feeCategory: Category? = null,
+    val enableInstallment: Boolean = false,
+    val months: Int? = null,
+    val monthlyRatePercent: String = "",
     val accountOptions: List<TrxAccount> = listOf(),
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
@@ -52,18 +53,22 @@ data class TrxUiState(
     }
     val amountFormatted = (amount ?: 0).toRupiah()
     val feeAmountFormatted = (feeAmount ?: 0).toRupiah()
+    val monthsFormatted = months?.toString().orEmpty()
+    val monthlyRateFormatted = if (monthlyRatePercent.isNotEmpty()) "$monthlyRatePercent%" else ""
     val canSave = time != null
             && amount != null
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
             && (if (type != TrxType.Transfer) category != null else true)
             && (if (type == TrxType.Transfer && enableFee) feeAmount != null && feeAmount > 0 && feeAccount != null && feeCategory != null else true)
+            && (if (enableInstallment && sourceAccount is TrxAccount.Credit) months != null && months > 0 && monthlyRatePercent.trimEnd('.').toDoubleOrNull() != null else true)
 }
 
 class TrxViewModel(
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
     private val trxRepository: TrxRepository,
+    private val installmentRepository: InstallmentRepository,
     private val id: String?
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TrxUiState())
@@ -118,7 +123,10 @@ class TrxViewModel(
             it.copy(
                 type = newValue,
                 category = null,
-                targetAccount = null
+                targetAccount = null,
+                enableInstallment = false,
+                months = null,
+                monthlyRatePercent = ""
             )
         }
     }
@@ -177,6 +185,46 @@ class TrxViewModel(
         _uiState.update { it.copy(feeCategory = newValue) }
     }
 
+    fun onEnableInstallmentToggle() {
+        _uiState.update {
+            val enableInstallment = !it.enableInstallment
+            it.copy(
+                enableInstallment = enableInstallment,
+                months = null,
+                monthlyRatePercent = "",
+            )
+        }
+    }
+
+    fun onMonthsChange(change: (String) -> String) {
+        _uiState.update { currState ->
+            val current = currState.months?.toString().orEmpty()
+            currState.copy(months = change(current).toIntOrNull())
+        }
+    }
+
+    fun onMonthlyRateChange(change: (String) -> String) {
+        _uiState.update { currState ->
+            val current = currState.monthlyRatePercent
+            currState.copy(monthlyRatePercent = sanitizeRate(change(current)))
+        }
+    }
+
+    private fun sanitizeRate(raw: String): String {
+        val out = StringBuilder()
+        var dotSeen = false
+        for (c in raw) {
+            when {
+                c.isDigit() -> out.append(c)
+                c == '.' && !dotSeen -> {
+                    dotSeen = true
+                    out.append('.')
+                }
+            }
+        }
+        return out.toString()
+    }
+
     fun saveTrx() {
         viewModelScope.launch {
             try {
@@ -197,25 +245,43 @@ class TrxViewModel(
                 _uiState.update { it.copy(saveStatus = Loading) }
                 if (id == null) {
                     _uiState.value.let {
-                        trxRepository.addTrx(
-                            type = it.type,
-                            transactionAt = it.time!!,
-                            amount = it.amount!!,
-                            description = it.description,
-                            sourceAccount = it.sourceAccount!!,
-                            targetAccount = it.targetAccount,
-                            category = it.category,
-                        )
-                        if (it.type == TrxType.Transfer && it.enableFee) {
-                            trxRepository.addTrx(
-                                type = TrxType.Expense,
-                                transactionAt = it.time + 1.milliseconds,
-                                amount = it.feeAmount!!,
-                                description = "",
-                                sourceAccount = it.feeAccount!!,
-                                targetAccount = null,
-                                category = it.feeCategory,
+                        if (it.type == TrxType.Expense
+                            && it.sourceAccount is TrxAccount.Credit
+                            && it.enableInstallment
+                        ) {
+                            val months = it.months ?: throw Exception("Months cannot be empty")
+                            val rate = it.monthlyRatePercent.trimEnd('.').toDoubleOrNull()
+                                ?: throw Exception("Interest rate cannot be empty")
+                            installmentRepository.createInstallment(
+                                description = it.description,
+                                category = it.category!!,
+                                credit = it.sourceAccount.credit,
+                                principal = it.amount!!,
+                                months = months,
+                                monthlyRatePercent = rate,
+                                purchaseAt = it.time!!,
                             )
+                        } else {
+                            trxRepository.addTrx(
+                                type = it.type,
+                                transactionAt = it.time!!,
+                                amount = it.amount!!,
+                                description = it.description,
+                                sourceAccount = it.sourceAccount!!,
+                                targetAccount = it.targetAccount,
+                                category = it.category,
+                            )
+                            if (it.type == TrxType.Transfer && it.enableFee) {
+                                trxRepository.addTrx(
+                                    type = TrxType.Expense,
+                                    transactionAt = it.time + 1.milliseconds,
+                                    amount = it.feeAmount!!,
+                                    description = "",
+                                    sourceAccount = it.feeAccount!!,
+                                    targetAccount = null,
+                                    category = it.feeCategory,
+                                )
+                            }
                         }
                     }
                 } else {

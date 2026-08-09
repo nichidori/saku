@@ -78,7 +78,9 @@ fun NumberKeyboard(
     modifier: Modifier = Modifier,
     actionLabel: String = "Done",
     spacing: Dp = 12.dp,
-    height: Dp = defaultInputHeight
+    height: Dp = defaultInputHeight,
+    showDecimal: Boolean = false,
+    onDecimalClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -115,7 +117,7 @@ fun NumberKeyboard(
                 modifier = Modifier.weight(1f)
             ) {
                 KeyboardKey(
-                    label = "Delete",
+                    label = if (showDecimal) "Del" else  "Delete",
                     onClick = onDeleteClick,
                     backgroundColor = MaterialTheme.colorScheme.secondary,
                     foregroundColor = MaterialTheme.colorScheme.onSecondary,
@@ -126,6 +128,13 @@ fun NumberKeyboard(
                     onClick = { onValueClick(0) },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
+                if (showDecimal) {
+                    KeyboardKey(
+                        label = ".",
+                        onClick = onDecimalClick,
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                }
                 KeyboardKey(
                     label = actionLabel,
                     onClick = onActionClick,
