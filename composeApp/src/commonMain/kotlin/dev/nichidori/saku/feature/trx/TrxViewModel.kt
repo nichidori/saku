@@ -94,6 +94,10 @@ class TrxViewModel(
                 .filter { it.type == TrxType.Expense }
                 .associateWith { childrenByParentId[it.id].orEmpty() }
             val trx = id?.let { trxRepository.getTrxById(id) }
+            val installment = (trx as? Trx.Expense)?.installment
+            val plan = if (installment is InstallmentInfo.Charge) {
+                installmentRepository.getInstallmentById(installment.installmentId)
+            } else null
             _uiState.update {
                 with(trx) {
                     it.copy(
@@ -113,7 +117,9 @@ class TrxViewModel(
                         accountOptions = accounts,
                         incomesByParent = incomesByParent,
                         expensesByParent = expensesByParent,
-                        installment = (this as? Trx.Expense)?.installment,
+                        installment = installment,
+                        months = plan?.months ?: it.months,
+                        monthlyRatePercent = plan?.let { plan -> formatRate(plan.monthlyRatePercent) } ?: it.monthlyRatePercent,
                         canDelete = this != null && (this as? Trx.Expense)?.installment !is InstallmentInfo.Installment
                     )
                 }
@@ -226,6 +232,14 @@ class TrxViewModel(
             }
         }
         return out.toString()
+    }
+
+    private fun formatRate(percent: Double): String {
+        return if (percent % 1.0 == 0.0) {
+            percent.toLong().toString()
+        } else {
+            percent.toString()
+        }
     }
 
     fun saveTrx() {

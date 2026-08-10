@@ -747,6 +747,44 @@ fun TrxPageContent(
                     }
                 }
             }
+
+            AnimatedVisibility(visible = uiState.installment is InstallmentInfo.Charge) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Installment",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(start = 20.dp, end = 12.dp)
+                    )
+
+                    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        MyTextField(
+                            value = uiState.monthsFormatted,
+                            onValueChange = { },
+                            label = "Total Months",
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        MyTextField(
+                            value = uiState.monthlyRateFormatted,
+                            onValueChange = { },
+                            label = "Monthly Interest (%)",
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
         }
     }
 }
