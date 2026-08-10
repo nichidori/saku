@@ -32,6 +32,7 @@ import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.InstallmentInfo
 import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
@@ -506,6 +507,17 @@ fun TrxPageContent(
                     value = uiState.amountFormatted,
                     onValueChange = { },
                     readOnly = true,
+                    trailingIcon = if (uiState.type == TrxType.Expense && uiState.installment is InstallmentInfo.Installment) {
+                        val installment = uiState.installment
+                        {
+                            Text(
+                                text = "Installment ${installment.index + 1}/${installment.totalMonths}",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else null,
                     modifier = Modifier
                         .onFocusChanged { focusState ->
                             showAmountInput = focusState.isFocused
@@ -675,6 +687,7 @@ fun TrxPageContent(
                 visible = uiState.type == TrxType.Expense
                     && uiState.sourceAccount is TrxAccount.Credit
                     && !uiState.canDelete
+                    && uiState.installment == null
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.height(40.dp))

@@ -7,6 +7,7 @@ import dev.nichidori.saku.core.model.Status.*
 import dev.nichidori.saku.core.util.log
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
+import dev.nichidori.saku.domain.model.InstallmentInfo
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxType
@@ -39,6 +40,7 @@ data class TrxUiState(
     val enableInstallment: Boolean = false,
     val months: Int? = null,
     val monthlyRatePercent: String = "",
+    val installment: InstallmentInfo? = null,
     val accountOptions: List<TrxAccount> = listOf(),
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
@@ -111,7 +113,8 @@ class TrxViewModel(
                         accountOptions = accounts,
                         incomesByParent = incomesByParent,
                         expensesByParent = expensesByParent,
-                        canDelete = this != null
+                        installment = (this as? Trx.Expense)?.installment,
+                        canDelete = this != null && (this as? Trx.Expense)?.installment !is InstallmentInfo.Installment
                     )
                 }
             }
