@@ -142,7 +142,7 @@ fun TrxPageContent(
     var showMonthsInput by remember { mutableStateOf(false) }
     var showRateInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    val isReadOnly = uiState.installment is InstallmentInfo.Charge
+    val isReadOnly = uiState.isReadOnly
 
     Scaffold(
         topBar = {
