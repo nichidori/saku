@@ -30,6 +30,7 @@ import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
+import dev.nichidori.saku.domain.model.InstallmentInfo
 import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.*
@@ -467,20 +468,32 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
         ) {
+            val isCharge = (trx as? Trx.Expense)?.installment is InstallmentInfo.Charge
             val accountInfo = when (trx) {
                 is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
                 else -> trx.sourceAccount.name
             }
+            val installmentDetails = (trx as? Trx.Expense)?.installment?.let { info ->
+                if (info is InstallmentInfo.Installment) "${info.index + 1}/${info.totalMonths}" else null
+            }
             val primaryText = trx.description.ifBlank { accountInfo }
-            val secondaryText = if (trx.description.isBlank()) trx.category?.name
-            else accountInfo + (trx.category?.name?.let { "  •  $it" } ?: "")
+            val secondaryText = if (trx.description.isBlank()) {
+                trx.category?.name + (installmentDetails?.let { "  •  $it" } ?: "")
+            } else {
+                accountInfo + (trx.category?.name?.let { "  •  $it" } ?: "") +
+                    (installmentDetails?.let { "  •  $it" } ?: "")
+            }
             Text(
                 text = primaryText,
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = if (isCharge) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onBackground
+                },
                 fontWeight = FontWeight.Bold,
             )
-            secondaryText?.let {
+            secondaryText.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.labelSmall,
@@ -492,10 +505,13 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             Text(
                 trx.amount.toRupiah(),
                 style = MaterialTheme.typography.titleSmall,
-                color = when (trx) {
-                    is Trx.Income -> MaterialTheme.colorScheme.primary
-                    is Trx.Expense -> MaterialTheme.colorScheme.error
-                    is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
+                color = when {
+                    (trx as? Trx.Expense)?.installment is InstallmentInfo.Charge
+                    -> MaterialTheme.colorScheme.onSurfaceVariant
+                    trx is Trx.Income -> MaterialTheme.colorScheme.primary
+                    trx is Trx.Expense -> MaterialTheme.colorScheme.error
+                    trx is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
                 fontWeight = FontWeight.Bold,
             )

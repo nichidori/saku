@@ -215,7 +215,9 @@ class TrxListViewModel(
             DailyTrxRecord(
                 trxs = dailyTrxs,
                 totalIncome = dailyTrxs.filterIsInstance<Trx.Income>().sumOf { it.amount },
-                totalExpense = dailyTrxs.filterIsInstance<Trx.Expense>().sumOf { it.amount },
+                totalExpense = dailyTrxs.filterIsInstance<Trx.Expense>()
+                    .filter { it.installment !is InstallmentInfo.Charge }
+                    .sumOf { it.amount },
             )
         }
     }
