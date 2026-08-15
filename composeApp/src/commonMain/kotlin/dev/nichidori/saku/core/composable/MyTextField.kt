@@ -33,10 +33,15 @@ fun MyTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val indicatorColor = if (isFocused) {
+    val contentColor = if (enabled) {
         MaterialTheme.colorScheme.onBackground
     } else {
-        MaterialTheme.colorScheme.outline
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val indicatorColor = when {
+        !enabled -> MaterialTheme.colorScheme.outlineVariant
+        isFocused -> MaterialTheme.colorScheme.onBackground
+        else -> MaterialTheme.colorScheme.outline
     }
 
     BasicTextField(
@@ -48,7 +53,7 @@ fun MyTextField(
         keyboardOptions = keyboardOptions,
         textStyle = MaterialTheme.typography.bodyLarge.copy(
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = contentColor
         ),
         interactionSource = interactionSource,
         modifier = modifier
@@ -70,7 +75,7 @@ fun MyTextField(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = contentColor,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     innerTextField()
@@ -99,10 +104,15 @@ fun MyLargeTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val indicatorColor = if (isFocused) {
+    val contentColor = if (enabled) {
         MaterialTheme.colorScheme.onBackground
     } else {
-        MaterialTheme.colorScheme.outline
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val indicatorColor = when {
+        !enabled -> MaterialTheme.colorScheme.outlineVariant
+        isFocused -> MaterialTheme.colorScheme.onBackground
+        else -> MaterialTheme.colorScheme.outline
     }
 
     BasicTextField(
@@ -114,7 +124,7 @@ fun MyLargeTextField(
         keyboardOptions = keyboardOptions,
         textStyle = MaterialTheme.typography.headlineSmall.copy(
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = contentColor
         ),
         interactionSource = interactionSource,
         modifier = modifier

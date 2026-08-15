@@ -142,6 +142,7 @@ fun TrxPageContent(
     var showMonthsInput by remember { mutableStateOf(false) }
     var showRateInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val isReadOnly = uiState.installment is InstallmentInfo.Charge
 
     Scaffold(
         topBar = {
@@ -488,8 +489,10 @@ fun TrxPageContent(
                     items = types,
                     selectedItem = uiState.type,
                     onItemSelection = { type ->
-                        onTypeChange(type)
-                        showTargetAccountInput = false
+                        if (!isReadOnly) {
+                            onTypeChange(type)
+                            showTargetAccountInput = false
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { type ->
@@ -506,6 +509,7 @@ fun TrxPageContent(
                 MyLargeTextField(
                     value = uiState.amountFormatted,
                     onValueChange = { },
+                    enabled = !isReadOnly,
                     readOnly = true,
                     trailingIcon = if (uiState.type == TrxType.Expense && uiState.installment is InstallmentInfo.Installment) {
                         val installment = uiState.installment
@@ -529,6 +533,7 @@ fun TrxPageContent(
                     value = uiState.description,
                     onValueChange = onDescriptionChange,
                     label = "Description",
+                    enabled = !isReadOnly,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -538,7 +543,7 @@ fun TrxPageContent(
                         value = uiState.sourceAccount?.name.orEmpty(),
                         onValueChange = { },
                         label = if (uiState.type == TrxType.Transfer) "From" else "Account",
-                        enabled = uiState.accountOptions.isNotEmpty(),
+                        enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
                         readOnly = true,
                         modifier = Modifier
                             .weight(1f)
@@ -553,7 +558,7 @@ fun TrxPageContent(
                             value = uiState.targetAccount?.name.orEmpty(),
                             onValueChange = { },
                             label = "To",
-                            enabled = uiState.accountOptions.isNotEmpty(),
+                            enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
                             readOnly = true,
                             modifier = Modifier
                                 .weight(1f)
@@ -566,7 +571,7 @@ fun TrxPageContent(
                             value = uiState.category?.name.orEmpty(),
                             onValueChange = { },
                             label = "Category",
-                            enabled = uiState.categoriesByParent.isNotEmpty(),
+                            enabled = !isReadOnly && uiState.categoriesByParent.isNotEmpty(),
                             readOnly = true,
                             modifier = Modifier
                                 .weight(1f)
@@ -594,12 +599,17 @@ fun TrxPageContent(
                     ).orEmpty(),
                     onValueChange = { },
                     label = "Time",
+                    enabled = !isReadOnly,
                     readOnly = true,
                     trailingIcon = {
-                        MyTextButton(
-                            text = "Now",
-                            onClick = { onTimeChange(Clock.System.now()) },
-                        )
+                        if (!isReadOnly) {
+                            MyTextButton(
+                                text = "Now",
+                                onClick = {
+                                    onTimeChange(Clock.System.now())
+                                },
+                            )
+                        }
                     },
                     modifier = Modifier
                         .onFocusChanged { focusState ->
@@ -770,6 +780,7 @@ fun TrxPageContent(
                             value = uiState.monthsFormatted,
                             onValueChange = { },
                             label = "Total Months",
+                            enabled = false,
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -779,6 +790,7 @@ fun TrxPageContent(
                             value = uiState.monthlyRateFormatted,
                             onValueChange = { },
                             label = "Monthly Interest (%)",
+                            enabled = false,
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth()
                         )
