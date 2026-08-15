@@ -176,11 +176,15 @@ class DefaultInstallmentRepository(
         index: Int,
     ) {
         val timeZone = TimeZone.currentSystemDefault()
-        val dueDate = LocalDate(
+        val startDateTime = plan.startAt.toLocalDateTime(timeZone)
+        val dueDate = LocalDateTime(
             year = dueMonth.year,
-            month = dueMonth.month,
-            day = minOf(plan.dueDay, dueMonth.days.size)
-        ).atStartOfDayIn(timeZone)
+            month = dueMonth.month.number,
+            day = minOf(plan.dueDay, dueMonth.days.size),
+            hour = startDateTime.hour,
+            minute = startDateTime.minute,
+            second = startDateTime.second,
+        ).toInstant(timeZone)
 
         val amount = plan.paymentAmountForIndex(index)
         val currentTime = Clock.System.now()

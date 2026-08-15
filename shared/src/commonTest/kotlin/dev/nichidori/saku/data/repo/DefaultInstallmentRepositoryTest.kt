@@ -164,14 +164,16 @@ class DefaultInstallmentRepositoryTest {
             .filter { it.installmentIndex != null }
         assertTrue(children.isNotEmpty())
 
+        val purchaseDateTime = purchaseAt.toLocalDateTime(timeZone)
         for (child in children) {
             val index = requireNotNull(child.installmentIndex)
             val dueMonth = startMonth.plus(index, MONTH)
             val expectedDay = minOf(31, dueMonth.days.size)
-            val actualDay = Instant.fromEpochMilliseconds(child.transactionAt)
+            val actualDateTime = Instant.fromEpochMilliseconds(child.transactionAt)
                 .toLocalDateTime(timeZone)
-                .day
-            assertEquals(expectedDay, actualDay, "Index $index (month $dueMonth) should be clamped to $expectedDay")
+            assertEquals(expectedDay, actualDateTime.day, "Index $index (month $dueMonth) should be clamped to $expectedDay")
+            assertEquals(purchaseDateTime.hour, actualDateTime.hour, "Index $index hour should match purchase time")
+            assertEquals(purchaseDateTime.minute, actualDateTime.minute, "Index $index minute should match purchase time")
         }
     }
 
