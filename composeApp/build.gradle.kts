@@ -13,8 +13,8 @@ plugins {
     alias(libs.plugins.buildconfig)
 }
 
-val appVersionName = "0.21.0"
-val appVersionCode = 37
+val appVersionName = "0.21.1"
+val appVersionCode = 38
 
 buildConfig {
     packageName("dev.nichidori.saku.composeApp")
