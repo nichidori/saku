@@ -45,12 +45,10 @@ import dev.nichidori.saku.core.platform.getAppVersion
 import dev.nichidori.saku.core.theme.MyTheme
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toYearMonth
+import dev.nichidori.saku.domain.model.InstallmentInfo
+import dev.nichidori.saku.domain.model.Trx
 import dev.nichidori.saku.domain.model.TrxType
-import dev.nichidori.saku.domain.repo.AccountRepository
-import dev.nichidori.saku.domain.repo.BudgetRepository
-import dev.nichidori.saku.domain.repo.CategoryRepository
-import dev.nichidori.saku.domain.repo.InstallmentRepository
-import dev.nichidori.saku.domain.repo.TrxRepository
+import dev.nichidori.saku.domain.repo.*
 import dev.nichidori.saku.feature.account.AccountPage
 import dev.nichidori.saku.feature.account.AccountViewModel
 import dev.nichidori.saku.feature.budget.*
@@ -316,7 +314,9 @@ fun App(
                             onUp = { rootNavController.popBackStack() },
                             onSaveSuccess = { rootNavController.popBackStack() },
                             onDeleteSuccess = { deletedTrx ->
-                                appViewModel.onTrxDeleted(deletedTrx)
+                                if ((deletedTrx as? Trx.Expense)?.installment !is InstallmentInfo.Charge) {
+                                    appViewModel.onTrxDeleted(deletedTrx)
+                                }
                                 rootNavController.popBackStack()
                             },
                         )

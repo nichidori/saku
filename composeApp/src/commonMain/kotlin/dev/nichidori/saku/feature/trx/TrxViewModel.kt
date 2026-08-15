@@ -334,7 +334,12 @@ class TrxViewModel(
                 }
                 val trxId = id ?: throw Exception("Trx id is null")
                 val trx = trxRepository.getTrxById(trxId) ?: throw Exception("Trx not found")
-                trxRepository.deleteTrx(trxId)
+                val charge = (trx as? Trx.Expense)?.installment
+                if (charge is InstallmentInfo.Charge) {
+                    installmentRepository.deleteInstallment(charge.installmentId)
+                } else {
+                    trxRepository.deleteTrx(trxId)
+                }
                 _uiState.update {
                     it.copy(deleteStatus = Success(trx))
                 }
