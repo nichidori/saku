@@ -16,7 +16,6 @@ class AppEventBusTest {
     private val account = Account(
         id = "acc-1",
         name = "Cash",
-        initialAmount = 0L,
         currentAmount = 0L,
         type = AccountType.Cash,
         createdAt = Clock.System.now(),

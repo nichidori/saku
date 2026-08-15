@@ -21,7 +21,6 @@ data class AccountUiState(
     val isLoading: Boolean = false,
     val name: String = "",
     val balance: Long? = null,
-    val initialAmount: Long? = null,
     val limit: Long? = null,
     val type: AccountType? = null,
     val isEditing: Boolean = false,
@@ -62,7 +61,6 @@ class AccountViewModel(
                         isLoading = false,
                         name = account?.name ?: credit?.name.orEmpty(),
                         balance = account?.currentAmount ?: credit?.currentAmount,
-                        initialAmount = account?.initialAmount,
                         limit = credit?.limit,
                         type = if (credit != null) AccountType.Credit else account?.type,
                         isEditing = account != null || credit != null
@@ -129,13 +127,12 @@ class AccountViewModel(
                         accountRepository.updateAccount(
                             id = id,
                             name = uiState.value.name,
-                            initialAmount = uiState.value.initialAmount ?: uiState.value.balance!!,
                             type = uiState.value.type!!
                         )
                     } else {
                         accountRepository.addAccount(
                             name = uiState.value.name,
-                            initialAmount = uiState.value.balance!!,
+                            currentAmount = uiState.value.balance!!,
                             type = uiState.value.type!!
                         )
                     }

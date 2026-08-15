@@ -651,13 +651,11 @@ class DefaultTrxRepository(
             accountTrxs[account.id] = mutableListOf()
             when (account) {
                 is TrxAccount.Regular -> {
-                    initialBalances[account.id] = account.account.initialAmount
                     isCreditByAccount[account.id] = false
                     creationMonth[account.id] = account.account.createdAt.toYearMonth()
                 }
 
                 is TrxAccount.Credit -> {
-                    initialBalances[account.id] = 0L
                     isCreditByAccount[account.id] = true
                     creationMonth[account.id] = account.credit.createdAt.toYearMonth()
                 }
@@ -676,13 +674,24 @@ class DefaultTrxRepository(
         }
 
         for (account in trxAccounts) {
-            if (account is TrxAccount.Credit) {
-                val creditTrxs = db.trxDao().getAllByCreditId(account.id)
-                var sumDeltas = 0L
-                for (trx in creditTrxs) {
-                    sumDeltas += accountDelta(account.id, trx, isCredit = true)
+            when (account) {
+                is TrxAccount.Regular -> {
+                    val trxs = accountTrxs[account.id]!!
+                    var sumDeltas = 0L
+                    for (trx in trxs) {
+                        sumDeltas += accountDelta(account.id, trx, isCredit = false)
+                    }
+                    initialBalances[account.id] = account.account.currentAmount - sumDeltas
                 }
-                initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+
+                is TrxAccount.Credit -> {
+                    val creditTrxs = db.trxDao().getAllByCreditId(account.id)
+                    var sumDeltas = 0L
+                    for (trx in creditTrxs) {
+                        sumDeltas += accountDelta(account.id, trx, isCredit = true)
+                    }
+                    initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+                }
             }
         }
 

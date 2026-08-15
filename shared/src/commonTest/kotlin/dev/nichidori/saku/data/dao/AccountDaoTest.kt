@@ -17,7 +17,6 @@ import kotlin.test.assertTrue
 private val cashAccount = AccountEntity(
     id = "acc-cash",
     name = "Cash Wallet",
-    initialAmount = 1_000_000,
     currentAmount = 1_500_000,
     type = AccountTypeEntity.Cash,
     createdAt = System.currentTimeMillis(),
@@ -27,7 +26,6 @@ private val cashAccount = AccountEntity(
 private val bankAccount = AccountEntity(
     id = "acc-bank",
     name = "Bank Account",
-    initialAmount = 5_000_000,
     currentAmount = 4_800_000,
     type = AccountTypeEntity.Bank,
     createdAt = System.currentTimeMillis(),
@@ -37,7 +35,6 @@ private val bankAccount = AccountEntity(
 private val ewalletAccount = AccountEntity(
     id = "acc-ewallet",
     name = "E-Wallet",
-    initialAmount = 0,
     currentAmount = -200_000,
     type = AccountTypeEntity.Ewallet,
     createdAt = System.currentTimeMillis(),
@@ -69,7 +66,6 @@ class AccountDaoTest {
         assertNotNull(result)
         assertEquals(cashAccount.id, result.id)
         assertEquals(cashAccount.name, result.name)
-        assertEquals(cashAccount.initialAmount, result.initialAmount)
         assertEquals(cashAccount.currentAmount, result.currentAmount)
         assertEquals(cashAccount.type, result.type)
     }

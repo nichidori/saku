@@ -30,7 +30,6 @@ class DefaultTrxRepositoryEventBusTest {
     private val cashAccount = Account(
         id = "acc-1",
         name = "Cash",
-        initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountType.Cash,
         createdAt = Clock.System.now(),

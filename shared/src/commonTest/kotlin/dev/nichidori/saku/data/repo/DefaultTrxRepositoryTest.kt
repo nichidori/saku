@@ -28,7 +28,6 @@ class DefaultTrxRepositoryTest {
     private val cashAccount = Account(
         id = "acc-1",
         name = "Cash",
-        initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountType.Cash,
         createdAt = Clock.System.now(),
@@ -38,7 +37,6 @@ class DefaultTrxRepositoryTest {
     private val bankAccount = Account(
         id = "acc-2",
         name = "Bank",
-        initialAmount = 20_000L,
         currentAmount = 20_000L,
         type = AccountType.Bank,
         createdAt = Clock.System.now(),

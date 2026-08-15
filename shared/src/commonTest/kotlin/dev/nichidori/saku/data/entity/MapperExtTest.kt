@@ -23,7 +23,6 @@ class MapperExtTest {
         val entity = AccountEntity(
             id = "acc-1",
             name = "Cash Wallet",
-            initialAmount = 1000L,
             currentAmount = 800L,
             type = AccountTypeEntity.Cash,
             createdAt = 1_000_000L,
@@ -93,7 +92,6 @@ class MapperExtTest {
         val account = Account(
             id = "acc",
             name = "Bank",
-            initialAmount = 0L,
             currentAmount = 1000L,
             type = AccountType.Bank,
             createdAt = Clock.System.now(),
@@ -134,7 +132,6 @@ class MapperExtTest {
         val account = Account(
             id = "acc",
             name = "Cash Wallet",
-            initialAmount = 50000L,
             currentAmount = 30000L,
             type = AccountType.Cash,
             createdAt = Clock.System.now(),
@@ -167,7 +164,6 @@ class MapperExtTest {
         val source = Account(
             id = "acc1",
             name = "Wallet",
-            initialAmount = 5000L,
             currentAmount = 3000L,
             type = AccountType.Cash,
             createdAt = Clock.System.now(),
@@ -176,7 +172,6 @@ class MapperExtTest {
         val target = Account(
             id = "acc2",
             name = "Bank",
-            initialAmount = 10000L,
             currentAmount = 12000L,
             type = AccountType.Bank,
             createdAt = Clock.System.now(),
@@ -217,7 +212,6 @@ class MapperExtTest {
         val source = Account(
             id = "acc1",
             name = "Wallet",
-            initialAmount = 5000L,
             currentAmount = 3000L,
             type = AccountType.Cash,
             createdAt = Clock.System.now(),
@@ -261,7 +255,6 @@ class MapperExtTest {
         val sourceAccount = AccountEntity(
             id = "acc-1",
             name = "Bank",
-            initialAmount = 0L,
             currentAmount = 5_000_000L,
             type = AccountTypeEntity.Bank,
             createdAt = 500L,
@@ -336,7 +329,6 @@ class MapperExtTest {
             sourceAccount = AccountEntity(
                 id = "acc-wallet",
                 name = "Wallet",
-                initialAmount = 200_000L,
                 currentAmount = 150_000L,
                 type = AccountTypeEntity.Cash,
                 createdAt = 800_000L,
@@ -380,7 +372,6 @@ class MapperExtTest {
             sourceAccount = AccountEntity(
                 id = "acc-wallet",
                 name = "Wallet",
-                initialAmount = 500_000L,
                 currentAmount = 400_000L,
                 type = AccountTypeEntity.Cash,
                 createdAt = 800_000L,
@@ -389,7 +380,6 @@ class MapperExtTest {
             targetAccount = AccountEntity(
                 id = "acc-bank",
                 name = "Bank",
-                initialAmount = 1_000_000L,
                 currentAmount = 1_100_000L,
                 type = AccountTypeEntity.Bank,
                 createdAt = 850_000L,
@@ -536,7 +526,6 @@ class MapperExtTest {
         val account = Account(
             id = "acc-1",
             name = "Cash",
-            initialAmount = 10_000L,
             currentAmount = 10_000L,
             type = AccountType.Cash,
             createdAt = Clock.System.now(),
@@ -569,7 +558,6 @@ class MapperExtTest {
         val account = Account(
             id = "acc-1",
             name = "Cash",
-            initialAmount = 10_000L,
             currentAmount = 10_000L,
             type = AccountType.Cash,
             createdAt = Clock.System.now(),
@@ -629,7 +617,6 @@ class MapperExtTest {
             sourceAccount = AccountEntity(
                 id = "acc-1",
                 name = "Bank",
-                initialAmount = 0L,
                 currentAmount = 5_000_000L,
                 type = AccountTypeEntity.Bank,
                 createdAt = 800_000L,
@@ -683,7 +670,6 @@ class MapperExtTest {
             sourceAccount = AccountEntity(
                 id = "acc-1",
                 name = "Cash",
-                initialAmount = 10_000L,
                 currentAmount = 10_000L,
                 type = AccountTypeEntity.Cash,
                 createdAt = 800_000L,
@@ -727,7 +713,6 @@ class MapperExtTest {
             sourceAccount = AccountEntity(
                 id = "acc-1",
                 name = "Cash",
-                initialAmount = 5_000_000L,
                 currentAmount = 4_000_000L,
                 type = AccountTypeEntity.Cash,
                 createdAt = 800_000L,
@@ -737,7 +722,6 @@ class MapperExtTest {
             targetAccount = AccountEntity(
                 id = "acc-2",
                 name = "Bank",
-                initialAmount = 1_000_000L,
                 currentAmount = 2_000_000L,
                 type = AccountTypeEntity.Bank,
                 createdAt = 850_000L,

@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
         MonthlyNetWorthEntity::class,
         InstallmentEntity::class,
     ],
-    version = 10,
+    version = 11,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -421,6 +421,37 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
     }
 }
 
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(connection: SQLiteConnection) {
+        // Recreate account without the initial_amount column. Drop the parent
+        // table then rename the new one into place so that trx/trx_template
+        // foreign keys keep referencing `account` (renaming `account` would
+        // rewrite those references to `account_old` and fail validation).
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `account_new` (
+                `id` TEXT NOT NULL,
+                `name` TEXT NOT NULL,
+                `current_amount` INTEGER NOT NULL,
+                `type` TEXT NOT NULL,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent()
+        )
+        connection.execSQL(
+            """
+            INSERT INTO `account_new` (`id`, `name`, `current_amount`, `type`, `created_at`, `updated_at`)
+            SELECT `id`, `name`, `current_amount`, `type`, `created_at`, `updated_at`
+            FROM `account`
+            """.trimIndent()
+        )
+        connection.execSQL("DROP TABLE `account`")
+        connection.execSQL("ALTER TABLE `account_new` RENAME TO `account`")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
@@ -434,7 +465,8 @@ fun getRoomDatabase(
             MIGRATION_6_7,
             MIGRATION_7_8,
             MIGRATION_8_9,
-            MIGRATION_9_10
+            MIGRATION_9_10,
+            MIGRATION_10_11
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())

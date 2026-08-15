@@ -35,7 +35,6 @@ class TrxTemplateDaoTest {
     private val cashAccount = AccountEntity(
         id = "acc-cash",
         name = "Cash",
-        initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountTypeEntity.Cash,
         createdAt = System.currentTimeMillis(),
@@ -45,7 +44,6 @@ class TrxTemplateDaoTest {
     private val bankAccount = AccountEntity(
         id = "acc-bank",
         name = "Bank",
-        initialAmount = 20_000L,
         currentAmount = 20_000L,
         type = AccountTypeEntity.Bank,
         createdAt = System.currentTimeMillis(),

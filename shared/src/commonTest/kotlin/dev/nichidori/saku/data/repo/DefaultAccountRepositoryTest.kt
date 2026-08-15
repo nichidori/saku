@@ -23,7 +23,6 @@ class DefaultAccountRepositoryTest {
     private val account = Account(
         id = "acc-1",
         name = "Cash",
-        initialAmount = 10_000L,
         currentAmount = 10_000L,
         type = AccountType.Cash,
         createdAt = Clock.System.now(),
@@ -54,7 +53,7 @@ class DefaultAccountRepositoryTest {
 
     @Test
     fun addAccount_shouldInsertAccountWithGeneratedIdAndCreatedAt() = runTest {
-        repository.addAccount(account.name, account.initialAmount, account.type)
+        repository.addAccount(account.name, account.currentAmount, account.type)
         val accounts = db.accountDao().getAll().map { it.toDomain() }
         assertEquals(1, accounts.size)
         assertNotEquals("acc-1", accounts.first().id)
@@ -85,10 +84,21 @@ class DefaultAccountRepositoryTest {
     @Test
     fun updateAccount_shouldUpdateExistingAccount() = runTest {
         db.accountDao().insert(account.toEntity())
-        repository.updateAccount(account.id, "Updated Cash", account.initialAmount, account.type)
+        repository.updateAccount(account.id, "Updated Cash", account.type)
         val result = db.accountDao().getById(account.id)!!.toDomain()
         assertEquals("Updated Cash", result.name)
         assertNotNull(result.updatedAt)
+    }
+
+    @Test
+    fun updateAccount_shouldNotChangeCurrentAmount() = runTest {
+        val existing = account.copy(currentAmount = 25_000L)
+        db.accountDao().insert(existing.toEntity())
+        repository.updateAccount(account.id, "Updated Cash", account.type)
+        val result = db.accountDao().getById(account.id)!!.toDomain()
+        assertEquals("Updated Cash", result.name)
+        assertEquals(25_000L, result.currentAmount)
+        assertEquals(account.type, result.type)
     }
 
     @Test

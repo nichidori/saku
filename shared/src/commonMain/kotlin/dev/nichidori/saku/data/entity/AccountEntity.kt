@@ -8,7 +8,6 @@ import androidx.room.PrimaryKey
 data class AccountEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: String,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "initial_amount") val initialAmount: Long,
     @ColumnInfo(name = "current_amount") val currentAmount: Long,
     @ColumnInfo(name = "type") val type: AccountTypeEntity,
     @ColumnInfo(name = "created_at") val createdAt: Long,

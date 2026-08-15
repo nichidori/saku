@@ -8,7 +8,6 @@ import kotlin.time.Instant
 fun AccountEntity.toDomain(): Account = Account(
     id = id,
     name = name,
-    initialAmount = initialAmount,
     currentAmount = currentAmount,
     type = type.toDomain(),
     createdAt = Instant.fromEpochMilliseconds(createdAt),
@@ -18,7 +17,6 @@ fun AccountEntity.toDomain(): Account = Account(
 fun Account.toEntity(): AccountEntity = AccountEntity(
     id = id,
     name = name,
-    initialAmount = initialAmount,
     currentAmount = currentAmount,
     type = type.toEntity(),
     createdAt = createdAt.toEpochMilliseconds(),

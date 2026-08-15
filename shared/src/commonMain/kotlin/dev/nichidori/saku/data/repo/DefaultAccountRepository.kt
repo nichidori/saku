@@ -20,13 +20,12 @@ import kotlin.time.Instant
 class DefaultAccountRepository(
     private val db: AppDatabase,
 ) : AccountRepository {
-    override suspend fun addAccount(name: String, initialAmount: Long, type: AccountType) {
+    override suspend fun addAccount(name: String, currentAmount: Long, type: AccountType) {
         val currentTime = Clock.System.now()
         val account = Account(
             id = UUID.randomUUID().toString(),
             name = name,
-            initialAmount = initialAmount,
-            currentAmount = initialAmount,
+            currentAmount = currentAmount,
             type = type,
             createdAt = currentTime,
             updatedAt = null
@@ -58,7 +57,7 @@ class DefaultAccountRepository(
     }
 
     override suspend fun updateAccount(
-        id: String, name: String, initialAmount: Long, type: AccountType
+        id: String, name: String, type: AccountType
     ) {
         val currentTime = Clock.System.now()
         db.useWriterConnection {
@@ -66,8 +65,6 @@ class DefaultAccountRepository(
                 val updatedAccount = db.accountDao().getById(id)?.toDomain()
                     ?.copy(
                         name = name,
-                        initialAmount = initialAmount,
-                        currentAmount = initialAmount,
                         type = type,
                         updatedAt = currentTime
                     )
@@ -237,13 +234,11 @@ class DefaultAccountRepository(
             accountTrxs[account.id] = mutableListOf()
             when (account) {
                 is TrxAccount.Regular -> {
-                    initialBalances[account.id] = account.account.initialAmount
                     isCreditByAccount[account.id] = false
                     creationMonth[account.id] = account.account.createdAt.toYearMonth()
                 }
 
                 is TrxAccount.Credit -> {
-                    initialBalances[account.id] = 0L
                     isCreditByAccount[account.id] = true
                     creationMonth[account.id] = account.credit.createdAt.toYearMonth()
                 }
@@ -262,13 +257,24 @@ class DefaultAccountRepository(
         }
 
         for (account in trxAccounts) {
-            if (account is TrxAccount.Credit) {
-                val creditTrxs = db.trxDao().getAllByCreditId(account.id)
-                var sumDeltas = 0L
-                for (trx in creditTrxs) {
-                    sumDeltas += accountDelta(account.id, trx, isCredit = true)
+            when (account) {
+                is TrxAccount.Regular -> {
+                    val trxs = accountTrxs[account.id]!!
+                    var sumDeltas = 0L
+                    for (trx in trxs) {
+                        sumDeltas += accountDelta(account.id, trx, isCredit = false)
+                    }
+                    initialBalances[account.id] = account.account.currentAmount - sumDeltas
                 }
-                initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+
+                is TrxAccount.Credit -> {
+                    val creditTrxs = db.trxDao().getAllByCreditId(account.id)
+                    var sumDeltas = 0L
+                    for (trx in creditTrxs) {
+                        sumDeltas += accountDelta(account.id, trx, isCredit = true)
+                    }
+                    initialBalances[account.id] = account.credit.currentAmount - sumDeltas
+                }
             }
         }
 

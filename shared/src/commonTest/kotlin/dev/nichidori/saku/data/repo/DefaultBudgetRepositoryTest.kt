@@ -147,7 +147,6 @@ class DefaultBudgetRepositoryTest {
         val sourceAccount = dev.nichidori.saku.data.entity.AccountEntity(
             id = "acc-1",
             name = "Cash",
-            initialAmount = 1_000_000,
             currentAmount = 1_000_000,
             type = dev.nichidori.saku.data.entity.AccountTypeEntity.Cash,
             createdAt = 0L,

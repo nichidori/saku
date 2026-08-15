@@ -20,7 +20,6 @@ import kotlin.test.assertTrue
 private val sourceAccount = AccountEntity(
     id = "acc-1",
     name = "Cash",
-    initialAmount = 1_000_000,
     currentAmount = 1_000_000,
     type = AccountTypeEntity.Cash,
     createdAt = 0L,
@@ -30,7 +29,6 @@ private val sourceAccount = AccountEntity(
 private val targetAccount = AccountEntity(
     id = "acc-2",
     name = "Bank",
-    initialAmount = 2_000_000,
     currentAmount = 2_000_000,
     type = AccountTypeEntity.Bank,
     createdAt = 0L,

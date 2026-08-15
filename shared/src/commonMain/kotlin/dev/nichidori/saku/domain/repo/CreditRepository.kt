@@ -3,7 +3,7 @@ package dev.nichidori.saku.domain.repo
 import dev.nichidori.saku.domain.model.Credit
 
 interface CreditRepository {
-    suspend fun addCredit(name: String, limit: Long, initialAmount: Long)
+    suspend fun addCredit(name: String, limit: Long, currentAmount: Long)
     suspend fun getCreditById(id: String): Credit?
     suspend fun getAllCredits(): List<Credit>
     suspend fun updateCredit(id: String, name: String, limit: Long)
