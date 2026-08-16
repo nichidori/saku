@@ -542,6 +542,19 @@ fun TrxPageContent(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
+                val sourceFieldModifier = if (uiState.isAdjustment) {
+                    Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            showSourceAccountInput = focusState.isFocused
+                        }
+                } else {
+                    Modifier
+                        .weight(1f)
+                        .onFocusChanged { focusState ->
+                            showSourceAccountInput = focusState.isFocused
+                        }
+                }
                 Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                     MyTextField(
                         value = uiState.sourceAccount?.name.orEmpty(),
@@ -549,15 +562,11 @@ fun TrxPageContent(
                         label = if (uiState.type == TrxType.Transfer) "From" else "Account",
                         enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
                         readOnly = true,
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { focusState ->
-                                showSourceAccountInput = focusState.isFocused
-                            }
+                        modifier = sourceFieldModifier
                     )
-                    Spacer(modifier = Modifier.width(24.dp))
 
                     if (uiState.type == TrxType.Transfer) {
+                        Spacer(modifier = Modifier.width(24.dp))
                         MyTextField(
                             value = uiState.targetAccount?.name.orEmpty(),
                             onValueChange = { },
@@ -570,7 +579,8 @@ fun TrxPageContent(
                                     showTargetAccountInput = focusState.isFocused
                                 }
                         )
-                    } else {
+                    } else if (!uiState.isAdjustment) {
+                        Spacer(modifier = Modifier.width(24.dp))
                         MyTextField(
                             value = uiState.category?.name.orEmpty(),
                             onValueChange = { },
