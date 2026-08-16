@@ -111,6 +111,10 @@ class DefaultAccountRepository(
                     else -> 0L
                 }
             }
+
+            TrxTypeEntity.Adjustment -> {
+                if (isSource) trx.amount else 0L
+            }
         }
     }
 

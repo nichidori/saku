@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 enum class TrxType {
     Income,
     Expense,
-    Transfer
+    Transfer,
+    Adjustment
 }

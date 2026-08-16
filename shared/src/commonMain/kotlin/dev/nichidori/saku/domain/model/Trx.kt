@@ -54,4 +54,16 @@ sealed class Trx(
     ) : Trx(id, description, amount, category, sourceAccount, transactionAt, createdAt, updatedAt) {
         override val type: TrxType = TrxType.Transfer
     }
+
+    data class Adjustment(
+        override val id: String,
+        override val description: String,
+        override val amount: Long,
+        override val sourceAccount: TrxAccount,
+        override val transactionAt: Instant,
+        override val createdAt: Instant,
+        override val updatedAt: Instant?,
+    ) : Trx(id, description, amount, null, sourceAccount, transactionAt, createdAt, updatedAt) {
+        override val type: TrxType = TrxType.Adjustment
+    }
 }

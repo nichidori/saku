@@ -80,6 +80,16 @@ class DefaultTrxRepository(
                 createdAt = currentTime,
                 updatedAt = null,
             )
+
+            TrxType.Adjustment -> Trx.Adjustment(
+                id = newId,
+                transactionAt = transactionAt,
+                amount = amount,
+                description = description,
+                sourceAccount = sourceAccount,
+                createdAt = currentTime,
+                updatedAt = null,
+            )
         }
 
         db.useWriterConnection {
@@ -150,6 +160,14 @@ class DefaultTrxRepository(
                         adjustAccountBalance(
                             trx.targetAccount.id,
                             balanceDelta(trx.targetAccount, TrxType.Transfer, "target", trx.amount),
+                            currentTime
+                        )
+                    }
+
+                    is Trx.Adjustment -> {
+                        adjustAccountBalance(
+                            trx.sourceAccount.id,
+                            trx.amount,
                             currentTime
                         )
                     }
@@ -274,6 +292,14 @@ class DefaultTrxRepository(
                             currentTime
                         )
                     }
+
+                    is Trx.Adjustment -> {
+                        adjustAccountBalance(
+                            existing.sourceAccount.id,
+                            -existing.amount,
+                            currentTime
+                        )
+                    }
                 }
 
                 val updatedTrx = when (type) {
@@ -308,6 +334,16 @@ class DefaultTrxRepository(
                         sourceAccount = sourceAccount,
                         targetAccount = targetAccount!!,
                         category = category,
+                        createdAt = existing.createdAt,
+                        updatedAt = currentTime
+                    )
+
+                    TrxType.Adjustment -> Trx.Adjustment(
+                        id = id,
+                        transactionAt = transactionAt,
+                        amount = amount,
+                        description = description,
+                        sourceAccount = sourceAccount,
                         createdAt = existing.createdAt,
                         updatedAt = currentTime
                     )
@@ -368,6 +404,14 @@ class DefaultTrxRepository(
                         adjustAccountBalance(
                             updatedTrx.targetAccount.id,
                             balanceDelta(updatedTrx.targetAccount, TrxType.Transfer, "target", updatedTrx.amount),
+                            currentTime
+                        )
+                    }
+
+                    is Trx.Adjustment -> {
+                        adjustAccountBalance(
+                            updatedTrx.sourceAccount.id,
+                            updatedTrx.amount,
                             currentTime
                         )
                     }
@@ -457,6 +501,14 @@ class DefaultTrxRepository(
                         adjustAccountBalance(
                             trx.targetAccount.id,
                             -balanceDelta(trx.targetAccount, TrxType.Transfer, "target", trx.amount),
+                            currentTime
+                        )
+                    }
+
+                    is Trx.Adjustment -> {
+                        adjustAccountBalance(
+                            trx.sourceAccount.id,
+                            -trx.amount,
                             currentTime
                         )
                     }
@@ -604,6 +656,7 @@ class DefaultTrxRepository(
             when (role) {
                 "source" -> when (type) {
                     TrxType.Income -> -amount
+                    TrxType.Adjustment -> amount
                     else -> amount
                 }
 
@@ -614,6 +667,7 @@ class DefaultTrxRepository(
             when (role) {
                 "source" -> when (type) {
                     TrxType.Income -> amount
+                    TrxType.Adjustment -> amount
                     else -> -amount
                 }
 
@@ -764,6 +818,10 @@ class DefaultTrxRepository(
                     isTarget -> if (isCredit) -trx.amount else trx.amount
                     else -> 0L
                 }
+            }
+
+            TrxTypeEntity.Adjustment -> {
+                if (isSource) trx.amount else 0L
             }
         }
     }

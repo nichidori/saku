@@ -1159,4 +1159,172 @@ class DefaultTrxRepositoryTest {
         assertEquals(28_000L, record.netWorth)
     }
 
+    @Test
+    fun addTrx_withPositiveAdjustment_increasesAccountBalance() = runTest {
+        repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 1_000L,
+            description = "Correct balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+        val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
+        assertEquals(11_000L, updatedAccount.currentAmount)
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain() as Trx.Adjustment
+        assertEquals("Correct balance", addedTrx.description)
+        assertEquals(1_000L, addedTrx.amount)
+        assertNull(addedTrx.category)
+    }
+
+    @Test
+    fun addTrx_withNegativeAdjustment_decreasesAccountBalance() = runTest {
+        repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = -2_000L,
+            description = "Fix overcounted balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+        val updatedAccount = db.accountDao().getById(cashAccount.id)!!.toDomain()
+        assertEquals(8_000L, updatedAccount.currentAmount)
+    }
+
+    @Test
+    fun addTrx_withAdjustment_onCreditAccount_increasesOwedBalance() = runTest {
+        val credit = Credit(
+            id = "credit-1",
+            name = "Credit Card",
+            limit = 5_000_000L,
+            currentAmount = 1_000_000L,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+        db.creditDao().insert(credit.toEntity())
+
+        repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 500_000L,
+            description = "Fix credit balance",
+            sourceAccount = TrxAccount.Credit(credit),
+            targetAccount = null,
+            category = null,
+        )
+        val updatedCredit = db.creditDao().getById(credit.id)!!.toDomain()
+        assertEquals(1_500_000L, updatedCredit.currentAmount)
+    }
+
+    @Test
+    fun addTrx_withAdjustment_shouldNotAffectBudgetSpentAmount() = runTest {
+        val currentMonth = Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+        db.budgetTemplateDao().insert(BudgetTemplateEntity(
+            id = "tmpl-1",
+            categoryId = expenseCategory.id,
+            defaultAmount = 5_000_000L,
+            createdAt = Clock.System.now().toEpochMilliseconds(),
+            updatedAt = null
+        ))
+        db.budgetDao().insert(BudgetEntity(
+            id = "budget-1",
+            templateId = "tmpl-1",
+            categoryId = expenseCategory.id,
+            month = currentMonth.month.number,
+            year = currentMonth.year,
+            baseAmount = 5_000_000L,
+            spentAmount = 1_000_000L,
+            createdAt = Clock.System.now().toEpochMilliseconds(),
+            updatedAt = null
+        ))
+
+        repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 10_000L,
+            description = "Correct balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+
+        val budget = db.budgetDao().getByIdWithCategory("budget-1")!!
+        assertEquals(1_000_000L, budget.budget.spentAmount)
+    }
+
+    @Test
+    fun addTrx_withAdjustment_shouldAffectNetWorth() = runTest {
+        repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 1_000L,
+            description = "Correct balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+
+        val currentMonth = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            .let { YearMonth(it.year, it.month) }
+        val record = db.monthlyNetWorthDao().getByYearMonth(
+            year = currentMonth.year,
+            month = currentMonth.month.number
+        )
+        assertNotNull(record)
+        assertEquals(31_000L, record.netWorth)
+    }
+
+    @Test
+    fun updateTrx_withAdjustment_shouldReverseOldAndApplyNew() = runTest {
+        val id = repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 1_000L,
+            description = "Correct balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+        assertEquals(11_000L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+
+        repository.updateTrx(
+            id = id,
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = -500L,
+            description = "Correct balance (updated)",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+
+        assertEquals(9_500L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+        val updatedTrx = db.trxDao().getByIdWithDetails(id)!!.toDomain() as Trx.Adjustment
+        assertEquals(-500L, updatedTrx.amount)
+    }
+
+    @Test
+    fun deleteTrx_withAdjustment_shouldReverseBalance() = runTest {
+        val id = repository.addTrx(
+            type = TrxType.Adjustment,
+            transactionAt = Clock.System.now(),
+            amount = 1_000L,
+            description = "Correct balance",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = null,
+        )
+        assertEquals(11_000L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+
+        repository.deleteTrx(id)
+
+        assertEquals(10_000L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+    }
+
 }

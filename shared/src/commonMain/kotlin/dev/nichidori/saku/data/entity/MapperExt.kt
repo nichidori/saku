@@ -166,6 +166,16 @@ fun TrxEntity.toDomain(
         createdAt = Instant.fromEpochMilliseconds(createdAt),
         updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
     )
+
+    TrxTypeEntity.Adjustment -> Trx.Adjustment(
+        id = id,
+        description = description,
+        amount = amount,
+        sourceAccount = sourceAccount,
+        transactionAt = Instant.fromEpochMilliseconds(transactionAt),
+        createdAt = Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+    )
 }
 
 fun Trx.toEntity(): TrxEntity = when (this) {
@@ -213,18 +223,35 @@ fun Trx.toEntity(): TrxEntity = when (this) {
         updatedAt = updatedAt?.toEpochMilliseconds(),
         type = TrxTypeEntity.Transfer,
     )
+
+    is Trx.Adjustment -> TrxEntity(
+        id = id,
+        description = description,
+        amount = amount,
+        categoryId = null,
+        sourceAccountId = (sourceAccount as? TrxAccount.Regular)?.account?.id,
+        sourceCreditId = (sourceAccount as? TrxAccount.Credit)?.credit?.id,
+        targetAccountId = null,
+        targetCreditId = null,
+        transactionAt = transactionAt.toEpochMilliseconds(),
+        createdAt = createdAt.toEpochMilliseconds(),
+        updatedAt = updatedAt?.toEpochMilliseconds(),
+        type = TrxTypeEntity.Adjustment,
+    )
 }
 
 fun TrxTypeEntity.toDomain(): TrxType = when (this) {
     TrxTypeEntity.Income -> TrxType.Income
     TrxTypeEntity.Expense -> TrxType.Expense
     TrxTypeEntity.Transfer -> TrxType.Transfer
+    TrxTypeEntity.Adjustment -> TrxType.Adjustment
 }
 
 fun TrxType.toEntity(): TrxTypeEntity = when (this) {
     TrxType.Income -> TrxTypeEntity.Income
     TrxType.Expense -> TrxTypeEntity.Expense
     TrxType.Transfer -> TrxTypeEntity.Transfer
+    TrxType.Adjustment -> TrxTypeEntity.Adjustment
 }
 
 fun TrxWithDetailsEntity.toDomain(): Trx {
@@ -279,6 +306,16 @@ fun TrxWithDetailsEntity.toDomain(): Trx {
             targetAccount = checkNotNull(target),
             transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             category = null,
+            createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
+            updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+        )
+
+        TrxTypeEntity.Adjustment -> Trx.Adjustment(
+            id = trx.id,
+            description = trx.description,
+            amount = trx.amount,
+            sourceAccount = source,
+            transactionAt = Instant.fromEpochMilliseconds(trx.transactionAt),
             createdAt = Instant.fromEpochMilliseconds(trx.createdAt),
             updatedAt = trx.updatedAt?.let { Instant.fromEpochMilliseconds(it) },
         )

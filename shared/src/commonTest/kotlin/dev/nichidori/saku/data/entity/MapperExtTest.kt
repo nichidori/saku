@@ -200,6 +200,42 @@ class MapperExtTest {
     }
 
     @Test
+    fun toDomainAndBack_withAdjustmentTransaction_shouldPreserveData() {
+        val account = Account(
+            id = "acc1",
+            name = "Wallet",
+            currentAmount = 3000L,
+            type = AccountType.Cash,
+            createdAt = Clock.System.now(),
+            updatedAt = null
+        )
+
+        val entity = TrxEntity(
+            id = "trx4",
+            description = "Fix balance",
+            amount = -500L,
+            categoryId = null,
+            sourceAccountId = account.id,
+            sourceCreditId = null,
+            targetAccountId = null,
+            targetCreditId = null,
+            transactionAt = 1_222_222L,
+            createdAt = 1_222_223L,
+            updatedAt = 1_222_224L,
+            type = TrxTypeEntity.Adjustment
+        )
+
+        val domain = entity.toDomain(null, TrxAccount.Regular(account))
+        assertTrue(domain is Trx.Adjustment)
+        assertEquals(-500L, domain.amount)
+        assertNull(domain.category)
+        assertEquals(TrxType.Adjustment, domain.type)
+        val roundTrip = domain.toEntity()
+
+        assertEquals(entity, roundTrip)
+    }
+
+    @Test
     fun toDomain_withTransferTransactionMissingTargetAccount_shouldThrowException() {
         val category = Category(
             id = "cat",
