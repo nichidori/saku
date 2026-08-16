@@ -1,6 +1,6 @@
 package dev.nichidori.saku
 
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -8,6 +8,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.room.Room
+import java.awt.Toolkit
 import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.data.createDataStore
 import dev.nichidori.saku.data.getDatabaseBuilder
@@ -21,11 +22,19 @@ import dev.nichidori.saku.data.repo.DefaultTrxRepository
 const val useInMemoryDb = false
 
 fun main() = application {
+    val density = LocalDensity.current
+    val windowWidth = 400.dp
+    val topPadding = 48.dp
+    val rightPadding = 36.dp
+    val screenWidth = with(density) { Toolkit.getDefaultToolkit().screenSize.width.toDp() }
     val state = rememberWindowState(
-        position = WindowPosition.Aligned(alignment = Alignment.TopEnd),
+        position = WindowPosition(
+            x = screenWidth - windowWidth - rightPadding,
+            y = topPadding,
+        ),
         size = DpSize(
-            width = 360.dp,
-            height = 720.dp,
+            width = windowWidth,
+            height = windowWidth * 2,
         ),
     )
     Window(
