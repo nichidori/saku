@@ -45,8 +45,6 @@ data class TrxUiState(
     val incomesByParent: Map<Category, List<Category>> = emptyMap(),
     val expensesByParent: Map<Category, List<Category>> = emptyMap(),
     val canDelete: Boolean = false,
-    val isNegative: Boolean = false,
-    val lastPrimaryType: TrxType = TrxType.Expense,
     val saveStatus: Status<Unit, Exception> = Initial,
     val deleteStatus: Status<Trx, Exception> = Initial,
 ) {
@@ -55,20 +53,18 @@ data class TrxUiState(
         TrxType.Expense -> expensesByParent
         else -> emptyMap()
     }
+    val amountFormatted = (amount ?: 0).toRupiah()
     val feeAmountFormatted = (feeAmount ?: 0).toRupiah()
     val monthsFormatted = months?.toString().orEmpty()
     val monthlyRateFormatted = if (monthlyRatePercent.isNotEmpty()) "$monthlyRatePercent%" else ""
     val isReadOnly: Boolean
         get() = installment != null
-    val isAdjustment = type == TrxType.Adjustment
-    val amountFormatted =
-        (if (isNegative) "-" else "") + kotlin.math.abs(amount ?: 0).toRupiah()
     val canSave = !isReadOnly
             && time != null
             && amount != null
             && sourceAccount != null
             && (if (type == TrxType.Transfer) targetAccount != null else true)
-            && (if (type != TrxType.Transfer && type != TrxType.Adjustment) category != null else true)
+            && (if (type != TrxType.Transfer) category != null else true)
             && (if (type == TrxType.Transfer && enableFee) feeAmount != null && feeAmount > 0 && feeAccount != null && feeCategory != null else true)
             && (if (enableInstallment && sourceAccount is TrxAccount.Credit) months != null && months > 0 && monthlyRatePercent.trimEnd('.').toDoubleOrNull() != null else true)
 }
@@ -116,7 +112,6 @@ class TrxViewModel(
                             is Trx.Adjustment -> TrxType.Adjustment
                             null -> it.type
                         },
-                        isNegative = (this as? Trx.Adjustment)?.amount?.let { amount -> amount < 0 } ?: it.isNegative,
                         time = this?.transactionAt ?: Clock.System.now(),
                         amount = this?.amount ?: it.amount,
                         description = this?.description ?: it.description,
@@ -140,13 +135,11 @@ class TrxViewModel(
         _uiState.update {
             it.copy(
                 type = newValue,
-                lastPrimaryType = newValue,
                 category = null,
                 targetAccount = null,
                 enableInstallment = false,
                 months = null,
-                monthlyRatePercent = "",
-                isNegative = false,
+                monthlyRatePercent = ""
             )
         }
     }
@@ -157,44 +150,8 @@ class TrxViewModel(
 
     fun onAmountChange(change: (String) -> String) {
         _uiState.update { currState ->
-            val magnitude = currState.amount?.let { kotlin.math.abs(it) }?.toString().orEmpty()
-            val newValue = change(magnitude).toLongOrNull()
-            currState.copy(
-                amount = if (newValue == null) null
-                else if (currState.isNegative) -newValue else newValue
-            )
-        }
-    }
-
-    fun onSignToggle() {
-        _uiState.update {
-            it.copy(
-                isNegative = !it.isNegative,
-                amount = it.amount?.let { amount -> -amount },
-            )
-        }
-    }
-
-    fun onAdjustmentToggle() {
-        _uiState.update {
-            if (it.type == TrxType.Adjustment) {
-                it.copy(
-                    type = it.lastPrimaryType,
-                    isNegative = false,
-                    category = null,
-                    targetAccount = null,
-                )
-            } else {
-                it.copy(
-                    lastPrimaryType = it.type,
-                    type = TrxType.Adjustment,
-                    category = null,
-                    targetAccount = null,
-                    enableInstallment = false,
-                    months = null,
-                    monthlyRatePercent = "",
-                )
-            }
+            val current = currState.amount?.toString().orEmpty()
+            currState.copy(amount = change(current).toLongOrNull())
         }
     }
 
@@ -303,7 +260,7 @@ class TrxViewModel(
                         if (uiState.value.feeAccount == null) throw Exception("Fee account cannot be empty")
                         if (uiState.value.feeCategory == null) throw Exception("Fee category cannot be empty")
                     }
-                } else if (uiState.value.type != TrxType.Adjustment) {
+                } else {
                     if (uiState.value.category == null) throw Exception("Category cannot be empty")
                 }
                 _uiState.update { it.copy(saveStatus = Loading) }

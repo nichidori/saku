@@ -258,11 +258,10 @@ fun AccountPageContent(
                 value = uiState.balanceFormatted,
                 onValueChange = { },
                 label = "Balance",
-                enabled = !uiState.isEditing,
                 readOnly = true,
-                modifier = if (!uiState.isEditing) Modifier.onFocusChanged { focusState ->
+                modifier = Modifier.onFocusChanged { focusState ->
                     showBalanceInput = focusState.isFocused
-                } else Modifier
+                }
             )
             Spacer(modifier = Modifier.height(24.dp))
 

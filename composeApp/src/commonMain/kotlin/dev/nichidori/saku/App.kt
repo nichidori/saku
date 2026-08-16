@@ -279,7 +279,7 @@ fun App(
                         val account = backStackEntry.toRoute<Route.Account>()
                         AccountPage(
                             viewModel = viewModel {
-                                AccountViewModel(accountRepository, account.id)
+                                AccountViewModel(accountRepository, trxRepository, account.id)
                             },
                             onUp = { rootNavController.popBackStack() },
                             onSaveSuccess = { rootNavController.popBackStack() },
