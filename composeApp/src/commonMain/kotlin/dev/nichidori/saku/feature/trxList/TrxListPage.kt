@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeftRight
 import com.composables.icons.lucide.ListFilter
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.WandSparkles
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
@@ -445,12 +446,13 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         ) {
             val icon = when (trx) {
                 is Trx.Transfer -> Lucide.ArrowLeftRight
+                is Trx.Adjustment -> Lucide.WandSparkles
                 else -> trx.category?.icon.toPickerIcon()?.icon
             }
             if (icon != null) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = if (trx is Trx.Transfer) "Transfer" else trx.category?.name,
+                    contentDescription = if (trx is Trx.Transfer) "Transfer" else if (trx is Trx.Adjustment) "Adjustment" else trx.category?.name,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -493,13 +495,11 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 },
                 fontWeight = FontWeight.Bold,
             )
-            secondaryText.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            }
+            Text(
+                text = secondaryText,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
