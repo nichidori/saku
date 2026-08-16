@@ -601,6 +601,7 @@ private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
                 is Trx.Income -> MaterialTheme.colorScheme.primary
                 is Trx.Expense -> MaterialTheme.colorScheme.error
                 is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
+                is Trx.Adjustment -> MaterialTheme.colorScheme.onSurfaceVariant
             },
         )
     }

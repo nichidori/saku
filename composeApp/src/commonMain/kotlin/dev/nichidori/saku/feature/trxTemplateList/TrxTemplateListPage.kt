@@ -80,7 +80,7 @@ fun TrxTemplateListContent(
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
             MySegmentedControl(
-                items = TrxType.entries,
+                items = TrxType.entries.filter { it != TrxType.Adjustment },
                 selectedItem = uiState.selectedType,
                 onItemSelection = onSelectedTypeChange,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
@@ -90,6 +90,7 @@ fun TrxTemplateListContent(
                         TrxType.Income -> "Income"
                         TrxType.Expense -> "Expense"
                         TrxType.Transfer -> "Transfer"
+                        TrxType.Adjustment -> "Adjustment"
                     }
                 )
             }

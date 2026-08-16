@@ -90,6 +90,8 @@ fun TrxPage(
             onTypeChange = viewModel::onTypeChange,
             onTimeChange = viewModel::onTimeChange,
             onAmountChange = viewModel::onAmountChange,
+            onSignToggle = viewModel::onSignToggle,
+            onAdjustmentToggle = viewModel::onAdjustmentToggle,
             onDescriptionChange = viewModel::onDescriptionChange,
             onSourceAccountChange = viewModel::onSourceAccountChange,
             onTargetAccountChange = viewModel::onTargetAccountChange,
@@ -116,6 +118,8 @@ fun TrxPageContent(
     onTypeChange: (TrxType) -> Unit,
     onTimeChange: (Instant) -> Unit,
     onAmountChange: ((String) -> String) -> Unit,
+    onSignToggle: () -> Unit,
+    onAdjustmentToggle: () -> Unit,
     onDescriptionChange: (String) -> Unit,
     onSourceAccountChange: (TrxAccount) -> Unit,
     onTargetAccountChange: (TrxAccount) -> Unit,
@@ -501,6 +505,7 @@ fun TrxPageContent(
                             TrxType.Income -> "Income"
                             TrxType.Expense -> "Expense"
                             TrxType.Transfer -> "Transfer"
+                            TrxType.Adjustment -> "Adjustment"
                         },
                     )
                 }
@@ -511,17 +516,37 @@ fun TrxPageContent(
                     onValueChange = { },
                     enabled = !isReadOnly,
                     readOnly = true,
-                    trailingIcon = if (uiState.type == TrxType.Expense && uiState.installment is InstallmentInfo.Installment) {
-                        val installment = uiState.installment
-                        {
-                            Text(
-                                text = "Installment ${installment.index + 1}/${installment.totalMonths}",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                    trailingIcon = when {
+                        uiState.type == TrxType.Expense && uiState.installment is InstallmentInfo.Installment -> {
+                            val installment = uiState.installment
+                            {
+                                Text(
+                                    text = "Installment ${installment.index + 1}/${installment.totalMonths}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
-                    } else null,
+
+                        uiState.type == TrxType.Adjustment && !isReadOnly -> {
+                            {
+                                MyIconButton(
+                                    content = {
+                                        Text(
+                                            text = "+/-",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    },
+                                    onClick = onSignToggle,
+                                )
+                            }
+                        }
+
+                        else -> null
+                    },
                     modifier = Modifier
                         .onFocusChanged { focusState ->
                             showAmountInput = focusState.isFocused
@@ -538,6 +563,19 @@ fun TrxPageContent(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
+                val sourceFieldModifier = if (uiState.isAdjustment) {
+                    Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            showSourceAccountInput = focusState.isFocused
+                        }
+                } else {
+                    Modifier
+                        .weight(1f)
+                        .onFocusChanged { focusState ->
+                            showSourceAccountInput = focusState.isFocused
+                        }
+                }
                 Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                     MyTextField(
                         value = uiState.sourceAccount?.name.orEmpty(),
@@ -545,15 +583,13 @@ fun TrxPageContent(
                         label = if (uiState.type == TrxType.Transfer) "From" else "Account",
                         enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
                         readOnly = true,
-                        modifier = Modifier
-                            .weight(1f)
-                            .onFocusChanged { focusState ->
-                                showSourceAccountInput = focusState.isFocused
-                            }
+                        modifier = sourceFieldModifier
                     )
-                    Spacer(modifier = Modifier.width(24.dp))
 
-                    if (uiState.type == TrxType.Transfer) {
+                    if (!uiState.isAdjustment) {
+                        Spacer(modifier = Modifier.width(24.dp))
+
+                        if (uiState.type == TrxType.Transfer) {
                         MyTextField(
                             value = uiState.targetAccount?.name.orEmpty(),
                             onValueChange = { },
@@ -579,6 +615,7 @@ fun TrxPageContent(
                                     showCategoryInput = focusState.isFocused
                                 }
                         )
+                    }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))

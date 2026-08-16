@@ -87,7 +87,9 @@ private fun TrxTemplateListBottomSheetContent(
         return
     }
 
-    val grouped = TrxType.entries.mapNotNull { type ->
+    val grouped = TrxType.entries
+        .filter { it != TrxType.Adjustment }
+        .mapNotNull { type ->
         val items = templates.filter { it.type == type }
         if (items.isNotEmpty()) type to items else null
     }
@@ -102,6 +104,7 @@ private fun TrxTemplateListBottomSheetContent(
                         TrxType.Income -> "Income"
                         TrxType.Expense -> "Expense"
                         TrxType.Transfer -> "Transfer"
+                        TrxType.Adjustment -> "Adjustment"
                     },
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,

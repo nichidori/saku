@@ -533,6 +533,7 @@ fun TrxType.label(): String {
         TrxType.Income -> "Income"
         TrxType.Expense -> "Expense"
         TrxType.Transfer -> "Transfer"
+        TrxType.Adjustment -> "Adjustment"
     }
 }
 

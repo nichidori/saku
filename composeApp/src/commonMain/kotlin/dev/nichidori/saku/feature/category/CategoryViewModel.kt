@@ -39,7 +39,7 @@ class CategoryViewModel(
     private val _uiState = MutableStateFlow(CategoryUiState(type = initialType ?: TrxType.Expense))
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
 
-    val types = TrxType.entries
+    val types = TrxType.entries.filter { it == TrxType.Income || it == TrxType.Expense }
 
     init {
         viewModelScope.launch {

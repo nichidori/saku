@@ -58,7 +58,7 @@ class TrxTemplateViewModel(
     private val _uiState = MutableStateFlow(TrxTemplateUiState())
     val uiState: StateFlow<TrxTemplateUiState> = _uiState.asStateFlow()
 
-    val types = TrxType.entries
+    val types = TrxType.entries.filter { it != TrxType.Adjustment }
 
     init {
         viewModelScope.launch {
