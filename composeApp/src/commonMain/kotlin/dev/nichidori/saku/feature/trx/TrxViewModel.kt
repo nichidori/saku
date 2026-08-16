@@ -58,7 +58,8 @@ data class TrxUiState(
     val monthsFormatted = months?.toString().orEmpty()
     val monthlyRateFormatted = if (monthlyRatePercent.isNotEmpty()) "$monthlyRatePercent%" else ""
     val isReadOnly: Boolean
-        get() = installment != null
+        get() = installment != null || isAdjustment
+    val isAdjustment = type == TrxType.Adjustment
     val canSave = !isReadOnly
             && time != null
             && amount != null
