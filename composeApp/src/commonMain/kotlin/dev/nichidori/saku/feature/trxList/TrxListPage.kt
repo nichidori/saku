@@ -1,5 +1,7 @@
 package dev.nichidori.saku.feature.trxList
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,7 +47,7 @@ import kotlinx.datetime.format.Padding
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun TrxListPage(
     initialMonth: YearMonth,
@@ -287,42 +289,71 @@ fun TrxListPage(
         topBar = {
             TopAppBar(
                 title = {
-                    if (showSearch) {
-                        MyTextField(
-                            value = searchQuery,
-                            onValueChange = viewModel::onSearchQueryChange,
-                            label = "Search transactions",
-                            trailingIcon = {
+                    Box(
+                        contentAlignment = Alignment.CenterEnd,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        AnimatedVisibility(
+                            visible = !showSearch,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer {
+                                        translationX = -8.dp.toPx()
+                                    }
+                            ) {
+                                MySunFlowerIcon(
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    "Transactions",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
                                 IconButton(
                                     onClick = {
-                                        if (searchQuery.isNotEmpty()) {
-                                            viewModel.clearSearch()
-                                        } else {
-                                            showSearch = false
-                                        }
+                                        showSearch = true
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = Lucide.X,
-                                        contentDescription = if (searchQuery.isNotEmpty()) "Clear search" else "Close search"
+                                        imageVector = Lucide.Search,
+                                        contentDescription = "Search transactions"
                                     )
                                 }
-                            },
-                        )
-                    } else {
-                        Row(
-                            modifier = Modifier.graphicsLayer {
-                                translationX = -8.dp.toPx()
                             }
+                        }
+                        AnimatedVisibility(
+                            visible = showSearch,
+                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
                         ) {
-                            MySunFlowerIcon(
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Text(
-                                "Transactions",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold
+                            MyTextField(
+                                value = searchQuery,
+                                onValueChange = viewModel::onSearchQueryChange,
+                                label = "",
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            if (searchQuery.isNotEmpty()) {
+                                                viewModel.clearSearch()
+                                            } else {
+                                                showSearch = false
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Lucide.X,
+                                            contentDescription = if (searchQuery.isNotEmpty()) "Clear search" else "Close search"
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)
                             )
                         }
                     }
@@ -333,18 +364,6 @@ fun TrxListPage(
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                 ),
                 actions = {
-                    if (!showSearch) {
-                        IconButton(
-                            onClick = {
-                                showSearch = true
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Lucide.Search,
-                                contentDescription = "Search transactions"
-                            )
-                        }
-                    }
                     Box {
                         IconButton(
                             onClick = {
@@ -375,35 +394,46 @@ fun TrxListPage(
             )
         },
     ) { contentPadding ->
-        Column(modifier = Modifier.padding(contentPadding)) {
-            if (isSearching) {
-                TrxListContent(
-                    uiState = TrxListUiState.MonthlyState(
-                        loadStatus = uiState.searchStatus,
-                        trxRecordsByDate = uiState.searchRecords,
-                    ),
-                    onTrxClick = onTrxClick,
-                    emptyMessage = "No results found for \"$searchQuery\"",
-                )
-            } else {
-                Spacer(modifier = Modifier.height(8.dp))
-                MyMonthChipRow(
-                    selectedMonth = initialMonth,
-                    earliestMonth = earliestMonth,
-                    latestMonth = currentMonth,
-                    onMonthSelect = onMonthChange,
-                    listState = monthChipsListState,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.weight(1f)
-                ) { page ->
-                    val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
+        Column(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
+            AnimatedContent(
+                targetState = isSearching,
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = {
+                    fadeIn(tween(200)) togetherWith fadeOut(tween(200))
+                },
+            ) { searching ->
+                if (searching) {
                     TrxListContent(
-                        uiState = uiState.stateByMonth[pageMonth] ?: TrxListUiState.MonthlyState(),
+                        uiState = TrxListUiState.MonthlyState(
+                            loadStatus = uiState.searchStatus,
+                            trxRecordsByDate = uiState.searchRecords,
+                        ),
                         onTrxClick = onTrxClick,
+                        emptyMessage = "No results found for \"$searchQuery\"",
+                        modifier = Modifier.fillMaxSize().padding(top = 16.dp),
                     )
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        MyMonthChipRow(
+                            selectedMonth = initialMonth,
+                            earliestMonth = earliestMonth,
+                            latestMonth = currentMonth,
+                            onMonthSelect = onMonthChange,
+                            listState = monthChipsListState,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.weight(1f)
+                        ) { page ->
+                            val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
+                            TrxListContent(
+                                uiState = uiState.stateByMonth[pageMonth] ?: TrxListUiState.MonthlyState(),
+                                onTrxClick = onTrxClick,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -574,7 +604,8 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 style = MaterialTheme.typography.titleSmall,
                 color = when {
                     (trx as? Trx.Expense)?.installment is InstallmentInfo.Charge
-                    -> MaterialTheme.colorScheme.onSurfaceVariant
+                        -> MaterialTheme.colorScheme.onSurfaceVariant
+
                     trx is Trx.Income -> MaterialTheme.colorScheme.primary
                     trx is Trx.Expense -> MaterialTheme.colorScheme.error
                     trx is Trx.Transfer -> MaterialTheme.colorScheme.onSurfaceVariant
