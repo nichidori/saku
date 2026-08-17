@@ -32,6 +32,7 @@ import dev.nichidori.saku.core.platform.ToastDuration
 import dev.nichidori.saku.core.platform.showToast
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.format
+import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.Category
 import dev.nichidori.saku.domain.model.InstallmentInfo
 import dev.nichidori.saku.domain.model.TrxAccount
@@ -144,6 +145,11 @@ fun TrxPageContent(
     var showRateInput by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val isReadOnly = uiState.isReadOnly
+    val amountDisplay = if (uiState.isAdjustment && uiState.sourceAccount is TrxAccount.Credit) {
+        (-(uiState.amount ?: 0)).toRupiah()
+    } else {
+        uiState.amountFormatted
+    }
 
     Scaffold(
         topBar = {
@@ -511,7 +517,7 @@ fun TrxPageContent(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 MyLargeTextField(
-                    value = uiState.amountFormatted,
+                    value = amountDisplay,
                     onValueChange = { },
                     enabled = !isReadOnly,
                     readOnly = true,

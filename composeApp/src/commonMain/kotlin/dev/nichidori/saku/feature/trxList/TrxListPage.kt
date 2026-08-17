@@ -522,7 +522,7 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                trx.amount.toRupiah(),
+                (if (trx is Trx.Adjustment && trx.sourceAccount is TrxAccount.Credit) -trx.amount else trx.amount).toRupiah(),
                 style = MaterialTheme.typography.titleSmall,
                 color = when {
                     (trx as? Trx.Expense)?.installment is InstallmentInfo.Charge
