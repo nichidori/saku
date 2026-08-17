@@ -28,9 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
@@ -378,6 +382,7 @@ fun StatisticPageContent(
 
                                 val isExpanded = monthlyState.expandedItemKey == itemKey
                                 val trxsStatus = monthlyState.trxsStatusByItemKey[itemKey] ?: Initial
+                                val isDeleted = (itemKey as? StatisticItemKey.ByAccount)?.account?.isDeleted == true
 
                                 StatisticItem(
                                     name = name,
@@ -389,6 +394,7 @@ fun StatisticPageContent(
                                         categoryFractions[index] = it
                                     },
                                     expanded = isExpanded && trxsStatus.isCompleted,
+                                    deleted = isDeleted,
                                     onExpandToggle = {
                                         if (isExpanded) {
                                             onItemCollapse(pageMonth)
@@ -444,6 +450,7 @@ fun StatisticItem(
     expanded: Boolean = false,
     onExpandToggle: () -> Unit = {},
     expandedContent: @Composable ColumnScope.() -> Unit = {},
+    deleted: Boolean = false,
 ) {
     val target = if (maxAmount > 0) amount / maxAmount.toFloat() else 0f
     var animationTarget by remember { mutableFloatStateOf(previousTarget) }
@@ -457,6 +464,11 @@ fun StatisticItem(
         animationTarget = target
         onTargetChange(target)
     }
+    val nameStyle = MaterialTheme.typography.labelSmall.copy(
+        color = if (deleted) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.onBackground,
+        textDecoration = if (deleted) TextDecoration.LineThrough else TextDecoration.None,
+    )
 
     Column(modifier = modifier) {
         Row(
@@ -479,9 +491,12 @@ fun StatisticItem(
                 } else {
                     Text(
                         name.firstOrNull()?.toString() ?: "",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = if (deleted) MaterialTheme.colorScheme.onSurfaceVariant
+                            else MaterialTheme.colorScheme.primary,
+                            textDecoration = if (deleted) TextDecoration.LineThrough else TextDecoration.None,
+                        ),
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -517,8 +532,7 @@ fun StatisticItem(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onBackground,
+                            style = nameStyle,
                         )
                         Text(
                             amount.toRupiah(),
@@ -554,11 +568,26 @@ private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val accountInfo = when (trx) {
-            is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
-            else -> trx.sourceAccount.name
+        val deletedStyle = SpanStyle(
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textDecoration = TextDecoration.LineThrough,
+        )
+        val accountInfo = buildAnnotatedString {
+            withStyle(if (trx.sourceAccount.isDeleted) deletedStyle else SpanStyle()) {
+                append(trx.sourceAccount.name)
+            }
+            (trx as? Trx.Transfer)?.let { transfer ->
+                append(" →\t ")
+                withStyle(if (transfer.targetAccount.isDeleted) deletedStyle else SpanStyle()) {
+                    append(transfer.targetAccount.name)
+                }
+            }
         }
-        val primaryText = trx.description.ifBlank { accountInfo }
+        val primaryText = if (trx.description.isBlank()) {
+            accountInfo
+        } else {
+            buildAnnotatedString { append(trx.description) }
+        }
 
         Text(
             text = trx.transactionAt.format(

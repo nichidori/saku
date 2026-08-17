@@ -54,7 +54,7 @@ fun main() = application {
         val appEventBus = AppEventBus()
         val trxRepository = DefaultTrxRepository(db = db, appEventBus = appEventBus)
         App(
-            accountRepository = DefaultAccountRepository(db = db),
+            accountRepository = DefaultAccountRepository(db = db, appEventBus = appEventBus),
             categoryRepository = DefaultCategoryRepository(db = db),
             trxRepository = trxRepository,
             budgetRepository = DefaultBudgetRepository(db = db),

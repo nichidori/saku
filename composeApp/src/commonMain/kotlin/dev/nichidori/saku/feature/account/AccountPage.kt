@@ -119,7 +119,7 @@ fun AccountPageContent(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Are you sure to delete this Account? Deleting would also delete related Transactions. This action cannot be undone.",
+                    "Are you sure to delete this Account? Its balance will be zeroed out, and it will be excluded from the account list while keeping the transaction history. This action cannot be undone.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(32.dp))

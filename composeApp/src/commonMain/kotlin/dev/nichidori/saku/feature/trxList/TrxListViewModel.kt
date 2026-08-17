@@ -115,7 +115,7 @@ class TrxListViewModel(
     fun loadAccounts() {
         viewModelScope.launch {
             try {
-                val accounts = accountRepository.getAllTrxAccounts()
+                val accounts = accountRepository.getAllTrxAccountsIncludingDeleted()
 
                 _uiState.update {
                     it.copy(accounts = accounts)

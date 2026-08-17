@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +31,7 @@ fun MyTextField(
     enabled: Boolean = true,
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
+    dimmed: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -37,6 +39,11 @@ fun MyTextField(
         MaterialTheme.colorScheme.onBackground
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val textColor = if (dimmed) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        contentColor
     }
     val indicatorColor = when {
         !enabled -> MaterialTheme.colorScheme.outlineVariant
@@ -53,7 +60,8 @@ fun MyTextField(
         keyboardOptions = keyboardOptions,
         textStyle = MaterialTheme.typography.bodyLarge.copy(
             fontWeight = FontWeight.Bold,
-            color = contentColor
+            color = textColor,
+            textDecoration = if (dimmed) TextDecoration.LineThrough else TextDecoration.None,
         ),
         interactionSource = interactionSource,
         modifier = modifier
@@ -75,7 +83,7 @@ fun MyTextField(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = contentColor,
+                        color = textColor,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     innerTextField()

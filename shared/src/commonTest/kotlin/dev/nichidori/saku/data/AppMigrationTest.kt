@@ -49,6 +49,7 @@ class AppMigrationTest {
             val columnNames = queryColumnNames(connection, "PRAGMA table_info(`account`)", 1)
             assertFalse("initial_amount" in columnNames, "account should not have initial_amount column")
             assertTrue("current_amount" in columnNames)
+            assertTrue("deleted_at" in columnNames, "account should have deleted_at column after v12 migration")
 
             val referencedTables = queryColumnNames(connection, "PRAGMA foreign_key_list(`trx`)", 2)
             assertTrue("account" in referencedTables, "trx foreign keys should reference account")

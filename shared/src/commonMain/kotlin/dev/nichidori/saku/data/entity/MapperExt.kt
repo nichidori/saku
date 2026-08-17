@@ -11,7 +11,8 @@ fun AccountEntity.toDomain(): Account = Account(
     currentAmount = currentAmount,
     type = type.toDomain(),
     createdAt = Instant.fromEpochMilliseconds(createdAt),
-    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) }
+    updatedAt = updatedAt?.let { Instant.fromEpochMilliseconds(it) },
+    deletedAt = deletedAt?.let { Instant.fromEpochMilliseconds(it) }
 )
 
 fun Account.toEntity(): AccountEntity = AccountEntity(
@@ -20,7 +21,8 @@ fun Account.toEntity(): AccountEntity = AccountEntity(
     currentAmount = currentAmount,
     type = type.toEntity(),
     createdAt = createdAt.toEpochMilliseconds(),
-    updatedAt = updatedAt?.toEpochMilliseconds()
+    updatedAt = updatedAt?.toEpochMilliseconds(),
+    deletedAt = deletedAt?.toEpochMilliseconds()
 )
 
 fun CreditEntity.toDomain(): Credit = Credit(

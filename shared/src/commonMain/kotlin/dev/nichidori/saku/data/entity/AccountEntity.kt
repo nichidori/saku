@@ -11,6 +11,7 @@ data class AccountEntity(
     @ColumnInfo(name = "current_amount") val currentAmount: Long,
     @ColumnInfo(name = "type") val type: AccountTypeEntity,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long?
+    @ColumnInfo(name = "updated_at") val updatedAt: Long?,
+    @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
 )
 

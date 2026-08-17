@@ -13,13 +13,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ChevronRight
+import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import dev.nichidori.saku.core.composable.*
+import dev.nichidori.saku.core.model.toPickerIcon
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.domain.model.TrxTemplate
@@ -125,33 +128,66 @@ fun TrxTemplateListContent(
 fun TrxTemplateCard(
     template: TrxTemplate,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     MyBox(
         modifier = modifier
             .clip(MyDefaultShape)
-            .clickable { onClick() }
+            .alpha(if (enabled) 1f else 0.5f)
+            .clickable(enabled = enabled) { onClick() }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    template.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(24.dp)
+            ) {
+                if (template.hasDeletedAccount) {
+                    Icon(
+                        imageVector = Lucide.CircleAlert,
+                        contentDescription = template.sourceAccount.name,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    val icon = template.category?.icon.toPickerIcon()?.icon
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = template.category?.name,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text(
+                            template.category?.name?.firstOrNull()?.toString() ?: "",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                template.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 template.amount.toRupiah(),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }

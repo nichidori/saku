@@ -8,5 +8,8 @@ data class Account(
     val currentAmount: Long,
     val type: AccountType,
     val createdAt: Instant,
-    val updatedAt: Instant?
-)
+    val updatedAt: Instant?,
+    val deletedAt: Instant? = null,
+) {
+    val isDeleted: Boolean get() = deletedAt != null
+}

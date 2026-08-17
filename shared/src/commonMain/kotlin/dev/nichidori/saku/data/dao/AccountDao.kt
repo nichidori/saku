@@ -19,12 +19,15 @@ interface AccountDao {
     @Query("SELECT * FROM account ORDER BY name ASC")
     suspend fun getAll(): List<AccountEntity>
 
+    @Query("SELECT * FROM account WHERE deleted_at IS NULL ORDER BY name ASC")
+    suspend fun getAllActive(): List<AccountEntity>
+
     @Update
     suspend fun update(account: AccountEntity)
 
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun deleteById(id: String)
 
-    @Query("SELECT SUM(current_amount) FROM account")
+    @Query("SELECT SUM(current_amount) FROM account WHERE deleted_at IS NULL")
     suspend fun getTotalBalance(): Long?
 }

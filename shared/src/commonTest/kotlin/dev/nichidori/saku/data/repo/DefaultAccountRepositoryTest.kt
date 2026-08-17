@@ -102,11 +102,42 @@ class DefaultAccountRepositoryTest {
     }
 
     @Test
-    fun deleteAccount_shouldDeleteAccountById() = runTest {
+    fun deleteAccount_shouldSoftDeleteAccountAndZeroBalance() = runTest {
         db.accountDao().insert(account.toEntity())
         repository.deleteAccount(account.id)
-        val result = db.accountDao().getById(account.id)
-        assertNull(result)
+        val result = db.accountDao().getById(account.id)!!.toDomain()
+        assertNotNull(result.deletedAt)
+        assertTrue(result.isDeleted)
+        assertEquals(0L, result.currentAmount)
+    }
+
+    @Test
+    fun deleteAccount_withNonZeroBalance_shouldCreateAdjustmentTrx() = runTest {
+        db.accountDao().insert(account.toEntity())
+        repository.deleteAccount(account.id)
+        val trxs = db.trxDao().getAllUpTo(Clock.System.now().toEpochMilliseconds() + 1_000L)
+        val adjustment = trxs.single { it.type == TrxTypeEntity.Adjustment }
+        assertEquals(-10_000L, adjustment.amount)
+        assertEquals(account.id, adjustment.sourceAccountId)
+    }
+
+    @Test
+    fun deleteAccount_withZeroBalance_shouldOnlyMarkDeleted() = runTest {
+        db.accountDao().insert(account.copy(currentAmount = 0L).toEntity())
+        repository.deleteAccount(account.id)
+        val entity = db.accountDao().getById(account.id)!!
+        assertNotNull(entity.deletedAt)
+        assertTrue(db.trxDao().getAllUpTo(Clock.System.now().toEpochMilliseconds() + 1_000L).isEmpty())
+    }
+
+    @Test
+    fun deleteAccount_whenAlreadyDeleted_shouldBeNoOp() = runTest {
+        db.accountDao().insert(account.toEntity())
+        repository.deleteAccount(account.id)
+        repository.deleteAccount(account.id)
+        val entity = db.accountDao().getById(account.id)!!
+        assertNotNull(entity.deletedAt)
+        assertEquals(0L, entity.currentAmount)
     }
 
     @Test
@@ -115,6 +146,24 @@ class DefaultAccountRepositoryTest {
             repository.deleteAccount("non-existent-id")
         }
         assertEquals("Account not found", exception.message)
+    }
+
+    @Test
+    fun getAllTrxAccounts_shouldExcludeDeletedAccounts() = runTest {
+        db.accountDao().insert(account.toEntity())
+        db.accountDao().insert(account.copy(id = "acc-2", name = "Bank").toEntity())
+        repository.deleteAccount(account.id)
+        val result = repository.getAllTrxAccounts()
+        assertEquals(listOf("acc-2"), result.map { it.id })
+    }
+
+    @Test
+    fun getAllTrxAccountsIncludingDeleted_shouldIncludeDeletedAccounts() = runTest {
+        db.accountDao().insert(account.toEntity())
+        db.accountDao().insert(account.copy(id = "acc-2", name = "Bank").toEntity())
+        repository.deleteAccount(account.id)
+        val result = repository.getAllTrxAccountsIncludingDeleted()
+        assertEquals(setOf(account.id, "acc-2"), result.map { it.id }.toSet())
     }
 
     @Test

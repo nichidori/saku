@@ -8,4 +8,8 @@ sealed interface AppEvent {
         data class Updated(val before: Trx, val after: Trx) : TrxChanged
         data class Deleted(val trx: Trx) : TrxChanged
     }
+
+    sealed interface AccountChanged : AppEvent {
+        data class Deleted(val accountId: String) : AccountChanged
+    }
 }

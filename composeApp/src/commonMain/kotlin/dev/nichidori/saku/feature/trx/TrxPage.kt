@@ -560,8 +560,9 @@ fun TrxPageContent(
                         value = uiState.sourceAccount?.name.orEmpty(),
                         onValueChange = { },
                         label = if (uiState.type == TrxType.Transfer) "From" else "Account",
-                        enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
+                        enabled = !isReadOnly && (uiState.accountOptions.isNotEmpty() || uiState.sourceAccount?.isDeleted == true),
                         readOnly = true,
+                        dimmed = uiState.sourceAccount?.isDeleted == true,
                         modifier = sourceFieldModifier
                     )
 
@@ -571,8 +572,9 @@ fun TrxPageContent(
                             value = uiState.targetAccount?.name.orEmpty(),
                             onValueChange = { },
                             label = "To",
-                            enabled = !isReadOnly && uiState.accountOptions.isNotEmpty(),
+                            enabled = !isReadOnly && (uiState.accountOptions.isNotEmpty() || uiState.targetAccount?.isDeleted == true),
                             readOnly = true,
+                            dimmed = uiState.targetAccount?.isDeleted == true,
                             modifier = Modifier
                                 .weight(1f)
                                 .onFocusChanged { focusState ->
@@ -679,8 +681,10 @@ fun TrxPageContent(
                                     value = (uiState.feeAccount ?: uiState.sourceAccount)?.name.orEmpty(),
                                     onValueChange = { },
                                     label = "Account",
-                                    enabled = uiState.accountOptions.isNotEmpty(),
+                                    enabled = uiState.accountOptions.isNotEmpty()
+                                        || (uiState.feeAccount ?: uiState.sourceAccount)?.isDeleted == true,
                                     readOnly = true,
+                                    dimmed = (uiState.feeAccount ?: uiState.sourceAccount)?.isDeleted == true,
                                     modifier = Modifier
                                         .weight(1f)
                                         .onFocusChanged { focusState ->

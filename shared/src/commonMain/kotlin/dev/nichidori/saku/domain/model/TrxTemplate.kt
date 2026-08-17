@@ -13,4 +13,7 @@ data class TrxTemplate(
     val targetAccount: TrxAccount?,
     val createdAt: Instant,
     val updatedAt: Instant?,
-)
+) {
+    val hasDeletedAccount: Boolean
+        get() = sourceAccount.isDeleted || (targetAccount?.isDeleted == true)
+}

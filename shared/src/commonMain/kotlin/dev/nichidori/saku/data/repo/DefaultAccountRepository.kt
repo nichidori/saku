@@ -3,6 +3,8 @@ package dev.nichidori.saku.data.repo
 import androidx.room.immediateTransaction
 import androidx.room.useReaderConnection
 import androidx.room.useWriterConnection
+import dev.nichidori.saku.core.event.AppEvent
+import dev.nichidori.saku.core.event.AppEventBus
 import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.*
 import dev.nichidori.saku.domain.model.Account
@@ -19,6 +21,7 @@ import kotlin.time.Instant
 
 class DefaultAccountRepository(
     private val db: AppDatabase,
+    private val appEventBus: AppEventBus = AppEventBus(),
 ) : AccountRepository {
     override suspend fun addAccount(name: String, currentAmount: Long, type: AccountType) {
         val currentTime = Clock.System.now()
@@ -50,6 +53,14 @@ class DefaultAccountRepository(
 
     override suspend fun getAllTrxAccounts(): List<TrxAccount> {
         return db.useReaderConnection {
+            val accounts = db.accountDao().getAllActive().map { TrxAccount.Regular(it.toDomain()) }
+            val credits = db.creditDao().getAll().map { TrxAccount.Credit(it.toDomain()) }
+            accounts + credits
+        }
+    }
+
+    override suspend fun getAllTrxAccountsIncludingDeleted(): List<TrxAccount> {
+        return db.useReaderConnection {
             val accounts = db.accountDao().getAll().map { TrxAccount.Regular(it.toDomain()) }
             val credits = db.creditDao().getAll().map { TrxAccount.Credit(it.toDomain()) }
             accounts + credits
@@ -75,12 +86,55 @@ class DefaultAccountRepository(
     }
 
     override suspend fun deleteAccount(id: String) {
+        val currentTime = Clock.System.now()
+        var adjustmentTrxId: String? = null
+
         db.useWriterConnection {
             it.immediateTransaction {
-                db.accountDao().getById(id) ?: throw NoSuchElementException("Account not found")
-                db.accountDao().deleteById(id)
+                val account = db.accountDao().getById(id)
+                    ?: throw NoSuchElementException("Account not found")
+                if (account.deletedAt != null) return@immediateTransaction
+
+                if (account.currentAmount != 0L) {
+                    val trxId = UUID.randomUUID().toString()
+                    db.trxDao().insert(
+                        TrxEntity(
+                            id = trxId,
+                            description = "Account deletion adjustment",
+                            amount = -account.currentAmount,
+                            categoryId = null,
+                            sourceAccountId = account.id,
+                            sourceCreditId = null,
+                            targetAccountId = null,
+                            targetCreditId = null,
+                            transactionAt = currentTime.toEpochMilliseconds(),
+                            createdAt = currentTime.toEpochMilliseconds(),
+                            updatedAt = null,
+                            type = TrxTypeEntity.Adjustment,
+                            installmentId = null,
+                            installmentIndex = null,
+                        )
+                    )
+                    adjustmentTrxId = trxId
+                }
+
+                db.accountDao().update(
+                    account.copy(
+                        currentAmount = 0,
+                        deletedAt = currentTime.toEpochMilliseconds(),
+                        updatedAt = currentTime.toEpochMilliseconds()
+                    )
+                )
+                recalculateNetWorthFrom(account.toDomain().createdAt.toYearMonth())
             }
         }
+
+        adjustmentTrxId?.let {
+            db.trxDao().getByIdWithDetails(it)?.toDomain()?.let { trx ->
+                appEventBus.emit(AppEvent.TrxChanged.Created(trx))
+            }
+        }
+        appEventBus.emit(AppEvent.AccountChanged.Deleted(id))
     }
 
     override suspend fun getTotalBalance(): Long {

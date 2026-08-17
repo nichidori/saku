@@ -71,6 +71,16 @@ class HomeViewModel(
                     load(month)
                 }
         }
+        viewModelScope.launch {
+            appEventBus.events
+                .filterIsInstance<AppEvent.AccountChanged>()
+                .debounce(150.milliseconds)
+                .collect {
+                    if (_uiState.value.loadStatus is Loading) return@collect
+                    val month = _uiState.value.month ?: return@collect
+                    load(month)
+                }
+        }
     }
 
     fun load(month: YearMonth) {

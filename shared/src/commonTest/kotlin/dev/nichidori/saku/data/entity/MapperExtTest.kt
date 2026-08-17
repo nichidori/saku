@@ -36,6 +36,25 @@ class MapperExtTest {
     }
 
     @Test
+    fun toDomainAndBack_withDeletedAccountEntity_shouldPreserveDeletedAt() {
+        val entity = AccountEntity(
+            id = "acc-1",
+            name = "Cash Wallet",
+            currentAmount = 0L,
+            type = AccountTypeEntity.Cash,
+            createdAt = 1_000_000L,
+            updatedAt = 2_000_000L,
+            deletedAt = 3_000_000L
+        )
+
+        val domain = entity.toDomain()
+
+        assertTrue(domain.isDeleted)
+        assertEquals(3_000_000L, domain.deletedAt?.toEpochMilliseconds())
+        assertEquals(entity, domain.toEntity())
+    }
+
+    @Test
     fun toDomainAndBack_withCategoryEntity_shouldPreserveData() {
         val entity = CategoryEntity(
             id = "cat-1",

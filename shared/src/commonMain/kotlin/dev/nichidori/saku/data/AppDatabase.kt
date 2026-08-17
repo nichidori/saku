@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
         MonthlyNetWorthEntity::class,
         InstallmentEntity::class,
     ],
-    version = 11,
+    version = 12,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -452,6 +452,12 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
     }
 }
 
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE `account` ADD COLUMN `deleted_at` INTEGER")
+    }
+}
+
 fun getRoomDatabase(
     builder: RoomDatabase.Builder<AppDatabase>
 ): AppDatabase {
@@ -466,7 +472,8 @@ fun getRoomDatabase(
             MIGRATION_7_8,
             MIGRATION_8_9,
             MIGRATION_9_10,
-            MIGRATION_10_11
+            MIGRATION_10_11,
+            MIGRATION_11_12
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
         .setDriver(BundledSQLiteDriver())

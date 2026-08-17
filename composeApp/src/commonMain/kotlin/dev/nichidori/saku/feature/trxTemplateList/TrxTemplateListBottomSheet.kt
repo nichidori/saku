@@ -116,6 +116,7 @@ private fun TrxTemplateListBottomSheetContent(
                 TrxTemplateCard(
                     template = template,
                     onClick = { onTemplateClick(template.id) },
+                    enabled = !template.hasDeletedAccount,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = if (index < items.lastIndex) 8.dp else 0.dp)

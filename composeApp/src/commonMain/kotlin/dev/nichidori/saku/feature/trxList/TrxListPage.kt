@@ -17,9 +17,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeftRight
 import com.composables.icons.lucide.ListFilter
@@ -33,6 +39,7 @@ import dev.nichidori.saku.core.util.toRupiah
 import dev.nichidori.saku.core.util.toYearMonth
 import dev.nichidori.saku.domain.model.InstallmentInfo
 import dev.nichidori.saku.domain.model.Trx
+import dev.nichidori.saku.domain.model.TrxAccount
 import dev.nichidori.saku.domain.model.TrxType
 import kotlinx.datetime.*
 import kotlinx.datetime.format.DayOfWeekNames
@@ -134,7 +141,11 @@ fun TrxListPage(
                                     }
                                 },
                                 label = {
-                                    Text(it.name)
+                                    Text(
+                                        it.name,
+                                        textDecoration = if (it.isDeleted) TextDecoration.LineThrough else null,
+                                        modifier = if (it.isDeleted) Modifier.alpha(0.5f) else Modifier,
+                                    )
                                 },
                             )
                         }
@@ -471,19 +482,27 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
             modifier = Modifier.weight(1f)
         ) {
             val isCharge = (trx as? Trx.Expense)?.installment is InstallmentInfo.Charge
-            val accountInfo = when (trx) {
-                is Trx.Transfer -> "${trx.sourceAccount.name} →\t ${trx.targetAccount.name}"
-                else -> trx.sourceAccount.name
-            }
+            val accountInfo = trxAccountInfoAnnotated(
+                source = trx.sourceAccount,
+                target = (trx as? Trx.Transfer)?.targetAccount,
+            )
             val installmentDetails = (trx as? Trx.Expense)?.installment?.let { info ->
                 if (info is InstallmentInfo.Installment) "${info.index + 1}/${info.totalMonths}" else null
             }
-            val primaryText = trx.description.ifBlank { accountInfo }
-            val secondaryText = if (trx.description.isBlank()) {
-                trx.category?.name + (installmentDetails?.let { "  •  $it" } ?: "")
+            val primaryText = if (trx.description.isBlank()) {
+                accountInfo
             } else {
-                accountInfo + (trx.category?.name?.let { "  •  $it" } ?: "") +
-                    (installmentDetails?.let { "  •  $it" } ?: "")
+                buildAnnotatedString { append(trx.description) }
+            }
+            val secondaryText = buildAnnotatedString {
+                if (trx.description.isBlank()) {
+                    trx.category?.name?.let { append(it) }
+                    installmentDetails?.let { append("  •  $it") }
+                } else {
+                    append(accountInfo)
+                    trx.category?.name?.let { append("  •  $it") }
+                    installmentDetails?.let { append("  •  $it") }
+                }
             }
             Text(
                 text = primaryText,
@@ -524,6 +543,25 @@ fun TrxCard(trx: Trx, onClick: (String) -> Unit, modifier: Modifier = Modifier) 
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onBackground,
             )
+        }
+    }
+}
+
+@Composable
+private fun trxAccountInfoAnnotated(source: TrxAccount, target: TrxAccount?): AnnotatedString {
+    val deletedStyle = SpanStyle(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textDecoration = TextDecoration.LineThrough,
+    )
+    return buildAnnotatedString {
+        withStyle(if (source.isDeleted) deletedStyle else SpanStyle()) {
+            append(source.name)
+        }
+        if (target != null) {
+            append(" →\t ")
+            withStyle(if (target.isDeleted) deletedStyle else SpanStyle()) {
+                append(target.name)
+            }
         }
     }
 }

@@ -341,8 +341,9 @@ fun TrxTemplatePageContent(
                         value = uiState.sourceAccount?.name.orEmpty(),
                         onValueChange = { },
                         label = if (uiState.type == TrxType.Transfer) "From" else "Account",
-                        enabled = uiState.accountOptions.isNotEmpty(),
+                        enabled = uiState.accountOptions.isNotEmpty() || uiState.sourceAccount?.isDeleted == true,
                         readOnly = true,
+                        dimmed = uiState.sourceAccount?.isDeleted == true,
                         modifier = Modifier
                             .weight(1f)
                             .onFocusChanged { focusState ->
@@ -356,8 +357,9 @@ fun TrxTemplatePageContent(
                             value = uiState.targetAccount?.name.orEmpty(),
                             onValueChange = { },
                             label = "To",
-                            enabled = uiState.accountOptions.isNotEmpty(),
+                            enabled = uiState.accountOptions.isNotEmpty() || uiState.targetAccount?.isDeleted == true,
                             readOnly = true,
+                            dimmed = uiState.targetAccount?.isDeleted == true,
                             modifier = Modifier
                                 .weight(1f)
                                 .onFocusChanged { focusState ->
