@@ -17,6 +17,7 @@ interface TrxRepository {
 
     suspend fun getTrxById(id: String): Trx?
     suspend fun getFilteredTrxs(filter: TrxFilter): List<Trx>
+    suspend fun searchTrxsByDescription(keyword: String): List<Trx>
     suspend fun updateTrx(
         id: String,
         type: TrxType,

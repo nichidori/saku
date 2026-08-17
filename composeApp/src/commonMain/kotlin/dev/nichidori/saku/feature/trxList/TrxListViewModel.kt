@@ -13,6 +13,8 @@ import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -36,6 +38,8 @@ data class TrxListUiState(
     val filterAccountTypes: Set<AccountType> = emptySet(),
     val filterCategoryIds: Set<String> = emptySet(),
     val filterTrxTypes: Set<TrxType> = emptySet(),
+    val searchStatus: Status<Unit, Exception> = Initial,
+    val searchRecords: Map<LocalDate, DailyTrxRecord> = emptyMap(),
 ) {
     val accountTypes: Set<AccountType> = AccountType.entries.toSet()
     val trxTypes: Set<TrxType> = TrxType.entries.toSet()
@@ -75,6 +79,39 @@ class TrxListViewModel(
 
     private val _uiState = MutableStateFlow(TrxListUiState())
     val uiState: StateFlow<TrxListUiState> = _uiState.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private var searchDebounceJob: Job? = null
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            delay(300.milliseconds)
+            searchOrClear(query)
+        }
+    }
+
+    fun clearSearch() {
+        searchDebounceJob?.cancel()
+        searchDebounceJob = null
+        _searchQuery.value = ""
+        _uiState.update {
+            it.copy(searchStatus = Initial, searchRecords = emptyMap())
+        }
+    }
+
+    private fun searchOrClear(query: String) {
+        if (query.isBlank()) {
+            _uiState.update {
+                it.copy(searchStatus = Initial, searchRecords = emptyMap())
+            }
+        } else {
+            search(query.trim())
+        }
+    }
 
     fun loadTrxs(month: YearMonth) {
         viewModelScope.launch {
@@ -177,6 +214,37 @@ class TrxListViewModel(
             }
 
             newState.copy(stateByMonth = stateByMonth)
+        }
+    }
+
+    private fun search(query: String) {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(searchStatus = Loading)
+                }
+
+                val trxs = trxRepository.searchTrxsByDescription(query)
+
+                _uiState.update { currentState ->
+                    val records = filterAndGroupTransactions(
+                        trxs = trxs,
+                        accountIds = currentState.filterAccountIds,
+                        accountTypes = currentState.filterAccountTypes,
+                        categoryIds = currentState.filterCategoryIds,
+                        trxTypes = currentState.filterTrxTypes,
+                    )
+                    currentState.copy(
+                        searchStatus = Success(Unit),
+                        searchRecords = records
+                    )
+                }
+            } catch (e: Exception) {
+                this@TrxListViewModel.log(e)
+                _uiState.update {
+                    it.copy(searchStatus = Failure(e))
+                }
+            }
         }
     }
 

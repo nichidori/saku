@@ -69,6 +69,16 @@ interface TrxDao {
         excludeInstallmentCharges: Boolean = false,
     ): List<TrxWithDetailsEntity>
 
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM trx
+        WHERE description LIKE '%' || :keyword || '%'
+        ORDER BY transaction_at DESC
+        """
+    )
+    suspend fun searchWithDetailsByDescription(keyword: String): List<TrxWithDetailsEntity>
+
     @Query("SELECT * FROM trx WHERE transaction_at < :endTime ORDER BY transaction_at ASC")
     suspend fun getAllUpTo(endTime: Long): List<TrxEntity>
 

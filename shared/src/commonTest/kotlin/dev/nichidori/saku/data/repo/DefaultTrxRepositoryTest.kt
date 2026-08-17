@@ -282,6 +282,66 @@ class DefaultTrxRepositoryTest {
     }
 
     @Test
+    fun searchTrxsByDescription_shouldReturnOnlyMatchingTransactions() = runTest {
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = Clock.System.now(),
+            amount = 5_000L,
+            description = "Coffee at Starbucks",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = incomeCategory,
+
+            )
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 1_000L,
+            description = "buy coffee beans",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+
+            )
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            description = "Lunch at cafe",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+
+            )
+
+        val results = repository.searchTrxsByDescription("coffee")
+
+        assertEquals(2, results.size)
+        assertEquals(
+            setOf("Coffee at Starbucks", "buy coffee beans"),
+            results.map { it.description }.toSet()
+        )
+    }
+
+    @Test
+    fun searchTrxsByDescription_withNoMatch_shouldReturnEmptyList() = runTest {
+        repository.addTrx(
+            type = TrxType.Income,
+            transactionAt = Clock.System.now(),
+            amount = 5_000L,
+            description = "Salary",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = incomeCategory,
+
+            )
+
+        val results = repository.searchTrxsByDescription("nonexistent")
+
+        assertTrue(results.isEmpty())
+    }
+
+    @Test
     fun updateTrx_shouldUpdateIncomeAndAdjustBalance() = runTest {
         repository.addTrx(
             type = TrxType.Income,

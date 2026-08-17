@@ -609,4 +609,45 @@ class TrxDaoTest {
 
         assertNull(totalAmount)
     }
+
+    @Test
+    fun searchWithDetailsByDescription_shouldReturnOnlyMatchingTransactions() = runTest {
+        setupBasicData()
+        trxDao.insert(incomeTrx.copy(id = "search-1", description = "Coffee at Starbucks", transactionAt = 2000L, createdAt = 2000L))
+        trxDao.insert(incomeTrx.copy(id = "search-2", description = "buy coffee beans", transactionAt = 3000L, createdAt = 3000L))
+        trxDao.insert(incomeTrx.copy(id = "search-3", description = "Lunch at cafe", transactionAt = 4000L, createdAt = 4000L))
+
+        val results = trxDao.searchWithDetailsByDescription("coffee")
+
+        assertEquals(2, results.size)
+        assertEquals(setOf("search-1", "search-2"), results.map { it.trx.id }.toSet())
+    }
+
+    @Test
+    fun searchWithDetailsByDescription_shouldReturnInDescendingOrder() = runTest {
+        setupBasicData()
+        trxDao.insert(incomeTrx.copy(id = "search-old", description = "coffee old", transactionAt = 1000L, createdAt = 1000L))
+        trxDao.insert(incomeTrx.copy(id = "search-new", description = "Coffee new", transactionAt = 5000L, createdAt = 5000L))
+
+        val results = trxDao.searchWithDetailsByDescription("coffee")
+
+        assertEquals(listOf("search-new", "search-old"), results.map { it.trx.id })
+    }
+
+    @Test
+    fun searchWithDetailsByDescription_withNoMatch_shouldReturnEmptyList() = runTest {
+        setupBasicData()
+        trxDao.insert(incomeTrx)
+
+        val results = trxDao.searchWithDetailsByDescription("nonexistent")
+
+        assertTrue(results.isEmpty())
+    }
+
+    @Test
+    fun searchWithDetailsByDescription_withEmptyDatabase_shouldReturnEmptyList() = runTest {
+        val results = trxDao.searchWithDetailsByDescription("coffee")
+
+        assertTrue(results.isEmpty())
+    }
 }

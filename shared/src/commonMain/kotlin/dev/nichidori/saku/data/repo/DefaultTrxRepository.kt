@@ -208,6 +208,12 @@ class DefaultTrxRepository(
         }
     }
 
+    override suspend fun searchTrxsByDescription(keyword: String): List<Trx> {
+        return db.useReaderConnection {
+            trxDao.searchWithDetailsByDescription(keyword).map { it.toDomain() }
+        }
+    }
+
     override suspend fun updateTrx(
         id: String,
         type: TrxType,
