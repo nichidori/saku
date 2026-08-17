@@ -428,6 +428,97 @@ class DefaultTrxRepositoryTest {
     }
 
     @Test
+    fun updateTrx_shouldKeepDeletedAccountAtZero_whenChangingAccount() = runTest {
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+
+            )
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+        DefaultAccountRepository(db).deleteAccount(cashAccount.id)
+        assertEquals(0L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Expense,
+            transactionAt = addedTrx.transactionAt,
+            amount = addedTrx.amount,
+            description = addedTrx.description,
+            sourceAccount = TrxAccount.Regular(bankAccount),
+            targetAccount = null,
+            category = addedTrx.category,
+
+            )
+        val deletedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
+        val updatedBank = db.accountDao().getById(bankAccount.id)!!.toDomain()
+        assertEquals(0L, deletedCash.currentAmount)
+        assertEquals(18_000L, updatedBank.currentAmount)
+    }
+
+    @Test
+    fun updateTrx_shouldKeepDeletedAccountAtZero_whenChangingAmount() = runTest {
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+
+            )
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+        DefaultAccountRepository(db).deleteAccount(cashAccount.id)
+        assertEquals(0L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+
+        repository.updateTrx(
+            id = addedTrx.id,
+            type = TrxType.Expense,
+            transactionAt = addedTrx.transactionAt,
+            amount = 1_000L,
+            description = addedTrx.description,
+            sourceAccount = addedTrx.sourceAccount,
+            targetAccount = null,
+            category = addedTrx.category,
+
+            )
+        val deletedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
+        assertEquals(0L, deletedCash.currentAmount)
+    }
+
+    @Test
+    fun deleteTrx_shouldKeepDeletedAccountAtZero() = runTest {
+        repository.addTrx(
+            type = TrxType.Expense,
+            transactionAt = Clock.System.now(),
+            amount = 2_000L,
+            description = "Groceries",
+            sourceAccount = TrxAccount.Regular(cashAccount),
+            targetAccount = null,
+            category = expenseCategory,
+
+            )
+        val addedTrx = db.trxDao()
+            .getFilteredWithDetails(startTime = 0, endTime = Long.MAX_VALUE).first()
+            .toDomain()
+        DefaultAccountRepository(db).deleteAccount(cashAccount.id)
+        assertEquals(0L, db.accountDao().getById(cashAccount.id)!!.toDomain().currentAmount)
+
+        repository.deleteTrx(addedTrx.id)
+        val deletedCash = db.accountDao().getById(cashAccount.id)!!.toDomain()
+        assertEquals(0L, deletedCash.currentAmount)
+    }
+
+    @Test
     fun updateTrx_shouldThrowWhenTransactionNotFound() = runTest {
         assertFailsWith<NoSuchElementException> {
             repository.updateTrx(

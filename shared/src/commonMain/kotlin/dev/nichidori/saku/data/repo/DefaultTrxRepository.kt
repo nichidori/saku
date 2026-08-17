@@ -620,6 +620,7 @@ class DefaultTrxRepository(
     private suspend fun adjustAccountBalance(accountId: String, delta: Long, updatedAt: Instant) {
         val account = accountDao.getById(accountId)
         if (account != null) {
+            if (account.deletedAt != null) return
             accountDao.update(
                 account.copy(
                     currentAmount = account.currentAmount + delta,
