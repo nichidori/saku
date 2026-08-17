@@ -322,4 +322,62 @@ class DefaultAccountRepositoryTest {
 
         assertEquals(10_000L, currentMonthRecord()?.netWorth)
     }
+
+    private suspend fun insertInstallment(creditId: String, nextIndex: Int) {
+        val now = Clock.System.now().toEpochMilliseconds()
+        db.categoryDao().insert(
+            CategoryEntity(
+                id = "cat-installment",
+                name = "Gadget",
+                type = TrxTypeEntity.Expense,
+                createdAt = now,
+                updatedAt = null,
+                parentId = null,
+                icon = null,
+            )
+        )
+        db.installmentDao().insert(
+            InstallmentEntity(
+                id = "inst-1",
+                description = "iPhone",
+                categoryId = "cat-installment",
+                creditId = creditId,
+                principal = 1_000_000L,
+                months = 12,
+                monthlyRatePercent = 0.0,
+                totalAmount = 1_200_000L,
+                monthlyPayment = 100_000L,
+                lastPayment = 100_000L,
+                startAt = now,
+                dueDay = 15,
+                nextIndex = nextIndex,
+                createdAt = now,
+                updatedAt = null,
+            )
+        )
+    }
+
+    @Test
+    fun deleteCredit_shouldThrowWhenPendingInstallmentsExist() = runTest {
+        repository.addCredit(name = "CC", limit = 5_000L, currentAmount = 3_000L)
+        val creditId = db.creditDao().getAll().first().id
+        insertInstallment(creditId, nextIndex = 3)
+
+        assertFailsWith<IllegalStateException> {
+            repository.deleteCredit(creditId)
+        }
+
+        assertNotNull(db.creditDao().getById(creditId))
+    }
+
+    @Test
+    fun deleteCredit_shouldSucceedWhenInstallmentsCompleted() = runTest {
+        repository.addCredit(name = "CC", limit = 5_000L, currentAmount = 3_000L)
+        val creditId = db.creditDao().getAll().first().id
+        insertInstallment(creditId, nextIndex = 12)
+
+        repository.deleteCredit(creditId)
+
+        assertNull(db.creditDao().getById(creditId))
+    }
 }

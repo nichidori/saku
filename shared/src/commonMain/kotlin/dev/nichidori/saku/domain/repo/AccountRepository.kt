@@ -21,4 +21,5 @@ interface AccountRepository {
     suspend fun getCreditById(id: String): Credit?
     suspend fun updateCredit(id: String, name: String, limit: Long, currentAmount: Long)
     suspend fun deleteCredit(id: String)
+    suspend fun getPendingInstallmentCount(creditId: String): Int
 }

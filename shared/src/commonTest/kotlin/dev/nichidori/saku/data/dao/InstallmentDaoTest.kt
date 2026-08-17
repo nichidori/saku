@@ -119,4 +119,20 @@ class InstallmentDaoTest {
         assertNull(dao.getById("inst-1"))
         assertTrue(dao.getAll().isEmpty())
     }
+
+    @Test
+    fun getPendingCountByCreditId_shouldCountOnlyPendingInstallments() = runTest {
+        dao.insert(sampleInstallment("inst-pending", nextIndex = 3))
+        dao.insert(sampleInstallment("inst-almost-done", nextIndex = 11))
+        dao.insert(sampleInstallment("inst-completed", nextIndex = 12))
+
+        val result = dao.getPendingCountByCreditId(creditId)
+
+        assertEquals(2, result)
+    }
+
+    @Test
+    fun getPendingCountByCreditId_shouldReturnZeroForUnknownCredit() = runTest {
+        assertEquals(0, dao.getPendingCountByCreditId("unknown-credit"))
+    }
 }

@@ -218,9 +218,18 @@ class DefaultAccountRepository(
         db.useWriterConnection {
             it.immediateTransaction {
                 db.creditDao().getById(id) ?: throw NoSuchElementException("Credit not found")
+                if (db.installmentDao().getPendingCountByCreditId(id) > 0) {
+                    throw IllegalStateException("Cannot delete credit account with pending installments")
+                }
                 db.creditDao().deleteById(id)
                 recalculateNetWorthFrom(Clock.System.now().toYearMonth())
             }
+        }
+    }
+
+    override suspend fun getPendingInstallmentCount(creditId: String): Int {
+        return db.useReaderConnection {
+            db.installmentDao().getPendingCountByCreditId(creditId)
         }
     }
 

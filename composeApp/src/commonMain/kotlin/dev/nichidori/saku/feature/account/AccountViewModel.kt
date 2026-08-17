@@ -30,6 +30,7 @@ data class AccountUiState(
     val type: AccountType? = null,
     val account: TrxAccount? = null,
     val isEditing: Boolean = false,
+    val hasPendingInstallments: Boolean = false,
     val saveStatus: Status<Unit, Exception> = Initial,
     val deleteStatus: Status<Unit, Exception> = Initial,
 ) {
@@ -64,6 +65,9 @@ class AccountViewModel(
                 val account = accountRepository.getAccountById(id)
                 val credit = if (account == null) accountRepository.getCreditById(id) else null
                 val balance = account?.currentAmount ?: credit?.currentAmount
+                val pendingInstallments = credit?.let {
+                    accountRepository.getPendingInstallmentCount(it.id)
+                } ?: 0
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -74,7 +78,8 @@ class AccountViewModel(
                         type = if (credit != null) AccountType.Credit else account?.type,
                         account = account?.let { TrxAccount.Regular(it) }
                             ?: credit?.let { TrxAccount.Credit(it) },
-                        isEditing = account != null || credit != null
+                        isEditing = account != null || credit != null,
+                        hasPendingInstallments = pendingInstallments > 0
                     )
                 }
             }

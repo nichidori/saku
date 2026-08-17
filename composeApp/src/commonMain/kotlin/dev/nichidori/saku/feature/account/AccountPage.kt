@@ -99,6 +99,7 @@ fun AccountPageContent(
     var showLimitInput by remember { mutableStateOf(false) }
     var showTypeInput by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showPendingInstallmentsInfo by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusManager = LocalFocusManager.current
 
@@ -135,6 +136,36 @@ fun AccountPageContent(
         }
     }
 
+    if (showPendingInstallmentsInfo) {
+        ModalBottomSheet(
+            onDismissRequest = { showPendingInstallmentsInfo = false },
+            sheetState = sheetState,
+            shape = MyDefaultShape.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Delete Account Failed",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "This credit account still has pending installments. Wait until all installments are completed before deleting this account.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                MyButton(
+                    text = "Okay",
+                    onClick = { showPendingInstallmentsInfo = false },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             MyAppBar(
@@ -150,7 +181,13 @@ fun AccountPageContent(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
-                            onClick = { showDeleteConfirmation = true },
+                            onClick = {
+                                if (uiState.type == AccountType.Credit && uiState.hasPendingInstallments) {
+                                    showPendingInstallmentsInfo = true
+                                } else {
+                                    showDeleteConfirmation = true
+                                }
+                            },
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                     }

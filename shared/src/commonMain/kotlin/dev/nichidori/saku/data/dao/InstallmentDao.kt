@@ -22,6 +22,9 @@ interface InstallmentDao {
     @Query("SELECT * FROM installment")
     suspend fun getAll(): List<InstallmentEntity>
 
+    @Query("SELECT COUNT(*) FROM installment WHERE credit_id = :creditId AND next_index < months")
+    suspend fun getPendingCountByCreditId(creditId: String): Int
+
     @Query("DELETE FROM installment WHERE id = :id")
     suspend fun deleteById(id: String)
 }
