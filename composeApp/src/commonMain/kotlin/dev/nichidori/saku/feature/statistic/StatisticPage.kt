@@ -1,13 +1,9 @@
 package dev.nichidori.saku.feature.statistic
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.*
 import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -479,13 +476,15 @@ fun StatisticItem(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable { onExpandToggle() }
                     .wrapContentSize()
             ) {
                 if (icon != null) {
                     Icon(
                         imageVector = icon,
                         contentDescription = name,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
                 } else {
@@ -493,7 +492,7 @@ fun StatisticItem(
                         name.firstOrNull()?.toString() ?: "",
                         style = MaterialTheme.typography.titleMedium.copy(
                             color = if (deleted) MaterialTheme.colorScheme.onSurfaceVariant
-                            else MaterialTheme.colorScheme.primary,
+                            else MaterialTheme.colorScheme.onSurface,
                             textDecoration = if (deleted) TextDecoration.LineThrough else TextDecoration.None,
                         ),
                         fontWeight = FontWeight.Bold,
@@ -554,7 +553,6 @@ fun StatisticItem(
             visible = expanded,
             enter = expandVertically(),
             exit = shrinkVertically(),
-            modifier = Modifier.padding(start = 56.dp)
         ) {
             expandedContent()
         }
@@ -589,30 +587,36 @@ private fun StatisticTrxItem(trx: Trx, modifier: Modifier = Modifier) {
             buildAnnotatedString { append(trx.description) }
         }
 
-        Text(
-            text = trx.transactionAt.format(
-                LocalDateTime.Format {
-                    day(padding = Padding.NONE)
-                }
-            ),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.End,
-            modifier = Modifier.width(20.dp),
-        )
-        Text(
-            text = trx.transactionAt.format(
-                LocalDateTime.Format {
-                    chars("  ")
-                    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
-                }
-            ),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Start,
-            modifier = Modifier.width(32.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            modifier = Modifier.width(56.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = trx.transactionAt.format(
+                    LocalDateTime.Format {
+                        day(padding = Padding.NONE)
+                    }
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(20.dp),
+            )
+            Text(
+                text = trx.transactionAt.format(
+                    LocalDateTime.Format {
+                        chars("  ")
+                        dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+                    }
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.width(40.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Text(
             text = primaryText,
             style = MaterialTheme.typography.bodySmall,
