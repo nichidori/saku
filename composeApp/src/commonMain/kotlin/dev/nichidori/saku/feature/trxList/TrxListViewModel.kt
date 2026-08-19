@@ -39,6 +39,7 @@ data class TrxListUiState(
     val filterCategoryIds: Set<String> = emptySet(),
     val filterTrxTypes: Set<TrxType> = emptySet(),
     val searchStatus: Status<Unit, Exception> = Initial,
+    val rawSearchTrxs: List<Trx> = emptyList(),
     val searchRecords: Map<LocalDate, DailyTrxRecord> = emptyMap(),
 ) {
     val accountTypes: Set<AccountType> = AccountType.entries.toSet()
@@ -99,14 +100,14 @@ class TrxListViewModel(
         searchDebounceJob = null
         _searchQuery.value = ""
         _uiState.update {
-            it.copy(searchStatus = Initial, searchRecords = emptyMap())
+            it.copy(searchStatus = Initial, rawSearchTrxs = emptyList(), searchRecords = emptyMap())
         }
     }
 
     private fun searchOrClear(query: String) {
         if (query.isBlank()) {
             _uiState.update {
-                it.copy(searchStatus = Initial, searchRecords = emptyMap())
+                it.copy(searchStatus = Initial, rawSearchTrxs = emptyList(), searchRecords = emptyMap())
             }
         } else {
             search(query.trim())
@@ -213,7 +214,15 @@ class TrxListViewModel(
                 }
             }
 
-            newState.copy(stateByMonth = stateByMonth)
+            val searchRecords = filterAndGroupTransactions(
+                trxs = newState.rawSearchTrxs,
+                accountIds = accountIds,
+                accountTypes = accountTypes,
+                categoryIds = categoryIds,
+                trxTypes = trxTypes,
+            )
+
+            newState.copy(stateByMonth = stateByMonth, searchRecords = searchRecords)
         }
     }
 
@@ -234,10 +243,11 @@ class TrxListViewModel(
                         categoryIds = currentState.filterCategoryIds,
                         trxTypes = currentState.filterTrxTypes,
                     )
-                    currentState.copy(
-                        searchStatus = Success(Unit),
-                        searchRecords = records
-                    )
+            currentState.copy(
+                searchStatus = Success(Unit),
+                rawSearchTrxs = trxs,
+                searchRecords = records
+            )
                 }
             } catch (e: Exception) {
                 this@TrxListViewModel.log(e)
