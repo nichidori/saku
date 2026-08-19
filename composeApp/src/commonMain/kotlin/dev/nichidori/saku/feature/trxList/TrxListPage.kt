@@ -29,6 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.toPickerIcon
@@ -64,6 +67,18 @@ fun TrxListPage(
     var showFilterOption by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
     val isSearching = showSearch
+
+    val searchBackState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(
+        state = searchBackState,
+        isBackEnabled = showSearch,
+        onBackCompleted = {
+            if (searchQuery.isNotEmpty()) {
+                viewModel.clearSearch()
+            }
+            showSearch = false
+        }
+    )
 
     val earliestMonth = YearMonth(2025, 1)
     val currentMonth = Clock.System.now().toYearMonth()
