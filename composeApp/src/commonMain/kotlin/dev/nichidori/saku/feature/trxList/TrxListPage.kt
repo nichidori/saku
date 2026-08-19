@@ -343,33 +343,50 @@ fun TrxListPage(
                                 }
                             }
                         }
-                        AnimatedVisibility(
-                            visible = showSearch,
-                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
-                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
-                        ) {
-                            MyTextField(
-                                value = searchQuery,
-                                onValueChange = viewModel::onSearchQueryChange,
-                                label = "",
-                                trailingIcon = {
-                                    IconButton(
-                                        onClick = {
-                                            if (searchQuery.isNotEmpty()) {
-                                                viewModel.clearSearch()
-                                            } else {
-                                                showSearch = false
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            AnimatedVisibility(
+                                visible = showSearch,
+                                enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+                                exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
+                            ) {
+                                MyTextField(
+                                    value = searchQuery,
+                                    onValueChange = viewModel::onSearchQueryChange,
+                                    label = "",
+                                    leadingIcon = {
+                                        Spacer(modifier = Modifier.width(40.dp))
+                                    },
+                                    trailingIcon = if (searchQuery.isNotEmpty()) {
+                                        {
+                                            IconButton(onClick = viewModel::clearSearch) {
+                                                Icon(
+                                                    imageVector = Lucide.X,
+                                                    contentDescription = "Clear search"
+                                                )
                                             }
                                         }
-                                    ) {
-                                        Icon(
-                                            imageVector = Lucide.X,
-                                            contentDescription = if (searchQuery.isNotEmpty()) "Clear search" else "Close search"
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)
-                            )
+                                    } else null,
+                                    modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showSearch,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                            ) {
+                                IconButton(
+                                    onClick = { showSearch = false },
+                                    modifier = Modifier
+                                        .graphicsLayer {
+                                            translationX = -8.dp.toPx()
+                                        }
+                                ) {
+                                    Icon(
+                                        imageVector = Lucide.ArrowLeft,
+                                        contentDescription = "Close search"
+                                    )
+                                }
+                            }
                         }
                     }
                 },

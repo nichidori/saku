@@ -30,6 +30,7 @@ fun MyTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     dimmed: Boolean = false,
 ) {
@@ -79,6 +80,11 @@ fun MyTextField(
             },
         decorationBox = { innerTextField ->
             Row {
+                leadingIcon?.let {
+                    Box(modifier = Modifier.padding(top = 8.dp)) {
+                        it()
+                    }
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = label,
