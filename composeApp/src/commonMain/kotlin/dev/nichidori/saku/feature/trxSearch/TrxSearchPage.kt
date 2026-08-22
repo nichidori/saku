@@ -100,7 +100,7 @@ fun TrxSearchPage(
                         trxRecordsByDate = uiState.recordsByDate,
                     ),
                     onTrxClick = onTrxClick,
-                    emptyMessage = "No results found for \"$query\"",
+                    emptyMessage = "No results found",
                     modifier = Modifier.fillMaxSize().padding(top = 16.dp),
                 )
             }
