@@ -20,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
@@ -66,6 +68,7 @@ fun TrxListPage(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var showFilterOption by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
     val isSearching = showSearch
 
     val searchBackState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -99,6 +102,12 @@ fun TrxListPage(
             val month = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
             viewModel.loadTrxs(month = month)
             onMonthChange(month)
+        }
+    }
+
+    LaunchedEffect(showSearch) {
+        if (showSearch) {
+            searchFocusRequester.requestFocus()
         }
     }
 
@@ -366,7 +375,8 @@ fun TrxListPage(
                                             }
                                         }
                                     } else null,
-                                    modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)
+                                    modifier = Modifier.focusRequester(searchFocusRequester)
+                                        .padding(bottom = 8.dp, end = 8.dp)
                                 )
                             }
                             AnimatedVisibility(
