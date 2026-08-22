@@ -19,7 +19,6 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import dev.nichidori.saku.core.composable.MyIconButton
-import dev.nichidori.saku.core.composable.MyNoData
 import dev.nichidori.saku.core.composable.MyTextField
 import dev.nichidori.saku.core.util.collectAsStateWithLifecycleIfAvailable
 import dev.nichidori.saku.feature.trxList.TrxListContent
@@ -67,6 +66,7 @@ fun TrxSearchPage(
                     value = query,
                     onValueChange = viewModel::onQueryChange,
                     label = "",
+                    hint = "Search transaction",
                     trailingIcon = if (query.isNotEmpty()) {
                         {
                             IconButton(onClick = viewModel::clearQuery) {
@@ -87,13 +87,7 @@ fun TrxSearchPage(
         Box(
             modifier = Modifier.padding(contentPadding).fillMaxSize()
         ) {
-            if (query.isBlank()) {
-                MyNoData(
-                    message = "Type to search your transactions",
-                    contentDescription = "Search transactions",
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
+            if (query.isNotBlank()) {
                 TrxListContent(
                     uiState = TrxListUiState.MonthlyState(
                         loadStatus = uiState.status,

@@ -32,6 +32,7 @@ fun MyTextField(
     readOnly: Boolean = false,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
+    hint: String = "",
     dimmed: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -92,7 +93,21 @@ fun MyTextField(
                         color = textColor,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    innerTextField()
+                    Box(modifier = Modifier.weight(1f)) {
+                        innerTextField()
+                        if (value.isEmpty() && hint.isNotEmpty()) {
+                            Text(
+                                text = hint,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .align(Alignment.CenterStart)
+                                    .padding(bottom = 8.dp),
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 trailingIcon?.let {
