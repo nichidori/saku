@@ -13,8 +13,6 @@ import dev.nichidori.saku.domain.repo.AccountRepository
 import dev.nichidori.saku.domain.repo.CategoryRepository
 import dev.nichidori.saku.domain.repo.TrxRepository
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -29,6 +27,20 @@ data class DailyTrxRecord(
     val totalExpense: Long,
 )
 
+internal fun groupTrxsByDate(trxs: List<Trx>): Map<LocalDate, DailyTrxRecord> {
+    return trxs.groupBy { trx ->
+        trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
+    }.mapValues { (_, dailyTrxs) ->
+        DailyTrxRecord(
+            trxs = dailyTrxs,
+            totalIncome = dailyTrxs.filterIsInstance<Trx.Income>().sumOf { it.amount },
+            totalExpense = dailyTrxs.filterIsInstance<Trx.Expense>()
+                .filter { it.installment !is InstallmentInfo.Charge }
+                .sumOf { it.amount },
+        )
+    }
+}
+
 data class TrxListUiState(
     val stateByMonth: Map<YearMonth, MonthlyState> = emptyMap(),
     val accounts: List<TrxAccount> = emptyList(),
@@ -38,9 +50,6 @@ data class TrxListUiState(
     val filterAccountTypes: Set<AccountType> = emptySet(),
     val filterCategoryIds: Set<String> = emptySet(),
     val filterTrxTypes: Set<TrxType> = emptySet(),
-    val searchStatus: Status<Unit, Exception> = Initial,
-    val rawSearchTrxs: List<Trx> = emptyList(),
-    val searchRecords: Map<LocalDate, DailyTrxRecord> = emptyMap(),
 ) {
     val accountTypes: Set<AccountType> = AccountType.entries.toSet()
     val trxTypes: Set<TrxType> = TrxType.entries.toSet()
@@ -80,39 +89,6 @@ class TrxListViewModel(
 
     private val _uiState = MutableStateFlow(TrxListUiState())
     val uiState: StateFlow<TrxListUiState> = _uiState.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private var searchDebounceJob: Job? = null
-
-    fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
-        searchDebounceJob?.cancel()
-        searchDebounceJob = viewModelScope.launch {
-            delay(300.milliseconds)
-            searchOrClear(query)
-        }
-    }
-
-    fun clearSearch() {
-        searchDebounceJob?.cancel()
-        searchDebounceJob = null
-        _searchQuery.value = ""
-        _uiState.update {
-            it.copy(searchStatus = Initial, rawSearchTrxs = emptyList(), searchRecords = emptyMap())
-        }
-    }
-
-    private fun searchOrClear(query: String) {
-        if (query.isBlank()) {
-            _uiState.update {
-                it.copy(searchStatus = Initial, rawSearchTrxs = emptyList(), searchRecords = emptyMap())
-            }
-        } else {
-            search(query.trim())
-        }
-    }
 
     fun loadTrxs(month: YearMonth) {
         viewModelScope.launch {
@@ -214,47 +190,7 @@ class TrxListViewModel(
                 }
             }
 
-            val searchRecords = filterAndGroupTransactions(
-                trxs = newState.rawSearchTrxs,
-                accountIds = accountIds,
-                accountTypes = accountTypes,
-                categoryIds = categoryIds,
-                trxTypes = trxTypes,
-            )
-
-            newState.copy(stateByMonth = stateByMonth, searchRecords = searchRecords)
-        }
-    }
-
-    private fun search(query: String) {
-        viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(searchStatus = Loading)
-                }
-
-                val trxs = trxRepository.searchTrxsByDescription(query)
-
-                _uiState.update { currentState ->
-                    val records = filterAndGroupTransactions(
-                        trxs = trxs,
-                        accountIds = currentState.filterAccountIds,
-                        accountTypes = currentState.filterAccountTypes,
-                        categoryIds = currentState.filterCategoryIds,
-                        trxTypes = currentState.filterTrxTypes,
-                    )
-            currentState.copy(
-                searchStatus = Success(Unit),
-                rawSearchTrxs = trxs,
-                searchRecords = records
-            )
-                }
-            } catch (e: Exception) {
-                this@TrxListViewModel.log(e)
-                _uiState.update {
-                    it.copy(searchStatus = Failure(e))
-                }
-            }
+            newState.copy(stateByMonth = stateByMonth)
         }
     }
 
@@ -265,39 +201,31 @@ class TrxListViewModel(
         categoryIds: Set<String>,
         trxTypes: Set<TrxType>,
     ): Map<LocalDate, DailyTrxRecord> {
-        return trxs.filter { trx ->
-            val matchAccount = accountIds.isEmpty()
-                    || accountIds.contains(trx.sourceAccount.id)
-                    || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
-            val matchCategory = categoryIds.isEmpty()
-                    || trx.category?.let { categoryIds.contains(it.id) } ?: false
-            val sourceType = when (val account = trx.sourceAccount) {
-                is TrxAccount.Regular -> account.account.type
-                is TrxAccount.Credit -> AccountType.Credit
-            }
-            val targetType = (trx as? Trx.Transfer)?.let {
-                when (val account = it.targetAccount) {
+        return groupTrxsByDate(
+            trxs.filter { trx ->
+                val matchAccount = accountIds.isEmpty()
+                        || accountIds.contains(trx.sourceAccount.id)
+                        || (trx as? Trx.Transfer)?.let { accountIds.contains(it.targetAccount.id) } ?: false
+                val matchCategory = categoryIds.isEmpty()
+                        || trx.category?.let { categoryIds.contains(it.id) } ?: false
+                val sourceType = when (val account = trx.sourceAccount) {
                     is TrxAccount.Regular -> account.account.type
                     is TrxAccount.Credit -> AccountType.Credit
                 }
-            }
-            val matchAccountType = accountTypes.isEmpty()
-                    || accountTypes.contains(sourceType)
-                    || (targetType != null && accountTypes.contains(targetType))
-            val matchTrxType = trxTypes.isEmpty() || trxTypes.contains(trx.type)
+                val targetType = (trx as? Trx.Transfer)?.let {
+                    when (val account = it.targetAccount) {
+                        is TrxAccount.Regular -> account.account.type
+                        is TrxAccount.Credit -> AccountType.Credit
+                    }
+                }
+                val matchAccountType = accountTypes.isEmpty()
+                        || accountTypes.contains(sourceType)
+                        || (targetType != null && accountTypes.contains(targetType))
+                val matchTrxType = trxTypes.isEmpty() || trxTypes.contains(trx.type)
 
-            matchAccount && matchCategory && matchAccountType && matchTrxType
-        }.groupBy { trx ->
-            trx.transactionAt.toLocalDateTime(TimeZone.currentSystemDefault()).date
-        }.mapValues { (_, dailyTrxs) ->
-            DailyTrxRecord(
-                trxs = dailyTrxs,
-                totalIncome = dailyTrxs.filterIsInstance<Trx.Income>().sumOf { it.amount },
-                totalExpense = dailyTrxs.filterIsInstance<Trx.Expense>()
-                    .filter { it.installment !is InstallmentInfo.Charge }
-                    .sumOf { it.amount },
-            )
-        }
+                matchAccount && matchCategory && matchAccountType && matchTrxType
+            }
+        )
     }
 
     private fun updateMonthlyState(

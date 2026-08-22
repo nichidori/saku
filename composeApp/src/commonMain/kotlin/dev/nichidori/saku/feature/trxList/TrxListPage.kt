@@ -1,7 +1,5 @@
 package dev.nichidori.saku.feature.trxList
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,8 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
@@ -31,9 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigationevent.NavigationEventInfo
-import androidx.navigationevent.compose.NavigationBackHandler
-import androidx.navigationevent.compose.rememberNavigationEventState
 import com.composables.icons.lucide.*
 import dev.nichidori.saku.core.composable.*
 import dev.nichidori.saku.core.model.toPickerIcon
@@ -52,36 +45,21 @@ import kotlinx.datetime.format.Padding
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrxListPage(
     initialMonth: YearMonth,
     viewModel: TrxListViewModel,
     onMonthChange: (YearMonth) -> Unit,
     onTrxClick: (String) -> Unit,
+    onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
     monthChipsListState: LazyListState = rememberLazyListState(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycleIfAvailable()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycleIfAvailable()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var showFilterOption by remember { mutableStateOf(false) }
-    var showSearch by remember { mutableStateOf(false) }
-    val searchFocusRequester = remember { FocusRequester() }
-    val isSearching = showSearch
-
-    val searchBackState = rememberNavigationEventState(NavigationEventInfo.None)
-    NavigationBackHandler(
-        state = searchBackState,
-        isBackEnabled = showSearch,
-        onBackCompleted = {
-            if (searchQuery.isNotEmpty()) {
-                viewModel.clearSearch()
-            }
-            showSearch = false
-        }
-    )
 
     val earliestMonth = YearMonth(2025, 1)
     val currentMonth = Clock.System.now().toYearMonth()
@@ -102,12 +80,6 @@ fun TrxListPage(
             val month = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
             viewModel.loadTrxs(month = month)
             onMonthChange(month)
-        }
-    }
-
-    LaunchedEffect(showSearch) {
-        if (showSearch) {
-            searchFocusRequester.requestFocus()
         }
     }
 
@@ -313,91 +285,21 @@ fun TrxListPage(
         topBar = {
             TopAppBar(
                 title = {
-                    Box(
-                        contentAlignment = Alignment.CenterEnd,
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.graphicsLayer {
+                            translationX = -8.dp.toPx()
+                        }
                     ) {
-                        AnimatedVisibility(
-                            visible = !showSearch,
-                            enter = fadeIn(),
-                            exit = fadeOut(),
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .graphicsLayer {
-                                        translationX = -8.dp.toPx()
-                                    }
-                            ) {
-                                MySunFlowerIcon(
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text(
-                                    "Transactions",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                IconButton(
-                                    onClick = {
-                                        showSearch = true
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.Search,
-                                        contentDescription = "Search transactions"
-                                    )
-                                }
-                            }
-                        }
-                        Box(contentAlignment = Alignment.CenterStart) {
-                            AnimatedVisibility(
-                                visible = showSearch,
-                                enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
-                                exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
-                            ) {
-                                MyTextField(
-                                    value = searchQuery,
-                                    onValueChange = viewModel::onSearchQueryChange,
-                                    label = "",
-                                    leadingIcon = {
-                                        Spacer(modifier = Modifier.width(40.dp))
-                                    },
-                                    trailingIcon = if (searchQuery.isNotEmpty()) {
-                                        {
-                                            IconButton(onClick = viewModel::clearSearch) {
-                                                Icon(
-                                                    imageVector = Lucide.X,
-                                                    contentDescription = "Clear search"
-                                                )
-                                            }
-                                        }
-                                    } else null,
-                                    modifier = Modifier.focusRequester(searchFocusRequester)
-                                        .padding(bottom = 8.dp, end = 8.dp)
-                                )
-                            }
-                            AnimatedVisibility(
-                                visible = showSearch,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                            ) {
-                                IconButton(
-                                    onClick = { showSearch = false },
-                                    modifier = Modifier
-                                        .graphicsLayer {
-                                            translationX = -8.dp.toPx()
-                                        }
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.ArrowLeft,
-                                        contentDescription = "Close search"
-                                    )
-                                }
-                            }
-                        }
+                        MySunFlowerIcon(
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            "Transactions",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -406,6 +308,12 @@ fun TrxListPage(
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                 ),
                 actions = {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(
+                            imageVector = Lucide.Search,
+                            contentDescription = "Search transactions"
+                        )
+                    }
                     Box {
                         IconButton(
                             onClick = {
@@ -437,46 +345,24 @@ fun TrxListPage(
         },
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
-            AnimatedContent(
-                targetState = isSearching,
-                modifier = Modifier.fillMaxSize(),
-                transitionSpec = {
-                    fadeIn(tween(200)) togetherWith fadeOut(tween(200))
-                },
-            ) { searching ->
-                if (searching) {
-                    TrxListContent(
-                        uiState = TrxListUiState.MonthlyState(
-                            loadStatus = uiState.searchStatus,
-                            trxRecordsByDate = uiState.searchRecords,
-                        ),
-                        onTrxClick = onTrxClick,
-                        emptyMessage = "No results found for \"$searchQuery\"",
-                        modifier = Modifier.fillMaxSize().padding(top = 16.dp),
-                    )
-                } else {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        MyMonthChipRow(
-                            selectedMonth = initialMonth,
-                            earliestMonth = earliestMonth,
-                            latestMonth = currentMonth,
-                            onMonthSelect = onMonthChange,
-                            listState = monthChipsListState,
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier.weight(1f)
-                        ) { page ->
-                            val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
-                            TrxListContent(
-                                uiState = uiState.stateByMonth[pageMonth] ?: TrxListUiState.MonthlyState(),
-                                onTrxClick = onTrxClick,
-                            )
-                        }
-                    }
-                }
+            Spacer(modifier = Modifier.height(8.dp))
+            MyMonthChipRow(
+                selectedMonth = initialMonth,
+                earliestMonth = earliestMonth,
+                latestMonth = currentMonth,
+                onMonthSelect = onMonthChange,
+                listState = monthChipsListState,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { page ->
+                val pageMonth = earliestMonth.plus(page, unit = DateTimeUnit.MONTH)
+                TrxListContent(
+                    uiState = uiState.stateByMonth[pageMonth] ?: TrxListUiState.MonthlyState(),
+                    onTrxClick = onTrxClick,
+                )
             }
         }
     }

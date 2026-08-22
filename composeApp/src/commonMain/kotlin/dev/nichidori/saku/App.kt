@@ -64,6 +64,8 @@ import dev.nichidori.saku.feature.trx.TrxPage
 import dev.nichidori.saku.feature.trx.TrxViewModel
 import dev.nichidori.saku.feature.trxList.TrxListPage
 import dev.nichidori.saku.feature.trxList.TrxListViewModel
+import dev.nichidori.saku.feature.trxSearch.TrxSearchPage
+import dev.nichidori.saku.feature.trxSearch.TrxSearchViewModel
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplatePage
 import dev.nichidori.saku.feature.trxTemplate.TrxTemplateViewModel
 import dev.nichidori.saku.feature.trxTemplateList.TrxTemplateListBottomSheet
@@ -94,6 +96,9 @@ sealed interface Route {
 
     @Serializable
     data object TrxList : Route
+
+    @Serializable
+    data object TrxSearch : Route
 
     @Serializable
     data class Account(val id: String?) : Route
@@ -321,6 +326,17 @@ fun App(
                             },
                         )
                     }
+                    composable<Route.TrxSearch> {
+                        TrxSearchPage(
+                            viewModel = viewModel {
+                                TrxSearchViewModel(trxRepository)
+                            },
+                            onUp = { rootNavController.popBackStack() },
+                            onTrxClick = { id ->
+                                rootNavController.navigate(Route.Trx(id))
+                            }
+                        )
+                    }
                     composable<Route.TrxTemplate>(
                         typeMap = mapOf(typeOf<TrxType>() to TrxTypeNavType)
                     ) { backStackEntry ->
@@ -496,6 +512,9 @@ fun MainContainer(
                     },
                     onTrxClick = { id ->
                         rootNavController.navigate(Route.Trx(id))
+                    },
+                    onSearchClick = {
+                        rootNavController.navigate(Route.TrxSearch)
                     }
                 )
             }
