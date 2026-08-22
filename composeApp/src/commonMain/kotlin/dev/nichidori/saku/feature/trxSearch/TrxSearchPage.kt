@@ -79,7 +79,7 @@ fun TrxSearchPage(
                     } else null,
                     modifier = Modifier.weight(1f).focusRequester(searchFocusRequester).padding(bottom = 8.dp),
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
             }
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -95,7 +95,7 @@ fun TrxSearchPage(
                     ),
                     onTrxClick = onTrxClick,
                     emptyMessage = "No results found",
-                    modifier = Modifier.fillMaxSize().padding(top = 16.dp),
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }

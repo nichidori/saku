@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -101,7 +102,7 @@ fun MyTextField(
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     fontWeight = FontWeight.Bold,
                                 ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color.Gray,
                                 modifier = Modifier
                                     .align(Alignment.CenterStart)
                                     .padding(bottom = 8.dp),
