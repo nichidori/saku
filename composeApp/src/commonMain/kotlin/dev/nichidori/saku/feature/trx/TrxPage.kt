@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.*
@@ -567,6 +569,9 @@ fun TrxPageContent(
                     onValueChange = onDescriptionChange,
                     label = "Description",
                     enabled = !isReadOnly,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(24.dp))
