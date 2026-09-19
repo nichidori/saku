@@ -34,7 +34,6 @@ jobs:
 
   unit-test:
     name: Run unit tests
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -53,10 +52,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew :shared:jvmTest
 
-      - name: Upload artifact
+      - name: Upload test results
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: unit-test-results
-          path: '**/build/test-results/**/*.xml'
+          path: |
+            **/build/test-results/
+            **/build/reports/tests/
