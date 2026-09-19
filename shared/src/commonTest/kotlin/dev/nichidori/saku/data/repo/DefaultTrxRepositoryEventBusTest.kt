@@ -7,6 +7,7 @@ import dev.nichidori.saku.data.AppDatabase
 import dev.nichidori.saku.data.entity.toEntity
 import dev.nichidori.saku.data.getRoomDatabase
 import dev.nichidori.saku.domain.model.*
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.take
@@ -67,7 +68,7 @@ class DefaultTrxRepositoryEventBusTest {
 
     @Test
     fun trxCrud_shouldEmitTrxChangedEventsInOrder() = runTest {
-        val events = async {
+        val events = async(start = CoroutineStart.UNDISPATCHED) {
             eventBus.events.filterIsInstance<AppEvent.TrxChanged>().take(3).toList()
         }
 
@@ -115,7 +116,7 @@ class DefaultTrxRepositoryEventBusTest {
 
     @Test
     fun updateTrx_movingDateToAnotherMonth_shouldCarryBeforeAndAfter() = runTest {
-        val events = async {
+        val events = async(start = CoroutineStart.UNDISPATCHED) {
             eventBus.events.filterIsInstance<AppEvent.TrxChanged>().take(2).toList()
         }
 
