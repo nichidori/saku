@@ -94,26 +94,29 @@ android {
     }
     signingConfigs {
         create("release") {
-            val props = Properties()
-            val file = rootProject.file("key.properties")
-
-            if (file.exists()) {
-                props.load(FileInputStream(file))
-
-                storeFile = file(props["storeFile"]!!)
-                storePassword = props["storePassword"] as String
-                keyAlias = props["keyAlias"] as String
-                keyPassword = props["keyPassword"] as String
+            val keyProps = rootProject.file("key.properties")
+            if (!keyProps.exists()) {
+                if (gradle.startParameter.taskNames.any { it.contains("Release") }) {
+                    throw GradleException("key.properties not found at '${keyProps.absolutePath}'. Required for release builds. Provide it locally or via KEY_PROPERTIES_BASE64 / KEYSTORE_BASE64 secrets in CI.")
+                }
+                return@create
             }
+
+            val props = Properties().apply { keyProps.inputStream().use { load(it) } }
+            fun prop(name: String) = props.getProperty(name)
+                ?: throw GradleException("key.properties is missing '$name'")
+
+            storeFile = file(prop("storeFile")).also {
+                if (!it.exists()) throw GradleException("Keystore not found at '${it.absolutePath}'. Check 'storeFile' in key.properties.")
+            }
+            storePassword = prop("storePassword")
+            keyAlias = prop("keyAlias")
+            keyPassword = prop("keyPassword")
         }
     }
     buildTypes {
-        getByName("debug") {
-            isDebuggable = true
-        }
-        getByName("release") {
+        release {
             isMinifyEnabled = true
-            isDebuggable = false
             signingConfig = signingConfigs.getByName("release")
         }
     }
