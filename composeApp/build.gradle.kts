@@ -96,12 +96,15 @@ android {
         create("release") {
             val props = Properties()
             val file = rootProject.file("key.properties")
-            props.load(FileInputStream(file))
 
-            storeFile = file(props["storeFile"]!!)
-            storePassword = props["storePassword"] as String
-            keyAlias = props["keyAlias"] as String
-            keyPassword = props["keyPassword"] as String
+            if (file.exists()) {
+                props.load(FileInputStream(file))
+
+                storeFile = file(props["storeFile"]!!)
+                storePassword = props["storePassword"] as String
+                keyAlias = props["keyAlias"] as String
+                keyPassword = props["keyPassword"] as String
+            }
         }
     }
     buildTypes {
